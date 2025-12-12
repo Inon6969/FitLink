@@ -103,7 +103,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="View all trainers & clients"
+                            android:text="View all trainers &amp; clients"
                             android:textSize="12sp"
                             android:fontFamily="@font/poppins_regular"
                             android:textColor="@color/fitlinkTextSecondary"
@@ -153,7 +153,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Add & edit nutrition items"
+                            android:text="Add &amp; edit nutrition items"
                             android:textSize="12sp"
                             android:fontFamily="@font/poppins_regular"
                             android:textColor="@color/fitlinkTextSecondary"

@@ -21,6 +21,13 @@
             android:gravity="center_horizontal"
             android:padding="32dp">
 
+            <ImageView
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:src="@drawable/fitlink_logo_modern"
+                android:background="@drawable/logo_circle_bg"
+                android:padding="4dp" />
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -29,7 +36,7 @@
                 android:textStyle="bold"
                 android:fontFamily="@font/poppins_bold"
                 android:textColor="@color/fitlinkPrimary"
-                android:layout_marginTop="48dp"
+                android:layout_marginTop="8dp"
                 android:layout_marginBottom="8dp"/>
 
             <TextView

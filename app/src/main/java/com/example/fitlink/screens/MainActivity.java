@@ -12,6 +12,8 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.fitlink.R;
 import com.example.fitlink.models.User;
+import com.example.fitlink.utils.LogoutHelper;
+import com.example.fitlink.utils.PagePermissions;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.google.android.material.button.MaterialButton;
 
@@ -20,7 +22,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
     private static final String TAG = "MainActivity";
 
-    private MaterialButton btnJoinRun, btnCreateRide, btnMyActivities, btnEditProfile, btnAdminPanel;
+    private MaterialButton btnJoinRun, btnCreateRide, btnMyActivities, btnEditProfile, btnAdminPanel, btnToContact, btnToDetailsAboutUser, btnToExit;
 
     private User user;
 
@@ -36,6 +38,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             return insets;
         });
 
+        PagePermissions.checkUserPage(this);
+
+
         // Get current user from shared preferences
         user = SharedPreferencesUtil.getUser(this);
         Log.d(TAG, "User: " + user);
@@ -46,6 +51,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         btnMyActivities = findViewById(R.id.btn_my_activities);
         btnEditProfile = findViewById(R.id.btn_edit_profile);
         btnAdminPanel = findViewById(R.id.btn_admin_panel);
+        btnToContact = findViewById(R.id.btn_main_to_contact);
+        btnToDetailsAboutUser = findViewById(R.id.btn_main_to_DetailsAboutUser);
+        btnToExit = findViewById(R.id.btn_main_to_exit);
 
         // Set click listeners
         btnJoinRun.setOnClickListener(this);
@@ -53,6 +61,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         btnMyActivities.setOnClickListener(this);
         btnEditProfile.setOnClickListener(this);
         btnAdminPanel.setOnClickListener(this);
+        btnToContact.setOnClickListener(this);
+        btnToDetailsAboutUser.setOnClickListener(this);
+        btnToExit.setOnClickListener(this);
 
         // Show admin card only if user is admin
         if (user != null && user.isAdmin()) {
@@ -62,13 +73,10 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         }
     }
 
-    @Override
-    protected boolean shouldShowBackButton() {
-        return false;
-    }
 
     @Override
     public void onClick(View v) {
+        /*
         if (v.getId() == btnJoinRun.getId()) {
             Log.d(TAG, "Join Run clicked");
             startActivity(new Intent(this, JoinRunActivity.class));
@@ -92,6 +100,22 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         if (v.getId() == btnAdminPanel.getId()) {
             Log.d(TAG, "Admin Panel clicked");
             startActivity(new Intent(this, AdminActivity.class));
+        }
+        if (v.getId() == btnToContact.getId()) {
+            Log.d(TAG, "Contact clicked");
+            startActivity(new Intent(this, JoinRunActivity.class));
+            return;
+        }
+        if (v.getId() == btnToDetailsAboutUser.getId()) {
+            Log.d(TAG, "Account clicked");
+            startActivity(new Intent(this, JoinRunActivity.class));
+            return;
+        }
+        */
+        if (v.getId() == btnToExit.getId()) {
+            Log.d(TAG, "Sign out clicked");
+            LogoutHelper.logout(MainActivity.this);
+            return;
         }
     }
 }

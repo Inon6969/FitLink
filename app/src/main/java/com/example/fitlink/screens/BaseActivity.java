@@ -1,15 +1,11 @@
 package com.example.fitlink.screens;
 
 import android.os.Bundle;
-import android.view.MenuItem;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 
-import com.example.fitlink.R;
-import com.example.fitlink.services.DatabaseService;
-import com.example.fitlink.utils.SharedPreferencesUtil;
+import com.example.fitlink.services.DatabaseService;;
 
 public class BaseActivity extends AppCompatActivity {
 
@@ -20,35 +16,5 @@ public class BaseActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         /// get the instance of the database service
         databaseService = DatabaseService.getInstance();
-    }
-
-    @Override
-    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-        setupToolbar();
-    }
-
-    private void setupToolbar() {
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        if (toolbar != null) {
-            setSupportActionBar(toolbar);
-            if (getSupportActionBar() != null && shouldShowBackButton()) {
-                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-                getSupportActionBar().setDisplayShowHomeEnabled(true);
-            }
-        }
-    }
-
-    protected boolean shouldShowBackButton() {
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == android.R.id.home) {
-            finish();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
     }
 }

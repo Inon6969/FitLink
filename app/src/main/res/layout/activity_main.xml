@@ -12,16 +12,64 @@
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@color/fitlinkPrimary"
         android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar">
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
+        <LinearLayout
+            android:id="@+id/topMenu"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
+            android:orientation="horizontal"
+            android:gravity="center"
             android:background="@color/fitlinkPrimary"
-            app:title="Fitlink"
-            app:titleTextAppearance="@style/TextAppearance.MaterialComponents.Headline6"
-            app:popupTheme="@style/ThemeOverlay.MaterialComponents.Light" />
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp">
+
+            <Button
+                android:id="@+id/btn_main_to_main"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Home"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/fitlinkPrimary"
+                android:textSize="12sp"
+                android:fontFamily="@font/poppins_semibold"/>
+
+            <Button
+                android:id="@+id/btn_main_to_DetailsAboutUser"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Account"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/fitlinkPrimary"
+                android:textSize="12sp"
+                android:fontFamily="@font/poppins_semibold"/>
+
+            <Button
+                android:id="@+id/btn_main_to_contact"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Contact"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/fitlinkPrimary"
+                android:textSize="12sp"
+                android:fontFamily="@font/poppins_semibold"/>
+
+            <Button
+                android:id="@+id/btn_main_to_exit"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Sign out"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/fitlinkPrimary"
+                android:textSize="12sp"
+                android:fontFamily="@font/poppins_semibold"/>
+        </LinearLayout>
+
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView

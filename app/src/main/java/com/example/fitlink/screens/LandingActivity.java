@@ -12,6 +12,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.fitlink.R;
+import com.example.fitlink.utils.PagePermissions;
 
 /// Landing activity for the app
 /// This activity is the first activity that is shown when the app is first opened (when the user is not signed in)
@@ -33,6 +34,8 @@ public class LandingActivity extends BaseActivity implements View.OnClickListene
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        PagePermissions.redirectIfLoggedIn(this);
 
         /// get the views
         btnLogin = findViewById(R.id.btn_landing_login);

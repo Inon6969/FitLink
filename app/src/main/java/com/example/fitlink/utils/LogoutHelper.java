@@ -1,0 +1,43 @@
+package com.example.fitlink.utils;
+
+import android.app.Dialog;
+import android.content.Context;
+import android.content.Intent;
+import android.widget.Button;
+import android.widget.Toast;
+
+import com.example.fitlink.R;
+import com.example.fitlink.models.User;
+import com.example.fitlink.screens.LoginActivity;
+
+public class LogoutHelper {
+    public static void logout(Context context) {
+        Dialog dialog = new Dialog(context);
+        dialog.setContentView(R.layout.dialog_logout);
+        dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        dialog.setCancelable(true);
+
+        User user = SharedPreferencesUtil.getUser(context);
+        Button btnConfirm = dialog.findViewById(R.id.btnLogoutConfirm);
+        Button btnCancel = dialog.findViewById(R.id.btnLogoutCancel);
+
+        btnConfirm.setOnClickListener(v -> {
+            String userEmail = "";
+            if (user.getEmail() != null) {
+                userEmail = user.getEmail();
+            }
+
+            SharedPreferencesUtil.signOutUser(context);
+            Toast.makeText(context, "התנתקת בהצלחה", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(context, LoginActivity.class);
+            intent.putExtra("userEmail", userEmail);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            context.startActivity(intent);
+
+            dialog.dismiss();
+        });
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        dialog.show();
+    }
+}

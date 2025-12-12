@@ -29,7 +29,8 @@
                 android:layout_height="150dp"
                 android:layout_marginBottom="24dp"
                 android:src="@drawable/fitlink_logo_modern"
-                android:contentDescription="@null" />
+                android:background="@drawable/logo_circle_bg"
+                android:padding="4dp" />
 
             <TextView
                 android:layout_width="wrap_content"

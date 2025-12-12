@@ -9,7 +9,8 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.example.testapp.R;
+import com.example.fitlink.R;
+import com.example.fitlink.utils.PagePermissions;
 
 public class AdminActivity extends BaseActivity {
 
@@ -26,10 +27,12 @@ public class AdminActivity extends BaseActivity {
             return insets;
         });
 
+        PagePermissions.checkAdminPage(this);
+
         cardUsers = findViewById(R.id.card_users);
         cardFoods = findViewById(R.id.card_foods);
         cardCarts = findViewById(R.id.card_carts);
-
+/*
         cardUsers.setOnClickListener(v -> {
             Intent intent = new Intent(this, UsersListActivity.class);
             startActivity(intent);
@@ -44,5 +47,7 @@ public class AdminActivity extends BaseActivity {
             Intent intent = new Intent(this, AllCartsActivity.class);
             startActivity(intent);
         });
+
+ */
     }
 }

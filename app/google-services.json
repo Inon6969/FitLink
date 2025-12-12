@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "993755908742",
+    "project_id": "fitlink-d9534",
+    "storage_bucket": "fitlink-d9534.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:993755908742:android:ec3cebce3cce5b358b1f07",
+        "android_client_info": {
+          "package_name": "com.example.fitlink"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCRIKGvohaE7ufbZbE9dMoh6o5N2fBCMr8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

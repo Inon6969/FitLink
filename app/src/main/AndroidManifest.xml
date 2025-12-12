@@ -21,10 +21,10 @@
             android:name=".screens.LoginActivity"
             android:exported="false" />
         <activity
-            android:name=".screens.LandingActivity"
+            android:name=".screens.MainActivity"
             android:exported="false" />
         <activity
-            android:name=".screens.MainActivity"
+            android:name=".screens.LandingActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
