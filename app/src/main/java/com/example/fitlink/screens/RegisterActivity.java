@@ -160,7 +160,7 @@ public class RegisterActivity extends BaseActivity implements View.OnClickListen
         String uid = databaseService.generateUserId();
 
         /// create a new user object
-        User user = new User(uid, email, password, fName,lName, phone, false);
+        User user = new User(uid, email, password, fName,lName, phone, false, null);
 
         databaseService.checkIfEmailExists(email, new DatabaseService.DatabaseCallback<>() {
             @Override

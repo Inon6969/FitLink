@@ -15,11 +15,12 @@ public class User implements Serializable {
     private String firstName, lastName;
     private String phone;
     private boolean isAdmin;
+    private String profileImage;
 
     public User() {
     }
 
-    public User(String id, String email, String password, String firstName, String lastName, String phone, boolean isAdmin) {
+    public User(String id, String email, String password, String firstName, String lastName, String phone, boolean isAdmin, String profileImage) {
         this.id = id;
         this.email = email;
         this.password = password;
@@ -27,6 +28,7 @@ public class User implements Serializable {
         this.lastName = lastName;
         this.phone = phone;
         this.isAdmin = isAdmin;
+        this.profileImage = profileImage;
     }
 
     public String getId() {
@@ -84,6 +86,10 @@ public class User implements Serializable {
     public void setAdmin(boolean admin) {
         isAdmin = admin;
     }
+
+    public String getProfileImage() {return profileImage;}
+
+    public void setProfileImage(String profileImage) {this.profileImage = profileImage;}
 
     @Override
     public String toString() {

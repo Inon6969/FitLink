@@ -12,7 +12,6 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.fitlink.R;
 import com.example.fitlink.models.User;
-import com.example.fitlink.utils.LogoutHelper;
 import com.example.fitlink.utils.PagePermissions;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.google.android.material.button.MaterialButton;
@@ -106,15 +105,15 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             startActivity(new Intent(this, JoinRunActivity.class));
             return;
         }
+         */
         if (v.getId() == btnToDetailsAboutUser.getId()) {
             Log.d(TAG, "Account clicked");
-            startActivity(new Intent(this, JoinRunActivity.class));
+            startActivity(new Intent(this, UserProfileActivity.class));
             return;
         }
-        */
         if (v.getId() == btnToExit.getId()) {
             Log.d(TAG, "Sign out clicked");
-            LogoutHelper.logout(MainActivity.this);
+            logout();
             return;
         }
     }
