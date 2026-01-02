@@ -12,7 +12,6 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.fitlink.R;
 import com.example.fitlink.models.User;
-import com.example.fitlink.utils.PagePermissions;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.google.android.material.button.MaterialButton;
 
@@ -36,8 +35,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-
-        PagePermissions.checkUserPage(this);
 
 
         // Get current user from shared preferences
@@ -65,7 +62,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         btnToExit.setOnClickListener(this);
 
         // Show admin card only if user is admin
-        if (user != null && user.isAdmin()) {
+        if (user != null && user.getIsAdmin()) {
             findViewById(R.id.admin_card).setVisibility(View.VISIBLE);
         } else {
             findViewById(R.id.admin_card).setVisibility(View.GONE);
@@ -96,16 +93,17 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             startActivity(new Intent(this, UserProfileActivity.class));
             return;
         }
-        if (v.getId() == btnAdminPanel.getId()) {
-            Log.d(TAG, "Admin Panel clicked");
-            startActivity(new Intent(this, AdminActivity.class));
-        }
+
         if (v.getId() == btnToContact.getId()) {
             Log.d(TAG, "Contact clicked");
             startActivity(new Intent(this, JoinRunActivity.class));
             return;
         }
          */
+        if (v.getId() == btnAdminPanel.getId()) {
+            Log.d(TAG, "Admin Panel clicked");
+            startActivity(new Intent(this, AdminActivity.class));
+        }
         if (v.getId() == btnToDetailsAboutUser.getId()) {
             Log.d(TAG, "Account clicked");
             startActivity(new Intent(this, UserProfileActivity.class));

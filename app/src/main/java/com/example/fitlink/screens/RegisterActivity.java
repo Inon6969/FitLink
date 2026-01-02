@@ -17,7 +17,6 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.fitlink.R;
 import com.example.fitlink.models.User;
 import com.example.fitlink.services.DatabaseService;
-import com.example.fitlink.utils.PagePermissions;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.example.fitlink.utils.Validator;
 
@@ -46,7 +45,6 @@ public class RegisterActivity extends BaseActivity implements View.OnClickListen
             return insets;
         });
 
-        PagePermissions.redirectIfLoggedIn(this);
 
         /// get the views
         etEmail = findViewById(R.id.et_register_email);

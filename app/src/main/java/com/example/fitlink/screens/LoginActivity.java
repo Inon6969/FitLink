@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.core.graphics.Insets;
@@ -16,7 +17,6 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.fitlink.R;
 import com.example.fitlink.models.User;
 import com.example.fitlink.services.DatabaseService;
-import com.example.fitlink.utils.PagePermissions;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.example.fitlink.utils.Validator;
 
@@ -46,7 +46,6 @@ public class LoginActivity extends BaseActivity implements View.OnClickListener 
             return insets;
         });
 
-        PagePermissions.redirectIfLoggedIn(this);
 
         /// get the views
         etEmail = findViewById(R.id.et_login_email);
@@ -122,6 +121,10 @@ public class LoginActivity extends BaseActivity implements View.OnClickListener 
             /// @param user the user object that is logged in
             @Override
             public void onCompleted(User user) {
+                if (user == null) {
+                    Toast.makeText(LoginActivity.this, "Error while connecting user", Toast.LENGTH_LONG).show();
+                    return;
+                }
                 Log.d(TAG, "onCompleted: User logged in: " + user.toString());
                 /// save the user data to shared preferences
                 SharedPreferencesUtil.saveUser(LoginActivity.this, user);

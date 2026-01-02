@@ -42,25 +42,25 @@
 
             <Button
                 android:id="@+id/btnLogoutConfirm"
-                android:layout_width="wrap_content"
+                android:layout_width="116dp"
                 android:layout_height="wrap_content"
-                android:text="אישור"
+                android:text="Confirm"
                 android:textColor="?attr/colorOnSecondary"
                 android:backgroundTint="@color/fitlinkPrimary"
-                android:textSize="18sp"
+                android:textSize="16sp"
                 android:fontFamily="@font/poppins_bold"
-                android:layout_margin="2dp" />
+                android:layout_margin="2dp"/>
 
             <Button
                 android:id="@+id/btnLogoutCancel"
-                android:layout_width="wrap_content"
+                android:layout_width="116dp"
                 android:layout_height="wrap_content"
-                android:text="ביטול"
+                android:text="Cancel"
                 android:textColor="?attr/colorOnSecondary"
                 android:backgroundTint="@color/fitlinkPrimary"
-                android:textSize="18sp"
+                android:textSize="16sp"
                 android:fontFamily="@font/poppins_bold"
-                android:layout_margin="2dp" />
+                android:layout_margin="2dp"/>
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

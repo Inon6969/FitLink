@@ -12,7 +12,9 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.fitlink.R;
-import com.example.fitlink.utils.PagePermissions;
+import com.example.fitlink.models.User;
+import com.example.fitlink.services.DatabaseService;
+import com.example.fitlink.utils.SharedPreferencesUtil;
 
 /// Landing activity for the app
 /// This activity is the first activity that is shown when the app is first opened (when the user is not signed in)
@@ -35,7 +37,23 @@ public class LandingActivity extends BaseActivity implements View.OnClickListene
             return insets;
         });
 
-        PagePermissions.redirectIfLoggedIn(this);
+        User current = SharedPreferencesUtil.getUser(this);
+        if (SharedPreferencesUtil.isUserLoggedIn(this)) {
+            databaseService.getUser(current.getId(), new DatabaseService.DatabaseCallback<User>() {
+                @Override
+                public void onCompleted(User user) {
+                    if (user != null) {
+                        Intent intent = new Intent(LandingActivity.this, MainActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
+                    }
+                }
+
+                @Override
+                public void onFailed(Exception e) {
+                }
+            });
+        }
 
         /// get the views
         btnLogin = findViewById(R.id.btn_landing_login);

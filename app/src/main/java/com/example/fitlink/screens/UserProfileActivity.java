@@ -21,6 +21,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.fitlink.R;
 import com.example.fitlink.models.User;
+import com.example.fitlink.screens.dialogs.ProfileImageDialog;
 import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.ImageUtil;
 import com.example.fitlink.utils.SharedPreferencesUtil;
@@ -154,23 +155,46 @@ public class UserProfileActivity extends BaseActivity {
     }
 
     private void openImagePicker() {
-        ImageUtil.requestPermission(this);
+        boolean hasImage = user.getProfileImage() != null && !user.getProfileImage().isEmpty();
 
-        String[] options = {"צלם תמונה", "בחר מהגלריה"};
+        new ProfileImageDialog(this, hasImage, new ProfileImageDialog.ImagePickerListener() {
+            @Override
+            public void onCamera() {
+                Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                startActivityForResult(cameraIntent, REQ_CAMERA);
+            }
 
-        new AlertDialog.Builder(this)
-                .setTitle("בחר תמונת פרופיל")
-                .setItems(options, (dialog, which) -> {
-                    if (which == 0) { // Camera
-                        Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-                        startActivityForResult(cameraIntent, REQ_CAMERA);
-                    } else { // Gallery
-                        Intent galleryIntent = new Intent(Intent.ACTION_PICK);
-                        galleryIntent.setType("image/*");
-                        startActivityForResult(galleryIntent, REQ_GALLERY);
-                    }
-                })
-                .show();
+            @Override
+            public void onGallery() {
+                Intent galleryIntent = new Intent(Intent.ACTION_PICK);
+                galleryIntent.setType("image/*");
+                startActivityForResult(galleryIntent, REQ_GALLERY);
+            }
+
+            @Override
+            public void onDelete() {
+                deleteProfileImage();
+            }
+        }).show();
+    }
+
+    private void deleteProfileImage() {
+        user.setProfileImage(null);
+
+        imgUserProfile.setImageResource(R.drawable.ic_user);
+
+        databaseService.updateUser(user, new DatabaseService.DatabaseCallback<Void>() {
+            @Override
+            public void onCompleted(Void object) {
+                SharedPreferencesUtil.saveUser(UserProfileActivity.this, user);
+                Toast.makeText(UserProfileActivity.this, "תמונת הפרופיל נמחקה", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onFailed(Exception e) {
+                Toast.makeText(UserProfileActivity.this, "שגיאה במחיקת התמונה", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
