@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/fitlinkBackground"
+    tools:context=".screens.MainActivity">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/fitlinkPrimary"
+        android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar">
+
+        <LinearLayout
+            android:id="@+id/topMenu"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:background="@color/fitlinkPrimary"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp">
+
+            <Button
+                android:id="@+id/btn_main_to_main"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Home"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/fitlinkPrimary"
+                android:textSize="12sp"
+                android:fontFamily="@font/poppins_semibold"/>
+
+            <Button
+                android:id="@+id/btn_main_to_DetailsAboutUser"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Account"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/fitlinkPrimary"
+                android:textSize="12sp"
+                android:fontFamily="@font/poppins_semibold"/>
+
+            <Button
+                android:id="@+id/btn_main_to_contact"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Contact"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/fitlinkPrimary"
+                android:textSize="12sp"
+                android:fontFamily="@font/poppins_semibold"/>
+
+            <Button
+                android:id="@+id/btn_main_to_exit"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Sign out"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/fitlinkPrimary"
+                android:textSize="12sp"
+                android:fontFamily="@font/poppins_semibold"/>
+        </LinearLayout>
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="32dp"
+            android:gravity="center_horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Welcome to Fitlink"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/poppins_bold"
+                android:textColor="@color/fitlinkPrimary"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Join activities or create groups with friends"
+                android:textSize="16sp"
+                android:fontFamily="@font/poppins_regular"
+                android:textColor="@color/fitlinkTextSecondary"
+                android:layout_marginBottom="32dp"
+                android:gravity="center"/>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="30dp"
+                app:cardElevation="6dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_join_run"
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp"
+                    android:text="🏃‍♂️ Join Run"
+                    android:textAllCaps="false"
+                    android:textSize="18sp"
+                    android:textColor="@color/white"
+                    android:fontFamily="@font/poppins_medium"
+                    android:backgroundTint="@color/fitlinkPrimary"
+                    app:cornerRadius="30dp"/>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="30dp"
+                app:cardElevation="6dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_create_ride"
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp"
+                    android:text="🚴‍♀️ Create Group Ride"
+                    android:textAllCaps="false"
+                    android:textSize="18sp"
+                    android:textColor="@color/white"
+                    android:fontFamily="@font/poppins_medium"
+                    android:backgroundTint="@color/fitlinkPrimary"
+                    app:cornerRadius="30dp"/>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="30dp"
+                app:cardElevation="6dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_my_activities"
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp"
+                    android:text="📅 My Activities"
+                    android:textAllCaps="false"
+                    android:textSize="18sp"
+                    android:textColor="@color/white"
+                    android:fontFamily="@font/poppins_medium"
+                    android:backgroundTint="@color/fitlinkPrimary"
+                    app:cornerRadius="30dp"/>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="30dp"
+                app:cardElevation="6dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_edit_profile"
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp"
+                    android:text="👤 Edit Profile"
+                    android:textAllCaps="false"
+                    android:textSize="18sp"
+                    android:textColor="@color/white"
+                    android:fontFamily="@font/poppins_medium"
+                    android:backgroundTint="@color/fitlinkPrimary"
+                    app:cornerRadius="30dp"/>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/admin_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone"
+                app:cardCornerRadius="30dp"
+                app:cardElevation="6dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_admin_panel"
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp"
+                    android:text="⚙️ Admin Panel"
+                    android:textAllCaps="false"
+                    android:textSize="18sp"
+                    android:textColor="@color/white"
+                    android:fontFamily="@font/poppins_medium"
+                    android:backgroundTint="@color/fitlinkPrimary"
+                    tools:visibility="visible"/>
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

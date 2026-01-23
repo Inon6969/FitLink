@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/detailsAboutUserPage"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/fitlinkBackground"
+    tools:context=".screens.UserProfileActivity">
+
+    <!-- Toolbar / AppBar -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/fitlinkPrimary"
+        android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar">
+
+        <LinearLayout
+            android:id="@+id/topMenuDetailsAboutUser"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp">
+
+            <Button
+                android:id="@+id/btn_DetailsAboutUser_to_main"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Home"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/fitlinkPrimary"
+                android:textSize="12sp"
+                android:fontFamily="@font/poppins_semibold"/>
+
+            <Button
+                android:id="@+id/btn_DetailsAboutUser_to_DetailsAboutUserPage"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Account"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/fitlinkPrimary"
+                android:textSize="12sp"
+                android:fontFamily="@font/poppins_semibold"/>
+
+            <Button
+                android:id="@+id/btn_DetailsAboutUser_to_contact"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Contact"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/fitlinkPrimary"
+                android:textSize="12sp"
+                android:fontFamily="@font/poppins_semibold"/>
+
+            <Button
+                android:id="@+id/btn_DetailsAboutUser_to_exit"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Sign out"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/fitlinkPrimary"
+                android:textSize="12sp"
+                android:fontFamily="@font/poppins_semibold"/>
+        </LinearLayout>
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- תוכן מרכזי עם גלילה -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="32dp"
+            android:gravity="center_horizontal">
+
+            <!-- שם ותמונה -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="30dp"
+                app:cardElevation="6dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:padding="24dp">
+
+                    <ImageView
+                        android:id="@+id/img_DetailsAboutUser_user_profile"
+                        android:layout_width="120dp"
+                        android:layout_height="120dp"
+                        android:src="@drawable/ic_user"
+                        android:contentDescription="User photo"
+                        android:scaleType="centerCrop"
+                        android:layout_marginBottom="16dp"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_DetailsAboutUser_change_photo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Change Photo"
+                        android:textSize="16sp"
+                        android:textColor="@color/white"
+                        android:fontFamily="@font/poppins_medium"
+                        android:backgroundTint="@color/fitlinkPrimary"
+                        app:cornerRadius="20dp"
+                        app:icon="@drawable/ic_camera"
+                        app:iconGravity="textStart"
+                        app:iconPadding="8dp"
+                        android:padding="6dp"
+                        android:layout_marginBottom="16dp"/>
+
+                    <TextView
+                        android:id="@+id/txt_DetailsAboutUser_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="First Name &amp; Last Name"
+                        android:textSize="22sp"
+                        android:textColor="@color/fitlinkPrimary"
+                        android:fontFamily="@font/poppins_semibold"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- פרטים אישיים -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="30dp"
+                app:cardElevation="6dp"
+                android:padding="20dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="start"
+                    android:padding="10dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Personal Details"
+                        android:textSize="20sp"
+                        android:fontFamily="@font/poppins_semibold"
+                        android:layout_marginBottom="12dp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="First Name:"
+                        android:fontFamily="@font/poppins_medium"
+                        android:textSize="16sp"/>
+
+                    <TextView
+                        android:id="@+id/txt_DetailsAboutUser_first_name"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:layout_marginBottom="8dp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Last Name:"
+                        android:fontFamily="@font/poppins_medium"
+                        android:textSize="16sp"/>
+
+                    <TextView
+                        android:id="@+id/txt_DetailsAboutUser_last_name"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:layout_marginBottom="8dp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Email:"
+                        android:fontFamily="@font/poppins_medium"
+                        android:textSize="16sp"/>
+
+                    <TextView
+                        android:id="@+id/txt_DetailsAboutUser_email"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:layout_marginBottom="8dp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Password:"
+                        android:fontFamily="@font/poppins_medium"
+                        android:textSize="16sp"/>
+
+                    <TextView
+                        android:id="@+id/txt_DetailsAboutUser_password"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:layout_marginBottom="8dp"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- כפתור עריכה -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="30dp"
+                app:cardElevation="6dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_DetailsAboutUser_edit_user"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:text="✏️ Edit Profile"
+                    android:textSize="18sp"
+                    android:textColor="@color/white"
+                    android:fontFamily="@font/poppins_medium"
+                    android:backgroundTint="@color/fitlinkPrimary"
+                    app:cornerRadius="30dp"/>
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

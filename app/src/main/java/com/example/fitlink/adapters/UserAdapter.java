@@ -1,0 +1,165 @@
+package com.example.fitlink.adapters;
+
+import android.graphics.Bitmap;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.fitlink.R;
+import com.example.fitlink.models.User;
+import com.example.fitlink.utils.ImageUtil;
+import com.google.android.material.chip.Chip;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
+
+    public interface OnUserClickListener {
+        void onUserClick(User user);
+        void onToggleAdmin(User user);
+        void onDeleteUser(User user);
+        boolean isCurrentUser(User user);
+    }
+
+    private final List<User> userList;
+    private final OnUserClickListener onUserClickListener;
+
+    // עדכון הקונסטרקטור לקבלת ה-ID של המשתמש הנוכחי לצורך השוואה
+    public UserAdapter(@Nullable final OnUserClickListener onUserClickListener) {
+        this.userList = new ArrayList<>();
+        this.onUserClickListener = onUserClickListener;
+    }
+
+    @NonNull
+    @Override
+    public UserAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_user, parent, false);
+        return new ViewHolder(view);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        User user = userList.get(position);
+        if (user == null) return;
+
+        // הגדרת נתונים בסיסיים
+        holder.tvName.setText(user.getFullName());
+        holder.tvEmail.setText(user.getEmail());
+        holder.tvPhone.setText(user.getPhone());
+        holder.tvPassword.setText(user.getPassword());
+
+        // טיפול בתמונת פרופיל
+        String base64Image = user.getProfileImage();
+        if (base64Image != null && !base64Image.isEmpty()) {
+            Bitmap bmp = ImageUtil.convertFrom64base(base64Image);
+            if (bmp != null) {
+                holder.imgProfile.setImageBitmap(bmp);
+            } else {
+                holder.imgProfile.setImageResource(R.drawable.ic_user);
+            }
+        } else {
+            holder.imgProfile.setImageResource(R.drawable.ic_user);
+        }
+
+        // בדיקה האם זה המשתמש המחובר (בהנחה שקיימת מתודת getId)
+        boolean isSelf = user.getId() != null && onUserClickListener.isCurrentUser(user);
+
+        // לוגיקת הרשאות וניהול
+        if (isSelf) {
+            // משתמש לא יכול לשנות לעצמו את הסטטוס "אדמין"
+            holder.btnToggleAdmin.setVisibility(View.GONE);
+
+            if (user.getIsAdmin()) {
+                holder.chipRole.setVisibility(View.VISIBLE);
+                holder.chipRole.setText("Admin (Me)");
+            } else {
+                holder.chipRole.setVisibility(View.GONE);
+            }
+        } else {
+            // משתמש אחר - הצג אפשרות לשינוי הרשאות
+            holder.btnToggleAdmin.setVisibility(View.VISIBLE);
+
+            if (user.getIsAdmin()) {
+                holder.chipRole.setVisibility(View.VISIBLE);
+                holder.chipRole.setText("Admin");
+                holder.btnToggleAdmin.setImageResource(R.drawable.ic_remove_admin);
+            } else {
+                holder.chipRole.setVisibility(View.INVISIBLE);
+                holder.btnToggleAdmin.setImageResource(R.drawable.ic_add_admin);
+            }
+
+            holder.btnToggleAdmin.setOnClickListener(v -> {
+                if (onUserClickListener != null) onUserClickListener.onToggleAdmin(user);
+            });
+        }
+
+        // כפתור מחיקה - תמיד גלוי (גם למשתמש עצמו)
+        holder.btnDeleteUser.setVisibility(View.VISIBLE);
+        holder.btnDeleteUser.setOnClickListener(v -> {
+            if (onUserClickListener != null) onUserClickListener.onDeleteUser(user);
+        });
+
+        // לחיצה על כל השורה
+        holder.itemView.setOnClickListener(v -> {
+            if (onUserClickListener != null) onUserClickListener.onUserClick(user);
+        });
+    }
+
+    @Override
+    public int getItemCount() {
+        return userList.size();
+    }
+
+    // מתודות לניהול הרשימה
+    public void setUserList(List<User> users) {
+        userList.clear();
+        userList.addAll(users);
+        notifyDataSetChanged();
+    }
+
+    public void addUser(User user) {
+        userList.add(user);
+        notifyItemInserted(userList.size() - 1);
+    }
+
+    public void updateUser(User user) {
+        int index = userList.indexOf(user);
+        if (index == -1) return;
+        userList.set(index, user);
+        notifyItemChanged(index);
+    }
+
+    public void removeUser(User user) {
+        int index = userList.indexOf(user);
+        if (index == -1) return;
+        userList.remove(index);
+        notifyItemRemoved(index);
+    }
+
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        TextView tvName, tvEmail, tvPhone, tvPassword;
+        Chip chipRole;
+        ImageButton btnDeleteUser, btnToggleAdmin;
+        ImageView imgProfile;
+
+        public ViewHolder(@NonNull View itemView) {
+            super(itemView);
+            tvName = itemView.findViewById(R.id.tv_item_user_name);
+            tvEmail = itemView.findViewById(R.id.tv_item_user_email);
+            tvPhone = itemView.findViewById(R.id.tv_item_user_phone);
+            tvPassword = itemView.findViewById(R.id.tv_item_user_password);
+            chipRole = itemView.findViewById(R.id.chip_user_role);
+            btnDeleteUser = itemView.findViewById(R.id.btn_item_user_delete);
+            btnToggleAdmin = itemView.findViewById(R.id.btn_item_user_toggleAdmin);
+            imgProfile = itemView.findViewById(R.id.img_item_user_profile);
+        }
+    }
+}
