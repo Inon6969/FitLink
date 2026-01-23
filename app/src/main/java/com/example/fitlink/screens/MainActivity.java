@@ -20,7 +20,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
     private static final String TAG = "MainActivity";
 
-    private MaterialButton btnJoinRun, btnCreateRide, btnMyActivities, btnEditProfile, btnAdminPanel, btnToContact, btnToDetailsAboutUser, btnToExit;
+    private MaterialButton btnJoinRun, btnCreateRide, btnMyActivities, btnAdminPanel, btnToContact, btnToDetailsAboutUser, btnToExit;
 
     private User user;
 
@@ -45,7 +45,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         btnJoinRun = findViewById(R.id.btn_join_run);
         btnCreateRide = findViewById(R.id.btn_create_ride);
         btnMyActivities = findViewById(R.id.btn_my_activities);
-        btnEditProfile = findViewById(R.id.btn_edit_profile);
         btnAdminPanel = findViewById(R.id.btn_admin_panel);
         btnToContact = findViewById(R.id.btn_main_to_contact);
         btnToDetailsAboutUser = findViewById(R.id.btn_main_to_DetailsAboutUser);
@@ -55,7 +54,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         btnJoinRun.setOnClickListener(this);
         btnCreateRide.setOnClickListener(this);
         btnMyActivities.setOnClickListener(this);
-        btnEditProfile.setOnClickListener(this);
         btnAdminPanel.setOnClickListener(this);
         btnToContact.setOnClickListener(this);
         btnToDetailsAboutUser.setOnClickListener(this);
@@ -88,12 +86,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             startActivity(new Intent(this, MyActivitiesActivity.class));
             return;
         }
-        if (v.getId() == btnEditProfile.getId()) {
-            Log.d(TAG, "Edit Profile clicked");
-            startActivity(new Intent(this, UserProfileActivity.class));
-            return;
-        }
-
         if (v.getId() == btnToContact.getId()) {
             Log.d(TAG, "Contact clicked");
             startActivity(new Intent(this, JoinRunActivity.class));

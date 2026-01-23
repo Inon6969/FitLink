@@ -165,26 +165,6 @@
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="30dp"
-                app:cardElevation="6dp">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_edit_profile"
-                    android:layout_width="match_parent"
-                    android:layout_height="80dp"
-                    android:text="👤 Edit Profile"
-                    android:textAllCaps="false"
-                    android:textSize="18sp"
-                    android:textColor="@color/white"
-                    android:fontFamily="@font/poppins_medium"
-                    android:backgroundTint="@color/fitlinkPrimary"
-                    app:cornerRadius="30dp"/>
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
                 android:id="@+id/admin_card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

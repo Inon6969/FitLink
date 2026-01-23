@@ -5,6 +5,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.example.fitlink.models.Group;
 import com.example.fitlink.models.User;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -12,6 +13,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Transaction;
+import com.google.firebase.database.ValueEventListener;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -36,6 +38,7 @@ public class DatabaseService {
     ///
     /// @see DatabaseService#readData(String)
     private static final String USERS_PATH = "users";
+    private static final String GROUPS_PATH = "groups";
 
     /// callback interface for database operations
     ///
@@ -366,4 +369,75 @@ public class DatabaseService {
 
 
     // endregion User Section
+    // region Group Section
+
+    /**
+     * Creates a new sports group in the database.
+     */
+    public void createNewGroup(@NotNull final Group group, @Nullable final DatabaseCallback<Void> callback) {
+        // Generate a unique ID for the group
+        String groupId = databaseReference.child(GROUPS_PATH).push().getKey();
+        if (groupId != null) {
+            group.setId(groupId);
+            databaseReference.child(GROUPS_PATH).child(groupId).setValue(group)
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            if (callback != null) callback.onCompleted(null);
+                        } else {
+                            if (callback != null) callback.onFailed(task.getException());
+                        }
+                    });
+        }
+    }
+
+    /**
+     * Retrieves all available groups.
+     */
+    public void getAllGroups(@NotNull final DatabaseCallback<List<Group>> callback) {
+        databaseReference.child(GROUPS_PATH).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                List<Group> groups = new ArrayList<>();
+                for (DataSnapshot groupSnapshot : snapshot.getChildren()) {
+                    Group group = groupSnapshot.getValue(Group.class);
+                    if (group != null) {
+                        groups.add(group);
+                    }
+                }
+                callback.onCompleted(groups);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                callback.onFailed(error.toException());
+            }
+        });
+    }
+
+    /**
+     * Adds a user to a specific group.
+     */
+    public void joinGroup(@NotNull final String groupId, @NotNull final String userId, @Nullable final DatabaseCallback<Void> callback) {
+        DatabaseReference groupRef = databaseReference.child(GROUPS_PATH).child(groupId);
+
+        groupRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful() && task.getResult().exists()) {
+                Group group = task.getResult().getValue(Group.class);
+                if (group != null) {
+                    group.addMember(userId);
+                    groupRef.setValue(group).addOnCompleteListener(updateTask -> {
+                        if (updateTask.isSuccessful()) {
+                            if (callback != null) callback.onCompleted(null);
+                        } else {
+                            if (callback != null) callback.onFailed(updateTask.getException());
+                        }
+                    });
+                }
+            } else {
+                if (callback != null) callback.onFailed(new Exception("Group not found"));
+            }
+        });
+    }
+
+    // endregion Group Section
 }

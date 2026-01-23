@@ -12,8 +12,8 @@
     <!-- Top App Bar -->
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
+        android:layout_height="wrap_content"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
@@ -21,8 +21,8 @@
             android:background="@color/fitlinkPrimary"
             app:title="FitLink Admin Panel"
             app:titleTextColor="@android:color/white"
-            app:navigationIcon="@drawable/ic_back_white" />
-
+            app:navigationIcon="?attr/homeAsUpIndicator"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <!-- Scrollable Content -->
@@ -88,7 +88,7 @@
                         <ImageView
                             android:layout_width="50dp"
                             android:layout_height="50dp"
-                            android:src="@drawable/ic_users"
+                            android:src="@drawable/ic_user"
                             app:tint="@color/fitlinkPrimary"
                             android:layout_marginBottom="12dp" />
 
