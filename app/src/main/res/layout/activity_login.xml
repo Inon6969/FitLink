@@ -15,8 +15,8 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
             android:gravity="center_horizontal"
+            android:orientation="vertical"
             android:padding="32dp">
 
             <View
@@ -28,33 +28,33 @@
                 android:layout_width="150dp"
                 android:layout_height="150dp"
                 android:layout_marginBottom="24dp"
-                android:src="@drawable/fitlink_logo_modern"
                 android:background="@drawable/logo_circle_bg"
-                android:padding="4dp" />
+                android:padding="4dp"
+                android:src="@drawable/fitlink_logo_modern" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
                 android:text="Welcome Back!"
-                android:textSize="32sp"
-                android:textStyle="bold"
                 android:textColor="?attr/colorOnBackground"
-                android:layout_marginBottom="8dp" />
+                android:textSize="32sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="48dp"
                 android:text="Sign in to continue"
-                android:textSize="16sp"
                 android:textColor="?attr/colorOnSurfaceVariant"
-                android:layout_marginBottom="48dp" />
+                android:textSize="16sp" />
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
                 app:cardCornerRadius="24dp"
-                app:cardElevation="8dp"
-                android:layout_marginBottom="24dp">
+                app:cardElevation="8dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -63,56 +63,56 @@
                     android:padding="24dp">
 
                     <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="16dp"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                        app:boxCornerRadiusTopStart="16dp"
-                        app:boxCornerRadiusTopEnd="16dp"
+                        app:boxCornerRadiusBottomEnd="16dp"
                         app:boxCornerRadiusBottomStart="16dp"
-                        app:boxCornerRadiusBottomEnd="16dp">
+                        app:boxCornerRadiusTopEnd="16dp"
+                        app:boxCornerRadiusTopStart="16dp">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/et_login_email"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:autofillHints="email"
                             android:hint="Email"
-                            android:inputType="textEmailAddress"
-                            android:autofillHints="email" />
+                            android:inputType="textEmailAddress" />
 
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="24dp"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                        app:boxCornerRadiusTopStart="16dp"
-                        app:boxCornerRadiusTopEnd="16dp"
-                        app:boxCornerRadiusBottomStart="16dp"
                         app:boxCornerRadiusBottomEnd="16dp"
+                        app:boxCornerRadiusBottomStart="16dp"
+                        app:boxCornerRadiusTopEnd="16dp"
+                        app:boxCornerRadiusTopStart="16dp"
                         app:endIconMode="password_toggle">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/et_login_password"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:autofillHints="password"
                             android:hint="Password"
-                            android:inputType="textPassword"
-                            android:autofillHints="password" />
+                            android:inputType="textPassword" />
 
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_login_login"
+                        style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
                         android:layout_width="match_parent"
                         android:layout_height="60dp"
+                        android:backgroundTint="@color/fitlinkPrimary"
                         android:text="Sign In"
                         android:textAllCaps="false"
                         android:textSize="16sp"
-                        app:cornerRadius="30dp"
-                        android:backgroundTint="@color/fitlinkPrimary"
-                        style="@style/Widget.MaterialComponents.Button.UnelevatedButton" />
+                        app:cornerRadius="30dp" />
 
                 </LinearLayout>
 
@@ -121,22 +121,22 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
                 android:text="Don't have an account?"
-                android:textColor="?attr/colorOnSurfaceVariant"
-                android:layout_marginBottom="8dp" />
+                android:textColor="?attr/colorOnSurfaceVariant" />
 
             <TextView
                 android:id="@+id/tv_login_register"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Create Account"
-                android:textColor="?attr/colorPrimary"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                android:padding="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true"
-                android:background="?attr/selectableItemBackgroundBorderless" />
+                android:padding="8dp"
+                android:text="Create Account"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
             <View
                 android:layout_width="match_parent"

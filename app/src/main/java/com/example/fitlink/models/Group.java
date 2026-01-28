@@ -1,8 +1,8 @@
 package com.example.fitlink.models;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Model representing a sports group in the FitLink app.
@@ -16,11 +16,13 @@ public class Group implements Serializable {
     private String level;           // e.g., Beginner, Intermediate, Advanced
     private String location;        // Meeting point or city
     private String adminId;         // The UID of the user who created the group
-    private List<String> members;   // List of of users in the group
+
+    // שינוי ל-Map למניעת כפילויות ושיפור ביצועים ב-Firebase
+    private Map<String, Boolean> members;
 
     // Required empty constructor for Firebase
     public Group() {
-        this.members = new ArrayList<>();
+        this.members = new HashMap<>();
     }
 
     public Group(String id, String name, String description, SportType sportType, String level, String location, String adminId) {
@@ -31,46 +33,85 @@ public class Group implements Serializable {
         this.level = level;
         this.location = location;
         this.adminId = adminId;
-        this.members = new ArrayList<>();
+        this.members = new HashMap<>();
         // The creator is the first member
-        this.members.add(adminId);
+        this.members.put(adminId, true);
     }
 
     // --- Getters and Setters ---
 
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+    public String getId() {
+        return id;
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public void setId(String id) {
+        this.id = id;
+    }
 
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    public String getName() {
+        return name;
+    }
 
-    public SportType getSportType() { return sportType; }
-    public void setSportType(SportType sportType) { this.sportType = sportType; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public String getLevel() { return level; }
-    public void setLevel(String level) { this.level = level; }
+    public String getDescription() {
+        return description;
+    }
 
-    public String getLocation() { return location; }
-    public void setLocation(String location) { this.location = location; }
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-    public String getAdminId() { return adminId; }
-    public void setAdminId(String adminId) { this.adminId = adminId; }
+    public SportType getSportType() {
+        return sportType;
+    }
 
-    public List<String> getMembers() { return members; }
-    public void setMembers(List<String> members) { this.members = members; }
+    public void setSportType(SportType sportType) {
+        this.sportType = sportType;
+    }
+
+    public String getLevel() {
+        return level;
+    }
+
+    public void setLevel(String level) {
+        this.level = level;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public String getAdminId() {
+        return adminId;
+    }
+
+    public void setAdminId(String adminId) {
+        this.adminId = adminId;
+    }
+
+    public Map<String, Boolean> getMembers() {
+        return members;
+    }
+
+    public void setMembers(Map<String, Boolean> members) {
+        this.members = members;
+    }
 
     /**
      * Helper method to add a new member to the group
      */
     public void addMember(String userId) {
         if (this.members == null) {
-            this.members = new ArrayList<>();
+            this.members = new HashMap<>();
         }
-        if (!this.members.contains(userId)) {
-            this.members.add(userId);
-        }
+        // במפה, put פשוט יחליף את הערך הקיים אם ה-ID כבר קיים, מה שמונע כפילויות באופן טבעי
+        this.members.put(userId, true);
     }
 }

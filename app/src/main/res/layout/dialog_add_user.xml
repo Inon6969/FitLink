@@ -3,25 +3,25 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="20dp"
-    android:background="?attr/colorSurface">
+    android:background="?attr/colorSurface"
+    android:padding="20dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center_horizontal">
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
 
         <TextView
             android:id="@+id/txtAddUserDialogTitle"
             android:layout_width="350dp"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:fontFamily="@font/poppins_semibold"
             android:gravity="center"
             android:text="Add New User"
             android:textColor="@color/fitlinkPrimary"
-            android:textSize="30sp"
-            android:fontFamily="@font/poppins_semibold"
-            android:layout_marginBottom="16dp" />
+            android:textSize="30sp" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
@@ -33,10 +33,10 @@
                 android:id="@+id/inputAddUserFirstName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:fontFamily="@font/poppins_regular"
                 android:hint="First Name"
                 android:inputType="textPersonName"
-                android:textSize="22sp"
-                android:fontFamily="@font/poppins_regular"/>
+                android:textSize="22sp" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -49,10 +49,10 @@
                 android:id="@+id/inputAddUserLastName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:fontFamily="@font/poppins_regular"
                 android:hint="Last Name"
                 android:inputType="textPersonName"
-                android:textSize="22sp"
-                android:fontFamily="@font/poppins_regular"/>
+                android:textSize="22sp" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -65,10 +65,10 @@
                 android:id="@+id/inputAddUserEmail"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:fontFamily="@font/poppins_regular"
                 android:hint="Email Address"
                 android:inputType="textEmailAddress"
-                android:textSize="22sp"
-                android:fontFamily="@font/poppins_regular"/>
+                android:textSize="22sp" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -81,10 +81,10 @@
                 android:id="@+id/inputAddUserPhone"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:fontFamily="@font/poppins_regular"
                 android:hint="Phone Number"
                 android:inputType="phone"
-                android:textSize="22sp"
-                android:fontFamily="@font/poppins_regular"/>
+                android:textSize="22sp" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -98,43 +98,43 @@
                 android:id="@+id/inputAddUserPassword"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:fontFamily="@font/poppins_regular"
                 android:hint="Password"
                 android:inputType="textPassword"
-                android:textSize="22sp"
-                android:fontFamily="@font/poppins_regular"/>
+                android:textSize="22sp" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:layout_marginTop="10dp"
             android:gravity="center"
-            android:layout_marginTop="10dp">
+            android:orientation="horizontal">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnAddUserSave"
                 android:layout_width="130dp"
                 android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:backgroundTint="@color/fitlinkPrimary"
+                android:fontFamily="@font/poppins_medium"
                 android:minWidth="80dp"
                 android:text="Add"
-                android:backgroundTint="@color/fitlinkPrimary"
-                android:textSize="22sp"
-                android:fontFamily="@font/poppins_medium"
-                android:layout_margin="4dp" />
+                android:textSize="22sp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnAddUserCancel"
                 android:layout_width="130dp"
                 android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:backgroundTint="@color/white"
+                android:fontFamily="@font/poppins_medium"
                 android:minWidth="80dp"
                 android:text="Cancel"
-                android:textSize="22sp"
-                android:backgroundTint="@color/white"
                 android:textColor="@color/fitlinkPrimary"
+                android:textSize="22sp"
                 app:strokeColor="@color/fitlinkPrimary"
-                app:strokeWidth="2dp"
-                android:fontFamily="@font/poppins_medium"
-                android:layout_margin="4dp" />
+                app:strokeWidth="2dp" />
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

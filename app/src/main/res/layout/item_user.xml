@@ -1,128 +1,127 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="16dp"
     android:layout_marginVertical="8dp"
-    app:cardCornerRadius="20dp"
-    app:cardElevation="6dp"
+    android:background="@color/fitlinkBackground"
     android:clickable="true"
     android:focusable="true"
     android:foreground="?attr/selectableItemBackground"
-    android:background="@color/fitlinkBackground">
+    app:cardCornerRadius="20dp"
+    app:cardElevation="6dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="16dp"
-        android:gravity="center_vertical">
+        android:padding="16dp">
 
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/img_item_user_profile"
             android:layout_width="60dp"
             android:layout_height="60dp"
+            android:contentDescription="User Profile Image"
             android:scaleType="centerCrop"
-            app:strokeWidth="2dp"
-            app:strokeColor="@color/fitlinkPrimary"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.SmallComponent"
             android:src="@drawable/ic_user"
-            android:contentDescription="User Profile Image" />
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.SmallComponent"
+            app:strokeColor="@color/fitlinkPrimary"
+            app:strokeWidth="2dp" />
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
             android:layout_marginStart="16dp"
-            android:layout_marginEnd="8dp">
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
 
             <TextView
                 android:id="@+id/tv_item_user_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:fontFamily="@font/poppins_medium"
                 android:text="John Doe"
+                android:textColor="@color/fitlinkPrimary"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:fontFamily="@font/poppins_medium"
-                android:textColor="@color/fitlinkPrimary"
-                android:layout_marginBottom="4dp"
                 tools:text="@tools:sample/full_names" />
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:layout_marginBottom="2dp"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="2dp">
+                android:orientation="horizontal">
 
                 <ImageView
                     android:layout_width="18dp"
                     android:layout_height="18dp"
+                    android:layout_marginEnd="6dp"
                     android:src="@android:drawable/ic_lock_idle_lock"
-                    app:tint="@color/fitlinkTextSecondary"
-                    android:layout_marginEnd="6dp" />
+                    app:tint="@color/fitlinkTextSecondary" />
 
                 <TextView
                     android:id="@+id/tv_item_user_password"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Password: *****"
-                    android:textSize="14sp"
+                    android:layout_marginBottom="2dp"
                     android:fontFamily="@font/poppins_regular"
+                    android:text="Password: *****"
                     android:textColor="@color/fitlinkTextSecondary"
-                    android:layout_marginBottom="2dp"/>
+                    android:textSize="14sp" />
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:layout_marginBottom="2dp"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="2dp">
+                android:orientation="horizontal">
 
                 <ImageView
                     android:layout_width="18dp"
                     android:layout_height="18dp"
+                    android:layout_marginEnd="6dp"
                     android:src="@android:drawable/ic_dialog_email"
-                    app:tint="@color/fitlinkTextSecondary"
-                    android:layout_marginEnd="6dp" />
+                    app:tint="@color/fitlinkTextSecondary" />
 
                 <TextView
                     android:id="@+id/tv_item_user_email"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="john.doe@example.com"
-                    android:textSize="14sp"
                     android:fontFamily="@font/poppins_regular"
+                    android:text="john.doe@example.com"
                     android:textColor="@color/fitlinkTextSecondary"
+                    android:textSize="14sp"
                     tools:text="user@example.com" />
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
                 <ImageView
                     android:layout_width="18dp"
                     android:layout_height="18dp"
+                    android:layout_marginEnd="6dp"
                     android:src="@android:drawable/sym_action_call"
-                    app:tint="@color/fitlinkTextSecondary"
-                    android:layout_marginEnd="6dp" />
+                    app:tint="@color/fitlinkTextSecondary" />
 
                 <TextView
                     android:id="@+id/tv_item_user_phone"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="+1 234 567 8900"
-                    android:textSize="14sp"
                     android:fontFamily="@font/poppins_regular"
+                    android:text="+1 234 567 8900"
                     android:textColor="@color/fitlinkTextSecondary"
+                    android:textSize="14sp"
                     tools:text="@tools:sample/us_phones" />
             </LinearLayout>
         </LinearLayout>
@@ -137,40 +136,40 @@
                 android:id="@+id/chip_user_role"
                 android:layout_width="wrap_content"
                 android:layout_height="32dp"
-                android:text="Admin"
-                android:textSize="10sp"
                 android:fontFamily="@font/poppins_medium"
+                android:text="Admin"
+                android:textColor="@color/fitlinkBackground"
+                android:textSize="10sp"
                 android:visibility="gone"
                 app:chipBackgroundColor="@color/fitlinkPrimary"
-                android:textColor="@color/fitlinkBackground"
                 app:chipStrokeWidth="0dp"
                 tools:visibility="visible" />
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="4dp">
+                android:layout_marginTop="4dp"
+                android:orientation="horizontal">
 
                 <ImageButton
                     android:id="@+id/btn_item_user_delete"
                     android:layout_width="36dp"
                     android:layout_height="36dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:src="@drawable/ic_delete"
+                    android:contentDescription="Delete User"
                     android:scaleType="centerInside"
-                    app:tint="#FF5252"
-                    android:contentDescription="Delete User" />
+                    android:src="@drawable/ic_delete"
+                    app:tint="#FF5252" />
 
                 <ImageButton
                     android:id="@+id/btn_item_user_toggleAdmin"
                     android:layout_width="36dp"
                     android:layout_height="36dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:src="@drawable/ic_add_admin"
+                    android:contentDescription="Toggle Admin Status"
                     android:scaleType="centerInside"
-                    app:tint="@color/fitlinkPrimary"
-                    android:contentDescription="Toggle Admin Status" />
+                    android:src="@drawable/ic_add_admin"
+                    app:tint="@color/fitlinkPrimary" />
             </LinearLayout>
 
         </LinearLayout>

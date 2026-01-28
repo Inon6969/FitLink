@@ -98,6 +98,7 @@ public class RegisterActivity extends BaseActivity implements View.OnClickListen
     }
 
     /// Check if the input is valid
+    ///
     /// @return true if the input is valid, false otherwise
     /// @see Validator
     private boolean checkInput(String email, String password, String fName, String lName, String phone) {
@@ -158,7 +159,7 @@ public class RegisterActivity extends BaseActivity implements View.OnClickListen
         String uid = databaseService.generateUserId();
 
         /// create a new user object
-        User user = new User(uid, email, password, fName,lName, phone, false, null);
+        User user = new User(uid, email, password, fName, lName, phone, false, null);
 
         databaseService.checkIfEmailExists(email, new DatabaseService.DatabaseCallback<>() {
             @Override

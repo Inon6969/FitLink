@@ -22,16 +22,8 @@ import java.util.List;
 
 public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
 
-    public interface OnUserClickListener {
-        void onUserClick(User user);
-        void onToggleAdmin(User user);
-        void onDeleteUser(User user);
-        boolean isCurrentUser(User user);
-    }
-
     private final List<User> userList;
     private final OnUserClickListener onUserClickListener;
-
     // עדכון הקונסטרקטור לקבלת ה-ID של המשתמש הנוכחי לצורך השוואה
     public UserAdapter(@Nullable final OnUserClickListener onUserClickListener) {
         this.userList = new ArrayList<>();
@@ -142,6 +134,16 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
         if (index == -1) return;
         userList.remove(index);
         notifyItemRemoved(index);
+    }
+
+    public interface OnUserClickListener {
+        void onUserClick(User user);
+
+        void onToggleAdmin(User user);
+
+        void onDeleteUser(User user);
+
+        boolean isCurrentUser(User user);
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

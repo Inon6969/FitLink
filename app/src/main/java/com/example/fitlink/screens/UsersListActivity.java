@@ -96,7 +96,9 @@ public class UsersListActivity extends BaseActivity {
         userAdapter = new UserAdapter(new UserAdapter.OnUserClickListener() {
             @Override
             public void onUserClick(User user) {
-                new EditUserDialog(UsersListActivity.this, user, () -> { loadUsers(); }).show();
+                new EditUserDialog(UsersListActivity.this, user, () -> {
+                    loadUsers();
+                }).show();
             }
 
             @Override
@@ -126,7 +128,8 @@ public class UsersListActivity extends BaseActivity {
         // האזנה לשינויים בטקסט החיפוש
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -134,7 +137,8 @@ public class UsersListActivity extends BaseActivity {
             }
 
             @Override
-            public void afterTextChanged(Editable s) {}
+            public void afterTextChanged(Editable s) {
+            }
         });
     }
 
@@ -207,6 +211,7 @@ public class UsersListActivity extends BaseActivity {
             emptyState.setVisibility(View.GONE);
         }
     }
+
     private void handleToggleAdmin(User user) {
         boolean newRole = !user.getIsAdmin();
         databaseService.updateUserAdminStatus(user.getId(), newRole, new DatabaseService.DatabaseCallback<Void>() {

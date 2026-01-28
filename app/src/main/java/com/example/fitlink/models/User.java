@@ -1,10 +1,15 @@
 package com.example.fitlink.models;
 
+import com.google.firebase.database.Exclude;
+
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 /// Model class for the user
 /// This class represents a user in the application
 /// It contains the user's information
+///
 /// @see Serializable
 public class User implements Serializable {
 
@@ -17,7 +22,11 @@ public class User implements Serializable {
     private boolean isAdmin;
     private String profileImage;
 
+    // מפה של מזהי קבוצות (Key = groupId, Value = true)
+    private Map<String, Boolean> groupIds;
+
     public User() {
+        this.groupIds = new HashMap<>();
     }
 
     public User(String id, String email, String password, String firstName, String lastName, String phone, boolean isAdmin, String profileImage) {
@@ -29,6 +38,7 @@ public class User implements Serializable {
         this.phone = phone;
         this.isAdmin = isAdmin;
         this.profileImage = profileImage;
+        this.groupIds = new HashMap<>();
     }
 
     public String getId() {
@@ -87,20 +97,42 @@ public class User implements Serializable {
         isAdmin = admin;
     }
 
-    public String getProfileImage() {return profileImage;}
+    public String getProfileImage() {
+        return profileImage;
+    }
 
-    public void setProfileImage(String profileImage) {this.profileImage = profileImage;}
+    public void setProfileImage(String profileImage) {
+        this.profileImage = profileImage;
+    }
+
+    // Getters and Setters עבור הקבוצות
+    public Map<String, Boolean> getGroupIds() {
+        return groupIds;
+    }
+
+    public void setGroupIds(Map<String, Boolean> groupIds) {
+        this.groupIds = groupIds;
+    }
+
+    /**
+     * פונקציית עזר להוספת קבוצה למשתמש
+     */
+    public void addGroup(String groupId) {
+        if (this.groupIds == null) {
+            this.groupIds = new HashMap<>();
+        }
+        this.groupIds.put(groupId, true);
+    }
 
     @Override
     public String toString() {
         return "User{" +
                 "id='" + id + '\'' +
                 ", email='" + email + '\'' +
-                ", password='" + password + '\'' +
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
-                ", phone='" + phone + '\'' +
                 ", isAdmin=" + isAdmin +
+                ", groupsCount=" + (groupIds != null ? groupIds.size() : 0) +
                 '}';
     }
 
@@ -118,6 +150,7 @@ public class User implements Serializable {
         return id.hashCode();
     }
 
+    @Exclude
     public String getFullName() {
         return firstName + " " + lastName;
     }

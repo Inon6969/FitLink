@@ -14,15 +14,9 @@ import com.example.fitlink.utils.Validator;
 
 public class AddUserDialog {
     private static final String TAG = "AddUserDialog";
-
-    public interface AddUserListener {
-        void onUserAdded(User newUser);
-    }
-
     private final Context context;
     private final AddUserListener listener;
     private final DatabaseService databaseService;
-
     public AddUserDialog(Context context, AddUserListener listener) {
         this.context = context;
         this.listener = listener;
@@ -119,5 +113,9 @@ public class AddUserDialog {
 
         btnCancel.setOnClickListener(v -> dialog.dismiss());
         dialog.show();
+    }
+
+    public interface AddUserListener {
+        void onUserAdded(User newUser);
     }
 }

@@ -13,13 +13,13 @@
         android:orientation="vertical">
 
         <TextView
-            android:id="@+id/txtEditUserDialogTitle"
-            android:layout_width="350dp"
+            android:id="@+id/txtAddGroupDialogTitle"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             android:fontFamily="@font/poppins_semibold"
             android:gravity="center"
-            android:text="Edit User Details"
+            android:text="Create New Group"
             android:textColor="@color/fitlinkPrimary"
             android:textSize="30sp" />
 
@@ -30,13 +30,12 @@
             app:boxBackgroundMode="outline">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/inputEditUserFirstName"
+                android:id="@+id/inputAddGroupName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/poppins_regular"
-                android:hint="First Name"
-                android:inputType="textPersonName"
-                android:textSize="22sp" />
+                android:fontFamily="@font/poppins_medium"
+                android:hint="Group Name"
+                android:inputType="textCapWords" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -46,63 +45,71 @@
             app:boxBackgroundMode="outline">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/inputEditUserLastName"
+                android:id="@+id/inputAddGroupLocation"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/poppins_regular"
-                android:hint="Last Name"
-                android:inputType="textPersonName"
-                android:textSize="22sp" />
+                android:fontFamily="@font/poppins_medium"
+                android:hint="Location (City)"
+                android:inputType="textPostalAddress" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.textfield.TextInputLayout
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            app:boxBackgroundMode="outline">
+            android:layout_marginStart="4dp"
+            android:layout_marginBottom="4dp"
+            android:fontFamily="@font/poppins_medium"
+            android:text="Sport Type"
+            android:textColor="@color/fitlinkPrimary" />
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/inputEditUserEmail"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/poppins_regular"
-                android:hint="Email Address"
-                android:inputType="textEmailAddress"
-                android:textSize="22sp" />
-        </com.google.android.material.textfield.TextInputLayout>
+        <Spinner
+            android:id="@+id/spinnerAddGroupSportType"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:layout_marginBottom="10dp" />
 
-        <com.google.android.material.textfield.TextInputLayout
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            app:boxBackgroundMode="outline">
+            android:layout_marginStart="4dp"
+            android:layout_marginBottom="4dp"
+            android:fontFamily="@font/poppins_medium"
+            android:text="Difficulty Level"
+            android:textColor="@color/fitlinkPrimary" />
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/inputEditUserPhone"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/poppins_regular"
-                android:hint="Phone Number"
-                android:inputType="phone"
-                android:textSize="22sp" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupAddGroupLevel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"
-            app:boxBackgroundMode="outline"
-            app:endIconMode="password_toggle">
+            app:selectionRequired="true"
+            app:singleSelection="true">
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/inputEditUserPassword"
-                android:layout_width="match_parent"
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipLevelBeginner"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/poppins_regular"
-                android:hint="Password"
-                android:inputType="textPassword"
-                android:textSize="22sp" />
-        </com.google.android.material.textfield.TextInputLayout>
+                android:checked="true"
+                android:fontFamily="@font/poppins_medium"
+                android:text="Beginner" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipLevelIntermediate"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/poppins_medium"
+                android:text="Intermediate" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipLevelAdvanced"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/poppins_medium"
+                android:text="Advanced" />
+        </com.google.android.material.chip.ChipGroup>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -112,18 +119,18 @@
             android:orientation="horizontal">
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnEditUserSave"
+                android:id="@+id/btnAddGroupSave"
                 android:layout_width="130dp"
                 android:layout_height="wrap_content"
                 android:layout_margin="4dp"
                 android:backgroundTint="@color/fitlinkPrimary"
                 android:fontFamily="@font/poppins_medium"
                 android:minWidth="80dp"
-                android:text="Save"
+                android:text="Create"
                 android:textSize="22sp" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnEditUserCancel"
+                android:id="@+id/btnAddGroupCancel"
                 android:layout_width="130dp"
                 android:layout_height="wrap_content"
                 android:layout_margin="4dp"

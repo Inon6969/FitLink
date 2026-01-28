@@ -91,6 +91,7 @@ public class LoginActivity extends BaseActivity implements View.OnClickListener 
 
     /// Method to check if the input is valid
     /// It checks if the email and password are valid
+    ///
     /// @see Validator#isEmailValid(String)
     /// @see Validator#isPasswordValid(String)
     private boolean checkInput(String email, String password) {

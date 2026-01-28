@@ -26,13 +26,12 @@ import com.example.fitlink.utils.ImageUtil;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 
 public class UserProfileActivity extends BaseActivity {
+    private static final int REQ_CAMERA = 100;
+    private static final int REQ_GALLERY = 200;
     private Button btnToMain, btnToContact, btnToExit, btnEditUser;
     private TextView txtTitle, txtFirstName, txtLastName, txtEmail, txtPassword;
     private ImageView imgUserProfile;
     private Button btnChangePhoto;
-    private static final int REQ_CAMERA = 100;
-    private static final int REQ_GALLERY = 200;
-
     private User user;
 
     @Override
@@ -205,8 +204,7 @@ public class UserProfileActivity extends BaseActivity {
 
         if (requestCode == REQ_CAMERA && data != null) {
             bitmap = (Bitmap) data.getExtras().get("data");
-        }
-        else if (requestCode == REQ_GALLERY && data != null) {
+        } else if (requestCode == REQ_GALLERY && data != null) {
             try {
                 bitmap = BitmapFactory.decodeStream(
                         getContentResolver().openInputStream(data.getData())

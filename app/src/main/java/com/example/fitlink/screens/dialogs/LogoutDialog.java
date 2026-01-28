@@ -27,8 +27,8 @@ public class LogoutDialog {
         Button btnConfirm = dialog.findViewById(R.id.btnLogoutConfirm);
         Button btnCancel = dialog.findViewById(R.id.btnLogoutCancel);
 
-        txtTitle.setText("התנתקות");
-        txtMessage.setText("האם ברצונך להתנתק?");
+        txtTitle.setText("Log Out");
+        txtMessage.setText("Are you sure you want to log out?");
 
         btnConfirm.setOnClickListener(v -> {
             onConfirm.run();

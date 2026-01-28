@@ -1,141 +1,140 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="16dp"
     android:layout_marginVertical="8dp"
-    app:cardCornerRadius="20dp"
-    app:cardElevation="6dp"
+    android:background="@color/fitlinkBackground"
     android:clickable="true"
     android:focusable="true"
     android:foreground="?attr/selectableItemBackground"
-    android:background="@color/fitlinkBackground">
+    app:cardCornerRadius="20dp"
+    app:cardElevation="6dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="16dp"
-        android:gravity="center_vertical">
+        android:padding="16dp">
 
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/img_item_group_icon"
             android:layout_width="60dp"
             android:layout_height="60dp"
-            android:scaleType="centerInside"
+            android:background="#126200EE"
             android:padding="12dp"
-            app:strokeWidth="2dp"
-            app:strokeColor="@color/fitlinkPrimary"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.SmallComponent"
+            android:scaleType="centerInside"
             android:src="@drawable/ic_running"
-            android:background="#126200EE" />
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.SmallComponent"
+            app:strokeColor="@color/fitlinkPrimary"
+            app:strokeWidth="2dp" />
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
             android:layout_marginStart="16dp"
-            android:layout_marginEnd="8dp">
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
 
             <TextView
                 android:id="@+id/tv_item_group_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:fontFamily="@font/poppins_medium"
                 android:text="Morning Runners"
+                android:textColor="@color/fitlinkPrimary"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:fontFamily="@font/poppins_medium"
-                android:textColor="@color/fitlinkPrimary"
-                android:layout_marginBottom="4dp"
                 tools:text="Morning Runners" />
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:layout_marginBottom="2dp"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="2dp">
+                android:orientation="horizontal">
 
                 <ImageView
                     android:id="@+id/img_item_group_sport_mini"
                     android:layout_width="18dp"
                     android:layout_height="18dp"
+                    android:layout_marginEnd="6dp"
                     android:src="@drawable/ic_sport"
-                    app:tint="@color/fitlinkTextSecondary"
-                    android:layout_marginEnd="6dp" />
+                    app:tint="@color/fitlinkTextSecondary" />
 
                 <TextView
                     android:id="@+id/tv_item_group_sport"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Running"
-                    android:textSize="14sp"
                     android:fontFamily="@font/poppins_regular"
-                    android:textColor="@color/fitlinkTextSecondary" />
+                    android:text="Running"
+                    android:textColor="@color/fitlinkTextSecondary"
+                    android:textSize="14sp" />
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:layout_marginBottom="2dp"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="2dp">
+                android:orientation="horizontal">
 
                 <ImageView
                     android:layout_width="18dp"
                     android:layout_height="18dp"
+                    android:layout_marginEnd="6dp"
                     android:src="@drawable/ic_location"
-                    app:tint="@color/fitlinkTextSecondary"
-                    android:layout_marginEnd="6dp" />
+                    app:tint="@color/fitlinkTextSecondary" />
 
                 <TextView
                     android:id="@+id/tv_item_group_location"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Rishon LeZion"
-                    android:textSize="14sp"
                     android:fontFamily="@font/poppins_regular"
-                    android:textColor="@color/fitlinkTextSecondary" />
+                    android:text="Rishon LeZion"
+                    android:textColor="@color/fitlinkTextSecondary"
+                    android:textSize="14sp" />
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:layout_marginBottom="2dp"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="2dp">
+                android:orientation="horizontal">
 
                 <ImageView
                     android:layout_width="18dp"
                     android:layout_height="18dp"
+                    android:layout_marginEnd="6dp"
                     android:src="@drawable/ic_user"
-                    app:tint="@color/fitlinkTextSecondary"
-                    android:layout_marginEnd="6dp" />
+                    app:tint="@color/fitlinkTextSecondary" />
 
                 <TextView
                     android:id="@+id/tv_item_group_members"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="12 Members"
-                    android:textSize="14sp"
                     android:fontFamily="@font/poppins_regular"
-                    android:textColor="@color/fitlinkTextSecondary" />
+                    android:text="12 Members"
+                    android:textColor="@color/fitlinkTextSecondary"
+                    android:textSize="14sp" />
             </LinearLayout>
 
             <TextView
                 android:id="@+id/tv_item_group_creator"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="By Yinon"
-                android:textSize="12sp"
-                android:fontFamily="@font/poppins_regular"
-                android:textColor="@color/fitlinkTextSecondary"
+                android:layout_marginTop="2dp"
                 android:alpha="0.7"
-                android:layout_marginTop="2dp" />
+                android:fontFamily="@font/poppins_regular"
+                android:text="By Yinon"
+                android:textColor="@color/fitlinkTextSecondary"
+                android:textSize="12sp" />
         </LinearLayout>
 
         <LinearLayout
@@ -148,11 +147,11 @@
                 android:id="@+id/chip_group_level"
                 android:layout_width="wrap_content"
                 android:layout_height="32dp"
-                android:text="Beginner"
-                android:textSize="10sp"
                 android:fontFamily="@font/poppins_medium"
-                app:chipBackgroundColor="@color/fitlinkPrimary"
+                android:text="Beginner"
                 android:textColor="@color/fitlinkBackground"
+                android:textSize="10sp"
+                app:chipBackgroundColor="@color/fitlinkPrimary"
                 app:chipStrokeWidth="0dp" />
 
             <Button
@@ -160,13 +159,13 @@
                 style="@style/Widget.MaterialComponents.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="JOIN"
+                android:layout_marginTop="4dp"
+                android:fontFamily="@font/poppins_bold"
                 android:minWidth="0dp"
                 android:paddingHorizontal="8dp"
-                android:textSize="14sp"
+                android:text="JOIN"
                 android:textColor="@color/fitlinkPrimary"
-                android:fontFamily="@font/poppins_bold"
-                android:layout_marginTop="4dp" />
+                android:textSize="14sp" />
 
         </LinearLayout>
 

@@ -3,29 +3,41 @@
 
     <item>
         <shape android:shape="oval">
-            <solid android:color="#FFFFFF"/>
-            <size android:width="180dp" android:height="180dp"/>
-            <corners android:radius="90dp"/>
-            <padding android:left="0dp" android:top="0dp" android:right="0dp" android:bottom="0dp"/>
+            <solid android:color="#FFFFFF" />
+            <size
+                android:width="180dp"
+                android:height="180dp" />
+            <corners android:radius="90dp" />
+            <padding
+                android:bottom="0dp"
+                android:left="0dp"
+                android:right="0dp"
+                android:top="0dp" />
         </shape>
     </item>
 
     <item>
         <shape android:shape="oval">
-            <solid android:color="@android:color/transparent"/>
+            <solid android:color="@android:color/transparent" />
             <stroke
                 android:width="4dp"
-                android:color="#1E88E5"/>
-            <size android:width="180dp" android:height="180dp"/>
-            <corners android:radius="90dp"/>
+                android:color="#1E88E5" />
+            <size
+                android:width="180dp"
+                android:height="180dp" />
+            <corners android:radius="90dp" />
         </shape>
     </item>
 
-    <item android:top="4dp" android:left="4dp">
+    <item
+        android:left="4dp"
+        android:top="4dp">
         <shape android:shape="oval">
-            <solid android:color="#20000000"/>
-            <size android:width="180dp" android:height="180dp"/>
-            <corners android:radius="90dp"/>
+            <solid android:color="#20000000" />
+            <size
+                android:width="180dp"
+                android:height="180dp" />
+            <corners android:radius="90dp" />
         </shape>
     </item>
 </layer-list>

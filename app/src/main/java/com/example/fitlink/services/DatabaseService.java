@@ -18,13 +18,16 @@ import com.google.firebase.database.ValueEventListener;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.UnaryOperator;
 
 
 /// a service to interact with the Firebase Realtime Database.
 /// this class is a singleton, use getInstance() to get an instance of this class
+///
 /// @see #getInstance()
 /// @see FirebaseDatabase
 public class DatabaseService {
@@ -39,25 +42,10 @@ public class DatabaseService {
     /// @see DatabaseService#readData(String)
     private static final String USERS_PATH = "users";
     private static final String GROUPS_PATH = "groups";
-
-    /// callback interface for database operations
-    ///
-    /// @param <T> the type of the object to return
-    /// @see DatabaseCallback#onCompleted(Object)
-    /// @see DatabaseCallback#onFailed(Exception)
-    public interface DatabaseCallback<T> {
-        /// called when the operation is completed successfully
-        public void onCompleted(T object);
-
-        /// called when the operation fails with an exception
-        public void onFailed(Exception e);
-    }
-
     /// the instance of this class
     ///
     /// @see #getInstance()
     private static DatabaseService instance;
-
     /// the reference to the database
     ///
     /// @see DatabaseReference
@@ -83,10 +71,6 @@ public class DatabaseService {
         return instance;
     }
 
-
-    // region private generic methods
-    // to write and read data from the database
-
     /// write data to the database at a specific path
     ///
     /// @param path     the path to write the data to
@@ -104,6 +88,10 @@ public class DatabaseService {
             }
         });
     }
+
+
+    // region private generic methods
+    // to write and read data from the database
 
     /// remove data from the database at a specific path
     ///
@@ -131,7 +119,6 @@ public class DatabaseService {
     private DatabaseReference readData(@NotNull final String path) {
         return databaseReference.child(path);
     }
-
 
     /// get data from the database at a specific path
     ///
@@ -185,7 +172,6 @@ public class DatabaseService {
         return databaseReference.child(path).push().getKey();
     }
 
-
     /// run a transaction on the data at a specific path </br>
     /// good for incrementing a value or modifying an object in the database
     ///
@@ -223,12 +209,6 @@ public class DatabaseService {
 
     }
 
-    // endregion of private methods for reading and writing data
-
-    // public methods to interact with the database
-
-    // region User Section
-
     /// generate a new id for a new user in the database
     ///
     /// @return a new id for the user
@@ -238,12 +218,18 @@ public class DatabaseService {
         return generateNewId(USERS_PATH);
     }
 
+    // endregion of private methods for reading and writing data
+
+    // public methods to interact with the database
+
+    // region User Section
+
     /// create a new user in the database
     ///
     /// @param user     the user object to create
     /// @param callback the callback to call when the operation is completed
-    ///                              the callback will receive void
-    ///                            if the operation fails, the callback will receive an exception
+    ///                                              the callback will receive void
+    ///                                            if the operation fails, the callback will receive an exception
     /// @see DatabaseCallback
     /// @see User
     public void createNewUser(@NotNull final User user, @Nullable final DatabaseCallback<Void> callback) {
@@ -254,8 +240,8 @@ public class DatabaseService {
     ///
     /// @param uid      the id of the user to get
     /// @param callback the callback to call when the operation is completed
-    ///                               the callback will receive the user object
-    ///                             if the operation fails, the callback will receive an exception
+    ///                                               the callback will receive the user object
+    ///                                             if the operation fails, the callback will receive an exception
     /// @see DatabaseCallback
     /// @see User
     public void getUser(@NotNull final String uid, @NotNull final DatabaseCallback<User> callback) {
@@ -265,8 +251,8 @@ public class DatabaseService {
     /// get all the users from the database
     ///
     /// @param callback the callback to call when the operation is completed
-    ///                              the callback will receive a list of user objects
-    ///                            if the operation fails, the callback will receive an exception
+    ///                                              the callback will receive a list of user objects
+    ///                                            if the operation fails, the callback will receive an exception
     /// @see DatabaseCallback
     /// @see List
     /// @see User
@@ -287,8 +273,8 @@ public class DatabaseService {
     /// @param email    the email of the user
     /// @param password the password of the user
     /// @param callback the callback to call when the operation is completed
-    ///                            the callback will receive the user object
-    ///                          if the operation fails, the callback will receive an exception
+    ///                                            the callback will receive the user object
+    ///                                          if the operation fails, the callback will receive an exception
     /// @see DatabaseCallback
     /// @see User
     public void getUserByEmailAndPassword(@NotNull final String email, @NotNull final String password, @NotNull final DatabaseCallback<User> callback) {
@@ -352,9 +338,11 @@ public class DatabaseService {
             }
         });
     }
+
     /// update only the admin status of a user
-    /// @param uid user id
-    /// @param isAdmin new admin value (true/false)
+    ///
+    /// @param uid      user id
+    /// @param isAdmin  new admin value (true/false)
     /// @param callback result callback
     public void updateUserAdminStatus(@NotNull final String uid, boolean isAdmin, @Nullable final DatabaseCallback<Void> callback) {
         readData(USERS_PATH + "/" + uid + "/isAdmin")
@@ -367,6 +355,29 @@ public class DatabaseService {
                 });
     }
 
+    /**
+     * Creates a new sports group and updates the creator's user record.
+     */
+    public void createNewGroup(@NotNull final Group group, @Nullable final DatabaseCallback<Void> callback) {
+        String groupId = group.getId();
+        if (groupId == null) {
+            groupId = generateNewId(GROUPS_PATH);
+            group.setId(groupId);
+        }
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put(GROUPS_PATH + "/" + groupId, group);
+        updates.put(USERS_PATH + "/" + group.getAdminId() + "/groupIds/" + groupId, true);
+
+        databaseReference.updateChildren(updates).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                if (callback != null) callback.onCompleted(null);
+            } else {
+                if (callback != null) callback.onFailed(task.getException());
+            }
+        });
+    }
+
 
     // endregion User Section
     // region Group Section
@@ -374,21 +385,6 @@ public class DatabaseService {
     /**
      * Creates a new sports group in the database.
      */
-    public void createNewGroup(@NotNull final Group group, @Nullable final DatabaseCallback<Void> callback) {
-        // Generate a unique ID for the group
-        String groupId = databaseReference.child(GROUPS_PATH).push().getKey();
-        if (groupId != null) {
-            group.setId(groupId);
-            databaseReference.child(GROUPS_PATH).child(groupId).setValue(group)
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            if (callback != null) callback.onCompleted(null);
-                        } else {
-                            if (callback != null) callback.onFailed(task.getException());
-                        }
-                    });
-        }
-    }
 
     /**
      * Retrieves all available groups.
@@ -415,28 +411,36 @@ public class DatabaseService {
     }
 
     /**
-     * Adds a user to a specific group.
+     * Adds a user to a specific group and updates both records atomically.
      */
     public void joinGroup(@NotNull final String groupId, @NotNull final String userId, @Nullable final DatabaseCallback<Void> callback) {
-        DatabaseReference groupRef = databaseReference.child(GROUPS_PATH).child(groupId);
+        Map<String, Object> updates = new HashMap<>();
+        updates.put(GROUPS_PATH + "/" + groupId + "/members/" + userId, true);
+        updates.put(USERS_PATH + "/" + userId + "/groupIds/" + groupId, true);
 
-        groupRef.get().addOnCompleteListener(task -> {
-            if (task.isSuccessful() && task.getResult().exists()) {
-                Group group = task.getResult().getValue(Group.class);
-                if (group != null) {
-                    group.addMember(userId);
-                    groupRef.setValue(group).addOnCompleteListener(updateTask -> {
-                        if (updateTask.isSuccessful()) {
-                            if (callback != null) callback.onCompleted(null);
-                        } else {
-                            if (callback != null) callback.onFailed(updateTask.getException());
-                        }
-                    });
-                }
+        databaseReference.updateChildren(updates).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                if (callback != null) callback.onCompleted(null);
             } else {
-                if (callback != null) callback.onFailed(new Exception("Group not found"));
+                if (callback != null) callback.onFailed(task.getException());
             }
         });
+    }
+
+    /**
+     * Adds a user to a specific group.
+     */
+    /// callback interface for database operations
+    ///
+    /// @param <T> the type of the object to return
+    /// @see DatabaseCallback#onCompleted(Object)
+    /// @see DatabaseCallback#onFailed(Exception)
+    public interface DatabaseCallback<T> {
+        /// called when the operation is completed successfully
+        public void onCompleted(T object);
+
+        /// called when the operation fails with an exception
+        public void onFailed(Exception e);
     }
 
     // endregion Group Section

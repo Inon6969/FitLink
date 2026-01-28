@@ -23,6 +23,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.FitLink">
         <activity
+            android:name=".screens.GroupsListActivity"
+            android:exported="false" />
+        <activity
             android:name=".screens.LandingActivity"
             android:exported="false" />
         <activity

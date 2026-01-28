@@ -70,12 +70,12 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
-        /*
         if (v.getId() == btnJoinRun.getId()) {
             Log.d(TAG, "Join Run clicked");
-            startActivity(new Intent(this, JoinRunActivity.class));
+            startActivity(new Intent(this, GroupsListActivity.class));
             return;
         }
+         /*
         if (v.getId() == btnCreateRide.getId()) {
             Log.d(TAG, "Create Ride clicked");
             startActivity(new Intent(this, CreateRideActivity.class));

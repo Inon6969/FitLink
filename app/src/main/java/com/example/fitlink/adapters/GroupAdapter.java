@@ -6,6 +6,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -22,10 +23,6 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
 
     private List<Group> groupList;
     private OnGroupClickListener listener;
-
-    public interface OnGroupClickListener {
-        void onJoinClick(Group group);
-    }
 
     public GroupAdapter(List<Group> groupList, OnGroupClickListener listener) {
         this.groupList = groupList;
@@ -54,8 +51,8 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
         holder.imgIcon.setImageResource(sportIconRes);
         holder.imgSportMini.setImageResource(sportIconRes);
 
-        // חישוב כמות חברים
-        int memberCount = group.getMembers() != null ? group.getMembers().size() : 0;
+        // חישוב כמות חברים מתוך ה-Map (שימוש ב-size)
+        int memberCount = (group.getMembers() != null) ? group.getMembers().size() : 0;
         holder.tvMembers.setText(memberCount + (memberCount == 1 ? " Member" : " Members"));
 
         // שליפת שם היוצר מה-Database
@@ -81,9 +78,6 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
         });
     }
 
-    /**
-     * פונקציית עזר להחזרת ה-Drawable המתאים לפי סוג הספורט
-     */
     private int getSportIconResource(SportType type) {
         if (type == SportType.RUNNING) {
             return R.drawable.ic_running;
@@ -92,12 +86,16 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
         } else if (type == SportType.CYCLING) {
             return R.drawable.ic_cycling;
         }
-        return R.drawable.ic_sport; // ברירת מחדל
+        return R.drawable.ic_sport;
     }
 
     @Override
     public int getItemCount() {
         return groupList.size();
+    }
+
+    public interface OnGroupClickListener {
+        void onJoinClick(Group group);
     }
 
     public static class GroupViewHolder extends RecyclerView.ViewHolder {
@@ -114,7 +112,7 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
             tvMembers = itemView.findViewById(R.id.tv_item_group_members);
             tvCreator = itemView.findViewById(R.id.tv_item_group_creator);
             imgIcon = itemView.findViewById(R.id.img_item_group_icon);
-            imgSportMini = itemView.findViewById(R.id.img_item_group_sport_mini); // ה-ID החדש שהוספנו
+            imgSportMini = itemView.findViewById(R.id.img_item_group_sport_mini);
             chipLevel = itemView.findViewById(R.id.chip_group_level);
             btnJoin = itemView.findViewById(R.id.btn_item_group_join);
         }

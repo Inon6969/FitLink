@@ -12,12 +12,6 @@ public class ProfileImageDialog {
     private final boolean hasImage;
     private final ImagePickerListener listener;
 
-    public interface ImagePickerListener {
-        void onCamera();
-        void onGallery();
-        void onDelete();
-    }
-
     public ProfileImageDialog(Context context, boolean hasImage, ImagePickerListener listener) {
         this.context = context;
         this.hasImage = hasImage;
@@ -58,5 +52,13 @@ public class ProfileImageDialog {
         btnCancel.setOnClickListener(v -> dialog.dismiss());
 
         dialog.show();
+    }
+
+    public interface ImagePickerListener {
+        void onCamera();
+
+        void onGallery();
+
+        void onDelete();
     }
 }
