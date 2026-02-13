@@ -42,7 +42,11 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
 
         // הגדרת טקסטים בסיסיים
         holder.tvName.setText(group.getName());
-        holder.tvLocation.setText(group.getLocation());
+        if (group.getLocation() != null) {
+            holder.tvLocation.setText(group.getLocation().getAddress());
+        } else {
+            holder.tvLocation.setText("No location");
+        }
         holder.chipLevel.setText(group.getLevel());
         holder.tvSport.setText(group.getSportType().name());
 

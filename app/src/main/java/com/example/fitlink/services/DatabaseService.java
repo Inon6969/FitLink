@@ -228,8 +228,8 @@ public class DatabaseService {
     ///
     /// @param user     the user object to create
     /// @param callback the callback to call when the operation is completed
-    ///                                              the callback will receive void
-    ///                                            if the operation fails, the callback will receive an exception
+    ///                                                                              the callback will receive void
+    ///                                                                            if the operation fails, the callback will receive an exception
     /// @see DatabaseCallback
     /// @see User
     public void createNewUser(@NotNull final User user, @Nullable final DatabaseCallback<Void> callback) {
@@ -240,8 +240,8 @@ public class DatabaseService {
     ///
     /// @param uid      the id of the user to get
     /// @param callback the callback to call when the operation is completed
-    ///                                               the callback will receive the user object
-    ///                                             if the operation fails, the callback will receive an exception
+    ///                                                                               the callback will receive the user object
+    ///                                                                             if the operation fails, the callback will receive an exception
     /// @see DatabaseCallback
     /// @see User
     public void getUser(@NotNull final String uid, @NotNull final DatabaseCallback<User> callback) {
@@ -251,8 +251,8 @@ public class DatabaseService {
     /// get all the users from the database
     ///
     /// @param callback the callback to call when the operation is completed
-    ///                                              the callback will receive a list of user objects
-    ///                                            if the operation fails, the callback will receive an exception
+    ///                                                                              the callback will receive a list of user objects
+    ///                                                                            if the operation fails, the callback will receive an exception
     /// @see DatabaseCallback
     /// @see List
     /// @see User
@@ -273,8 +273,8 @@ public class DatabaseService {
     /// @param email    the email of the user
     /// @param password the password of the user
     /// @param callback the callback to call when the operation is completed
-    ///                                            the callback will receive the user object
-    ///                                          if the operation fails, the callback will receive an exception
+    ///                                                                            the callback will receive the user object
+    ///                                                                          if the operation fails, the callback will receive an exception
     /// @see DatabaseCallback
     /// @see User
     public void getUserByEmailAndPassword(@NotNull final String email, @NotNull final String password, @NotNull final DatabaseCallback<User> callback) {

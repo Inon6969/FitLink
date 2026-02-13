@@ -41,7 +41,7 @@
 
             <Button
                 android:id="@+id/btnLogoutConfirm"
-                android:layout_width="116dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="2dp"
                 android:backgroundTint="@color/fitlinkPrimary"
@@ -52,7 +52,7 @@
 
             <Button
                 android:id="@+id/btnLogoutCancel"
-                android:layout_width="116dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="2dp"
                 android:backgroundTint="@color/fitlinkPrimary"

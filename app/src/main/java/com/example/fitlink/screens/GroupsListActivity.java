@@ -1,17 +1,23 @@
 package com.example.fitlink.screens;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -39,12 +45,33 @@ public class GroupsListActivity extends BaseActivity {
     private GroupAdapter groupAdapter;
     private TextView tvGroupCount;
     private EditText etSearch;
+    private Spinner spinnerSearchType; // הוספת המשתנה ל-Spinner
     private ProgressBar progressBar;
     private LinearLayout emptyState;
     private MaterialButton btnCreateGroup;
 
     // Data
     private List<Group> allGroups = new ArrayList<>();
+    private AddGroupDialog currentAddGroupDialog;
+
+    private final ActivityResultLauncher<Intent> mapPickerLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    String address = result.getData().getStringExtra("address");
+                    double lat = result.getData().getDoubleExtra("lat", 0);
+                    double lng = result.getData().getDoubleExtra("lng", 0);
+
+                    if (currentAddGroupDialog != null && currentAddGroupDialog.isShowing()) {
+                        currentAddGroupDialog.updateLocationDetails(address, lat, lng);
+                    }
+                }
+            }
+    );
+
+    public ActivityResultLauncher<Intent> getMapPickerLauncher() {
+        return mapPickerLauncher;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,7 +87,6 @@ public class GroupsListActivity extends BaseActivity {
     }
 
     private void initViews() {
-        // התאמת Insets למסך מלא (Full Screen) בדומה ל-UsersListActivity
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_groups_layout), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -69,6 +95,7 @@ public class GroupsListActivity extends BaseActivity {
 
         tvGroupCount = findViewById(R.id.tv_group_count);
         etSearch = findViewById(R.id.edit_GroupsList_search);
+        spinnerSearchType = findViewById(R.id.spinner_groups_search_type); // אתחול ה-Spinner
         progressBar = findViewById(R.id.groups_progress_bar);
         emptyState = findViewById(R.id.groups_empty_state);
         btnCreateGroup = findViewById(R.id.btn_GroupsList_create_group);
@@ -87,7 +114,6 @@ public class GroupsListActivity extends BaseActivity {
         RecyclerView rvGroups = findViewById(R.id.rv_groups_list);
         rvGroups.setLayoutManager(new LinearLayoutManager(this));
 
-        // אתחול האדפטר עם ה-Listener להצטרפות לקבוצה
         groupAdapter = new GroupAdapter(new ArrayList<>(), new GroupAdapter.OnGroupClickListener() {
             @Override
             public void onJoinClick(Group group) {
@@ -98,7 +124,25 @@ public class GroupsListActivity extends BaseActivity {
     }
 
     private void setupSearchLogic() {
-        // האזנה לשינויים בטקסט החיפוש (שם קבוצה או מיקום)
+        // 1. הגדרת האפשרויות לסינון ב-Spinner
+        String[] searchOptions = {"Name", "Sport Type", "Level", "Location"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, searchOptions);
+        spinnerSearchType.setAdapter(adapter);
+
+        // 2. האזנה לשינויים בבחירת הקטגוריה ב-Spinner
+        spinnerSearchType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                // קריאה לפילטר מחדש עם הטקסט הקיים כשמשנים קטגוריה
+                filterGroups(etSearch.getText().toString());
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+
+        // 3. האזנה לשינויים בטקסט החיפוש
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -116,16 +160,41 @@ public class GroupsListActivity extends BaseActivity {
     }
 
     private void filterGroups(String query) {
-        if (query.isEmpty()) {
+        // אם השאילתה ריקה, מציגים את הכל
+        if (query == null || query.isEmpty()) {
             updateListDisplay(allGroups);
             return;
         }
 
-        String q = query.toLowerCase();
+        String q = query.toLowerCase().trim();
+        // קבלת הקטגוריה שנבחרה כרגע ב-Spinner
+        String searchType = spinnerSearchType.getSelectedItem() != null ?
+                spinnerSearchType.getSelectedItem().toString() : "Name";
+
         List<Group> filteredList = allGroups.stream()
-                .filter(group -> group.getName().toLowerCase().contains(q) ||
-                        group.getLocation().toLowerCase().contains(q) ||
-                        group.getSportType().name().toLowerCase().contains(q))
+                .filter(group -> {
+                    switch (searchType) {
+                        case "Name":
+                            return group.getName() != null &&
+                                    group.getName().toLowerCase().contains(q);
+
+                        case "Sport Type":
+                            return group.getSportType() != null &&
+                                    group.getSportType().name().toLowerCase().contains(q);
+
+                        case "Level":
+                            return group.getLevel() != null &&
+                                    group.getLevel().toLowerCase().contains(q);
+
+                        case "Location":
+                            return group.getLocation() != null &&
+                                    group.getLocation().getAddress() != null &&
+                                    group.getLocation().getAddress().toLowerCase().contains(q);
+
+                        default:
+                            return false;
+                    }
+                })
                 .collect(Collectors.toList());
 
         updateListDisplay(filteredList);
@@ -133,10 +202,12 @@ public class GroupsListActivity extends BaseActivity {
 
     private void setupCreateGroupButton() {
         btnCreateGroup.setOnClickListener(v -> {
-            AddGroupDialog dialog = new AddGroupDialog(this);
-            // כשהדיאלוג נסגר, נרענן את הרשימה כדי לראות את הקבוצה החדשה
-            dialog.setOnDismissListener(d -> loadGroups());
-            dialog.show();
+            currentAddGroupDialog = new AddGroupDialog(this);
+            currentAddGroupDialog.setOnDismissListener(d -> {
+                loadGroups();
+                currentAddGroupDialog = null;
+            });
+            currentAddGroupDialog.show();
         });
     }
 
@@ -166,8 +237,8 @@ public class GroupsListActivity extends BaseActivity {
     }
 
     private void updateListDisplay(List<Group> listToDisplay) {
-        // עדכון האדפטר (יש לוודא שיש מתודה setGroupList באדפטר, בדומה ל-UserAdapter)
-        // אם אין, ניתן להוסיף אותה או לעדכן את הרשימה הקיימת באדפטר ולקרוא ל-notifyDataSetChanged
+        // כאן יוצרים את האדפטר מחדש עם הרשימה המסוננת
+        // (אופציונלי: עדיף לייעל ע"י עדכון הרשימה באדפטר הקיים ושימוש ב-notifyDataSetChanged, אבל זה תואם לקוד ששלחת)
         groupAdapter = new GroupAdapter(listToDisplay, group -> handleJoinGroup(group));
         ((RecyclerView) findViewById(R.id.rv_groups_list)).setAdapter(groupAdapter);
 
@@ -183,7 +254,6 @@ public class GroupsListActivity extends BaseActivity {
     private void handleJoinGroup(Group group) {
         String currentUserId = SharedPreferencesUtil.getUserId(this);
 
-        // תיקון: שימוש ב-containsKey במקום contains
         if (group.getMembers() != null && group.getMembers().containsKey(currentUserId)) {
             Toast.makeText(this, "You are already a member of this group", Toast.LENGTH_SHORT).show();
             return;
@@ -195,7 +265,7 @@ public class GroupsListActivity extends BaseActivity {
             public void onCompleted(Void object) {
                 progressBar.setVisibility(View.GONE);
                 Toast.makeText(GroupsListActivity.this, "Joined successfully!", Toast.LENGTH_SHORT).show();
-                loadGroups(); // רענון הרשימה כדי לראות את השינוי בכמות החברים
+                loadGroups();
             }
 
             @Override

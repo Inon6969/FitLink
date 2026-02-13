@@ -14,7 +14,7 @@ public class Group implements Serializable {
     private String description;     // Group Description
     private SportType sportType;    // Restricted to RUNNING, CYCLING, SWIMMING
     private String level;           // e.g., Beginner, Intermediate, Advanced
-    private String location;        // Meeting point or city
+    private Location location;        // Meeting point or city
     private String adminId;         // The UID of the user who created the group
 
     // שינוי ל-Map למניעת כפילויות ושיפור ביצועים ב-Firebase
@@ -25,7 +25,7 @@ public class Group implements Serializable {
         this.members = new HashMap<>();
     }
 
-    public Group(String id, String name, String description, SportType sportType, String level, String location, String adminId) {
+    public Group(String id, String name, String description, SportType sportType, String level, Location location, String adminId) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -80,11 +80,11 @@ public class Group implements Serializable {
         this.level = level;
     }
 
-    public String getLocation() {
+    public Location getLocation() {
         return location;
     }
 
-    public void setLocation(String location) {
+    public void setLocation(Location location) {
         this.location = location;
     }
 

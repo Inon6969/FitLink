@@ -14,7 +14,7 @@
 
         <TextView
             android:id="@+id/txtAddGroupDialogTitle"
-            android:layout_width="wrap_content"
+            android:layout_width="400dp"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             android:fontFamily="@font/poppins_semibold"
@@ -26,7 +26,7 @@
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
+            android:layout_marginBottom="16dp"
             app:boxBackgroundMode="outline">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -38,20 +38,29 @@
                 android:inputType="textCapWords" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.textfield.TextInputLayout
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            app:boxBackgroundMode="outline">
+            android:layout_marginStart="4dp"
+            android:layout_marginBottom="4dp"
+            android:fontFamily="@font/poppins_medium"
+            android:text="Group Location"
+            android:textColor="@color/fitlinkPrimary" />
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/inputAddGroupLocation"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/poppins_medium"
-                android:hint="Location (City)"
-                android:inputType="textPostalAddress" />
-        </com.google.android.material.textfield.TextInputLayout>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnOpenMapPicker"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginBottom="16dp"
+            android:fontFamily="@font/poppins_medium"
+            android:gravity="start|center_vertical"
+            android:text="Select Location on Map"
+            android:textAllCaps="false"
+            android:textColor="@color/fitlinkPrimary"
+            app:icon="@android:drawable/ic_dialog_map"
+            app:iconPadding="12dp"
+            app:strokeColor="@color/fitlinkPrimary" />
 
         <TextView
             android:layout_width="match_parent"
@@ -66,7 +75,7 @@
             android:id="@+id/spinnerAddGroupSportType"
             android:layout_width="match_parent"
             android:layout_height="55dp"
-            android:layout_marginBottom="10dp" />
+            android:layout_marginBottom="16dp" />
 
         <TextView
             android:layout_width="match_parent"
@@ -81,7 +90,7 @@
             android:id="@+id/chipGroupAddGroupLevel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
+            android:layout_marginBottom="24dp"
             app:selectionRequired="true"
             app:singleSelection="true">
 
@@ -91,7 +100,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checked="true"
-                android:fontFamily="@font/poppins_medium"
                 android:text="Beginner" />
 
             <com.google.android.material.chip.Chip
@@ -99,7 +107,6 @@
                 style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/poppins_medium"
                 android:text="Intermediate" />
 
             <com.google.android.material.chip.Chip
@@ -107,14 +114,12 @@
                 style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/poppins_medium"
                 android:text="Advanced" />
         </com.google.android.material.chip.ChipGroup>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
             android:gravity="center"
             android:orientation="horizontal">
 
@@ -124,10 +129,8 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="4dp"
                 android:backgroundTint="@color/fitlinkPrimary"
-                android:fontFamily="@font/poppins_medium"
-                android:minWidth="80dp"
                 android:text="Create"
-                android:textSize="22sp" />
+                android:textSize="18sp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnAddGroupCancel"
@@ -135,11 +138,9 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="4dp"
                 android:backgroundTint="@color/white"
-                android:fontFamily="@font/poppins_medium"
-                android:minWidth="80dp"
                 android:text="Cancel"
                 android:textColor="@color/fitlinkPrimary"
-                android:textSize="22sp"
+                android:textSize="18sp"
                 app:strokeColor="@color/fitlinkPrimary"
                 app:strokeWidth="2dp" />
         </LinearLayout>

@@ -17,6 +17,7 @@ public class AddUserDialog {
     private final Context context;
     private final AddUserListener listener;
     private final DatabaseService databaseService;
+
     public AddUserDialog(Context context, AddUserListener listener) {
         this.context = context;
         this.listener = listener;

@@ -24,6 +24,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
 
     private final List<User> userList;
     private final OnUserClickListener onUserClickListener;
+
     // עדכון הקונסטרקטור לקבלת ה-ID של המשתמש הנוכחי לצורך השוואה
     public UserAdapter(@Nullable final OnUserClickListener onUserClickListener) {
         this.userList = new ArrayList<>();
