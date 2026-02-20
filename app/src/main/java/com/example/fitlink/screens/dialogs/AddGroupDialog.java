@@ -104,7 +104,7 @@ public class AddGroupDialog extends Dialog {
             Group newGroup = new Group(null, name, "", selectedSport, level, locationObj, adminId);
 
             // שמירה ל-Firebase
-            databaseService.createNewGroup(newGroup, new DatabaseService.DatabaseCallback<Void>() {
+            databaseService.createNewGroup(newGroup, new DatabaseService.DatabaseCallback<>() {
                 @Override
                 public void onCompleted(Void object) {
                     Toast.makeText(context, "Group created successfully!", Toast.LENGTH_SHORT).show();

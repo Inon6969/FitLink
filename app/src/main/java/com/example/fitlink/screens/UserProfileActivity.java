@@ -25,13 +25,13 @@ import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.ImageUtil;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 
+import java.util.Objects;
+
 public class UserProfileActivity extends BaseActivity {
     private static final int REQ_CAMERA = 100;
     private static final int REQ_GALLERY = 200;
-    private Button btnToMain, btnToContact, btnToExit, btnEditUser;
     private TextView txtTitle, txtFirstName, txtLastName, txtEmail, txtPassword;
     private ImageView imgUserProfile;
-    private Button btnChangePhoto;
     private User user;
 
     @Override
@@ -48,9 +48,9 @@ public class UserProfileActivity extends BaseActivity {
         user = SharedPreferencesUtil.getUser(this);
 
         //משתמש מחובר
-        btnToMain = findViewById(R.id.btn_DetailsAboutUser_to_main);
-        btnToContact = findViewById(R.id.btn_DetailsAboutUser_to_contact);
-        btnToExit = findViewById(R.id.btn_DetailsAboutUser_to_exit);
+        Button btnToMain = findViewById(R.id.btn_DetailsAboutUser_to_main);
+        Button btnToContact = findViewById(R.id.btn_DetailsAboutUser_to_contact);
+        Button btnToExit = findViewById(R.id.btn_DetailsAboutUser_to_exit);
 
         btnToMain.setOnClickListener(v -> startActivity(new Intent(this, MainActivity.class)));
         /*
@@ -58,11 +58,11 @@ public class UserProfileActivity extends BaseActivity {
          */
         btnToExit.setOnClickListener(v -> logout());
 
-        btnEditUser = findViewById(R.id.btn_DetailsAboutUser_edit_user);
+        Button btnEditUser = findViewById(R.id.btn_DetailsAboutUser_edit_user);
         btnEditUser.setOnClickListener(v -> openEditDialog());
 
         imgUserProfile = findViewById(R.id.img_DetailsAboutUser_user_profile);
-        btnChangePhoto = findViewById(R.id.btn_DetailsAboutUser_change_photo);
+        Button btnChangePhoto = findViewById(R.id.btn_DetailsAboutUser_change_photo);
         btnChangePhoto.setOnClickListener(v -> openImagePicker());
         imgUserProfile.setOnClickListener(v -> {
             if (user.getProfileImage() != null) showFullImageDialog();
@@ -131,7 +131,7 @@ public class UserProfileActivity extends BaseActivity {
     }
 
     private void updateUserInDatabaseAndSharedPreference() {
-        DatabaseService.getInstance().updateUser(user, new DatabaseService.DatabaseCallback<Void>() {
+        DatabaseService.getInstance().updateUser(user, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Void object) {
                 txtFirstName.setText(user.getFirstName());
@@ -180,7 +180,7 @@ public class UserProfileActivity extends BaseActivity {
 
         imgUserProfile.setImageResource(R.drawable.ic_user);
 
-        databaseService.updateUser(user, new DatabaseService.DatabaseCallback<Void>() {
+        databaseService.updateUser(user, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Void object) {
                 SharedPreferencesUtil.saveUser(UserProfileActivity.this, user);
@@ -203,11 +203,11 @@ public class UserProfileActivity extends BaseActivity {
         Bitmap bitmap = null;
 
         if (requestCode == REQ_CAMERA && data != null) {
-            bitmap = (Bitmap) data.getExtras().get("data");
+            bitmap = (Bitmap) Objects.requireNonNull(data.getExtras()).get("data");
         } else if (requestCode == REQ_GALLERY && data != null) {
             try {
                 bitmap = BitmapFactory.decodeStream(
-                        getContentResolver().openInputStream(data.getData())
+                        getContentResolver().openInputStream(Objects.requireNonNull(data.getData()))
                 );
             } catch (Exception e) {
                 e.printStackTrace();
@@ -226,7 +226,7 @@ public class UserProfileActivity extends BaseActivity {
     }
 
     private void saveProfileImage() {
-        DatabaseService.getInstance().updateUser(user, new DatabaseService.DatabaseCallback<Void>() {
+        DatabaseService.getInstance().updateUser(user, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Void object) {
                 SharedPreferencesUtil.saveUser(UserProfileActivity.this, user);

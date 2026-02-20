@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_my_groups_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/fitlinkBackground"
+    tools:context=".screens.MyGroupsActivity">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar_my_groups"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/fitlinkPrimary"
+            app:navigationIcon="?attr/homeAsUpIndicator"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+            app:title="My Groups"
+            app:titleTextColor="@color/fitlinkBackground" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:padding="5dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:fontFamily="@font/poppins_bold"
+                android:text="My Groups"
+                android:textColor="@color/fitlinkPrimary"
+                android:textSize="32sp" />
+
+            <TextView
+                android:id="@+id/tv_my_group_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:fontFamily="@font/poppins_regular"
+                android:text="Showing 0 groups"
+                android:textColor="@color/fitlinkTextSecondary"
+                android:textSize="16sp" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="30dp"
+                app:cardElevation="6dp">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="5dp">
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rv_my_groups_list"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:clipToPadding="false"
+                        tools:listitem="@layout/item_group" />
+
+                    <LinearLayout
+                        android:id="@+id/my_groups_empty_state"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="40dp"
+                        android:visibility="gone">
+
+                        <ImageView
+                            android:layout_width="96dp"
+                            android:layout_height="96dp"
+                            android:layout_marginBottom="16dp"
+                            android:alpha="0.3"
+                            android:src="@drawable/ic_sport" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/poppins_medium"
+                            android:text="No Groups Yet"
+                            android:textColor="@color/fitlinkTextSecondary"
+                            android:textSize="18sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/poppins_regular"
+                            android:text="Join some groups to see them here."
+                            android:textColor="@color/fitlinkTextSecondary"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+
+                    <ProgressBar
+                        android:id="@+id/my_groups_progress_bar"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:visibility="gone" />
+                </FrameLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

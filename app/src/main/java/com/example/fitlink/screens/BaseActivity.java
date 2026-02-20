@@ -11,8 +11,6 @@ import com.example.fitlink.screens.dialogs.LogoutDialog;
 import com.example.fitlink.services.AuthService;
 import com.example.fitlink.services.DatabaseService;
 
-;
-
 public class BaseActivity extends AppCompatActivity {
 
     protected DatabaseService databaseService;

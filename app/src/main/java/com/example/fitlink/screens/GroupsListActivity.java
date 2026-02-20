@@ -33,8 +33,10 @@ import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.google.android.material.button.MaterialButton;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class GroupsListActivity extends BaseActivity {
@@ -114,12 +116,7 @@ public class GroupsListActivity extends BaseActivity {
         RecyclerView rvGroups = findViewById(R.id.rv_groups_list);
         rvGroups.setLayoutManager(new LinearLayoutManager(this));
 
-        groupAdapter = new GroupAdapter(new ArrayList<>(), new GroupAdapter.OnGroupClickListener() {
-            @Override
-            public void onJoinClick(Group group) {
-                handleJoinGroup(group);
-            }
-        });
+        groupAdapter = new GroupAdapter(new ArrayList<>(), this::handleJoinGroup);
         rvGroups.setAdapter(groupAdapter);
     }
 
@@ -219,7 +216,7 @@ public class GroupsListActivity extends BaseActivity {
 
     private void loadGroups() {
         progressBar.setVisibility(View.VISIBLE);
-        databaseService.getAllGroups(new DatabaseService.DatabaseCallback<List<Group>>() {
+        databaseService.getAllGroups(new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(List<Group> groups) {
                 progressBar.setVisibility(View.GONE);
@@ -239,10 +236,10 @@ public class GroupsListActivity extends BaseActivity {
     private void updateListDisplay(List<Group> listToDisplay) {
         // כאן יוצרים את האדפטר מחדש עם הרשימה המסוננת
         // (אופציונלי: עדיף לייעל ע"י עדכון הרשימה באדפטר הקיים ושימוש ב-notifyDataSetChanged, אבל זה תואם לקוד ששלחת)
-        groupAdapter = new GroupAdapter(listToDisplay, group -> handleJoinGroup(group));
+        groupAdapter = new GroupAdapter(listToDisplay, this::handleJoinGroup);
         ((RecyclerView) findViewById(R.id.rv_groups_list)).setAdapter(groupAdapter);
 
-        tvGroupCount.setText("Showing " + listToDisplay.size() + " groups");
+        tvGroupCount.setText(MessageFormat.format("Showing {0} groups", listToDisplay.size()));
 
         if (listToDisplay.isEmpty()) {
             emptyState.setVisibility(View.VISIBLE);
@@ -260,7 +257,7 @@ public class GroupsListActivity extends BaseActivity {
         }
 
         progressBar.setVisibility(View.VISIBLE);
-        databaseService.joinGroup(group.getId(), currentUserId, new DatabaseService.DatabaseCallback<Void>() {
+        databaseService.joinGroup(group.getId(), Objects.requireNonNull(currentUserId), new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Void object) {
                 progressBar.setVisibility(View.GONE);

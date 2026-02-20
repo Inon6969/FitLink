@@ -161,10 +161,10 @@ public class SharedPreferencesUtil {
         return contains(context, "user");
     }
 
-    /// Get the user id of the logged in user
+    /// Get the user id of the logged-in user
     ///
     /// @param context The context to use
-    /// @return The user id of the logged in user, or null if no user is logged in
+    /// @return The user id of the logged-in user, or null if no user is logged in
     @Nullable
     public static String getUserId(Context context) {
         User user = getUser(context);

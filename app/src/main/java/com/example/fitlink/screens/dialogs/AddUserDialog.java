@@ -12,6 +12,8 @@ import com.example.fitlink.models.User;
 import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.Validator;
 
+import java.util.Objects;
+
 public class AddUserDialog {
     private static final String TAG = "AddUserDialog";
     private final Context context;
@@ -27,7 +29,7 @@ public class AddUserDialog {
     public void show() {
         Dialog dialog = new Dialog(context);
         dialog.setContentView(R.layout.dialog_add_user);
-        dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        Objects.requireNonNull(dialog.getWindow()).setBackgroundDrawableResource(android.R.color.transparent);
 
         EditText inputFirstName = dialog.findViewById(R.id.inputAddUserFirstName);
         EditText inputLastName = dialog.findViewById(R.id.inputAddUserLastName);
@@ -46,27 +48,27 @@ public class AddUserDialog {
             String phone = inputPhone.getText().toString().trim();
 
             // וולידציה לפי התבנית של RegisterActivity
-            if (!Validator.isNameValid(fName)) {
+            if (Validator.isNameValid(fName)) {
                 inputFirstName.setError("שם פרטי קצר מדי");
                 inputFirstName.requestFocus();
                 return;
             }
-            if (!Validator.isNameValid(lName)) {
+            if (Validator.isNameValid(lName)) {
                 inputLastName.setError("שם משפחה קצר מדי");
                 inputLastName.requestFocus();
                 return;
             }
-            if (!Validator.isEmailValid(email)) {
+            if (Validator.isEmailValid(email)) {
                 inputEmail.setError("כתובת אימייל לא תקינה");
                 inputEmail.requestFocus();
                 return;
             }
-            if (!Validator.isPhoneValid(phone)) {
+            if (Validator.isPhoneValid(phone)) {
                 inputPhone.setError("מספר טלפון לא תקין");
                 inputPhone.requestFocus();
                 return;
             }
-            if (!Validator.isPasswordValid(password)) {
+            if (Validator.isPasswordValid(password)) {
                 inputPassword.setError("הסיסמה חייבת להכיל לפחות 6 תווים");
                 inputPassword.requestFocus();
                 return;
@@ -77,14 +79,14 @@ public class AddUserDialog {
             User user = new User(uid, email, password, fName, lName, phone, false, null);
 
             // בדיקת כפילות אימייל בדיוק כמו ב-RegisterActivity
-            databaseService.checkIfEmailExists(email, new DatabaseService.DatabaseCallback<Boolean>() {
+            databaseService.checkIfEmailExists(email, new DatabaseService.DatabaseCallback<>() {
                 @Override
                 public void onCompleted(Boolean exists) {
                     if (exists) {
                         Toast.makeText(context, "אימייל זה כבר קיים במערכת", Toast.LENGTH_SHORT).show();
                     } else {
                         // יצירת המשתמש
-                        databaseService.createNewUser(user, new DatabaseService.DatabaseCallback<Void>() {
+                        databaseService.createNewUser(user, new DatabaseService.DatabaseCallback<>() {
                             @Override
                             public void onCompleted(Void unused) {
                                 Log.d(TAG, "User created successfully via dialog");

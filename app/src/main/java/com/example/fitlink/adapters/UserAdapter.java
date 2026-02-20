@@ -19,6 +19,7 @@ import com.google.android.material.chip.Chip;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
 
@@ -63,7 +64,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
         }
 
         // בדיקה האם זה המשתמש המחובר (בהנחה שקיימת מתודת getId)
-        boolean isSelf = user.getId() != null && onUserClickListener.isCurrentUser(user);
+        boolean isSelf = user.getId() != null && Objects.requireNonNull(onUserClickListener).isCurrentUser(user);
 
         // לוגיקת הרשאות וניהול
         if (isSelf) {
@@ -148,10 +149,14 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvName, tvEmail, tvPhone, tvPassword;
-        Chip chipRole;
-        ImageButton btnDeleteUser, btnToggleAdmin;
-        ImageView imgProfile;
+        final TextView tvName;
+        final TextView tvEmail;
+        final TextView tvPhone;
+        final TextView tvPassword;
+        final Chip chipRole;
+        final ImageButton btnDeleteUser;
+        final ImageButton btnToggleAdmin;
+        final ImageView imgProfile;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);

@@ -21,8 +21,8 @@ import java.util.List;
 
 public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHolder> {
 
-    private List<Group> groupList;
-    private OnGroupClickListener listener;
+    private final List<Group> groupList;
+    private final OnGroupClickListener listener;
 
     public GroupAdapter(List<Group> groupList, OnGroupClickListener listener) {
         this.groupList = groupList;
@@ -48,7 +48,7 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
             holder.tvLocation.setText("No location");
         }
         holder.chipLevel.setText(group.getLevel());
-        holder.tvSport.setText(group.getSportType().name());
+        holder.tvSport.setText(group.getSportType().getDisplayName());
 
         // עדכון אייקונים דינמיים (גם הראשי וגם המיני)
         int sportIconRes = getSportIconResource(group.getSportType());
@@ -61,11 +61,11 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
 
         // שליפת שם היוצר מה-Database
         holder.tvCreator.setText("Loading...");
-        DatabaseService.getInstance().getUser(group.getAdminId(), new DatabaseService.DatabaseCallback<User>() {
+        DatabaseService.getInstance().getUser(group.getAdminId(), new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(User user) {
                 if (user != null) {
-                    holder.tvCreator.setText("By " + user.getFirstName() + " " + user.getLastName());
+                    holder.tvCreator.setText(String.format("By %s %s", user.getFirstName(), user.getLastName()));
                 }
             }
 
@@ -103,10 +103,15 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
     }
 
     public static class GroupViewHolder extends RecyclerView.ViewHolder {
-        TextView tvName, tvSport, tvLocation, tvMembers, tvCreator;
-        ImageView imgIcon, imgSportMini;
-        Chip chipLevel;
-        Button btnJoin;
+        final TextView tvName;
+        final TextView tvSport;
+        final TextView tvLocation;
+        final TextView tvMembers;
+        final TextView tvCreator;
+        final ImageView imgIcon;
+        final ImageView imgSportMini;
+        final Chip chipLevel;
+        final Button btnJoin;
 
         public GroupViewHolder(@NonNull View itemView) {
             super(itemView);

@@ -1,5 +1,7 @@
 package com.example.fitlink.models;
 
+import androidx.annotation.NonNull;
+
 import com.google.firebase.database.Exclude;
 
 import java.io.Serializable;
@@ -124,6 +126,7 @@ public class User implements Serializable {
         this.groupIds.put(groupId, true);
     }
 
+    @NonNull
     @Override
     public String toString() {
         return "User{" +

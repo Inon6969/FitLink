@@ -57,16 +57,5 @@ public class AdminActivity extends BaseActivity {
             startActivity(intent);
         });
 
-        /*
-        cardFoods.setOnClickListener(v -> {
-            Intent intent = new Intent(this, FoodItemsActivity.class);
-            startActivity(intent);
-        });
-
-        cardCarts.setOnClickListener(v -> {
-            Intent intent = new Intent(this, AllCartsActivity.class);
-            startActivity(intent);
-        });
-        */
     }
 }

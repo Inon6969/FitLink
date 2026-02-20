@@ -28,7 +28,6 @@ public class MapPickerActivity extends AppCompatActivity {
     private MapView map = null;
     private GeoPoint selectedPoint;
     private Marker selectedMarker;
-    private Button btnConfirm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,7 +39,7 @@ public class MapPickerActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_map_picker);
 
-        btnConfirm = findViewById(R.id.btnConfirmLocation);
+        Button btnConfirm = findViewById(R.id.btnConfirmLocation);
         map = findViewById(R.id.map); // וודא שב-XML סוג ה-View הוא org.osmdroid.views.MapView
 
         // הגדרות בסיסיות למפה

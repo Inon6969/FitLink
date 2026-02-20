@@ -15,7 +15,6 @@
         android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar">
 
         <LinearLayout
-            android:id="@+id/topMenu"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="@color/fitlinkPrimary"
@@ -25,7 +24,6 @@
             android:paddingEnd="4dp">
 
             <Button
-                android:id="@+id/btn_main_to_main"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
@@ -111,12 +109,12 @@
                 app:cardElevation="6dp">
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_join_run"
+                    android:id="@+id/btn_join_or_create_group"
                     android:layout_width="match_parent"
                     android:layout_height="80dp"
                     android:backgroundTint="@color/fitlinkPrimary"
                     android:fontFamily="@font/poppins_medium"
-                    android:text="🏃‍♂️ Join Run"
+                    android:text="Join or Create Group 🏊‍♂️🚴‍♂️🏃‍♂️"
                     android:textAllCaps="false"
                     android:textColor="@color/white"
                     android:textSize="18sp"
@@ -131,12 +129,12 @@
                 app:cardElevation="6dp">
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_create_ride"
+                    android:id="@+id/btn_my_groups"
                     android:layout_width="match_parent"
                     android:layout_height="80dp"
                     android:backgroundTint="@color/fitlinkPrimary"
                     android:fontFamily="@font/poppins_medium"
-                    android:text="🚴‍♀️ Create Group Ride"
+                    android:text="My Groups 👥"
                     android:textAllCaps="false"
                     android:textColor="@color/white"
                     android:textSize="18sp"

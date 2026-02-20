@@ -16,6 +16,8 @@ import com.example.fitlink.models.User;
 import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 
+import java.util.Objects;
+
 /// Landing activity for the app
 /// This activity is the first activity that is shown when the app is first opened (when the user is not signed in)
 /// It contains buttons to navigate to the login and register activities
@@ -39,7 +41,7 @@ public class LandingActivity extends BaseActivity implements View.OnClickListene
 
         User current = SharedPreferencesUtil.getUser(this);
         if (SharedPreferencesUtil.isUserLoggedIn(this)) {
-            databaseService.getUser(current.getId(), new DatabaseService.DatabaseCallback<User>() {
+            databaseService.getUser(Objects.requireNonNull(current).getId(), new DatabaseService.DatabaseCallback<>() {
                 @Override
                 public void onCompleted(User user) {
                     if (user != null) {

@@ -20,9 +20,11 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
     private static final String TAG = "MainActivity";
 
-    private MaterialButton btnJoinRun, btnCreateRide, btnMyActivities, btnAdminPanel, btnToContact, btnToDetailsAboutUser, btnToExit;
-
-    private User user;
+    private MaterialButton btnJoinorCreateGroup;
+    private MaterialButton btnMyGroups;
+    private MaterialButton btnAdminPanel;
+    private MaterialButton btnToDetailsAboutUser;
+    private MaterialButton btnToExit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,21 +40,21 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
 
         // Get current user from shared preferences
-        user = SharedPreferencesUtil.getUser(this);
+        User user = SharedPreferencesUtil.getUser(this);
         Log.d(TAG, "User: " + user);
 
         // Find views
-        btnJoinRun = findViewById(R.id.btn_join_run);
-        btnCreateRide = findViewById(R.id.btn_create_ride);
-        btnMyActivities = findViewById(R.id.btn_my_activities);
+        btnJoinorCreateGroup = findViewById(R.id.btn_join_or_create_group);
+        btnMyGroups = findViewById(R.id.btn_my_groups);
+        MaterialButton btnMyActivities = findViewById(R.id.btn_my_activities);
         btnAdminPanel = findViewById(R.id.btn_admin_panel);
-        btnToContact = findViewById(R.id.btn_main_to_contact);
+        MaterialButton btnToContact = findViewById(R.id.btn_main_to_contact);
         btnToDetailsAboutUser = findViewById(R.id.btn_main_to_DetailsAboutUser);
         btnToExit = findViewById(R.id.btn_main_to_exit);
 
         // Set click listeners
-        btnJoinRun.setOnClickListener(this);
-        btnCreateRide.setOnClickListener(this);
+        btnJoinorCreateGroup.setOnClickListener(this);
+        btnMyGroups.setOnClickListener(this);
         btnMyActivities.setOnClickListener(this);
         btnAdminPanel.setOnClickListener(this);
         btnToContact.setOnClickListener(this);
@@ -70,28 +72,16 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
-        if (v.getId() == btnJoinRun.getId()) {
-            Log.d(TAG, "Join Run clicked");
+        if (v.getId() == btnJoinorCreateGroup.getId()) {
+            Log.d(TAG, "Join Group clicked");
             startActivity(new Intent(this, GroupsListActivity.class));
             return;
         }
-         /*
-        if (v.getId() == btnCreateRide.getId()) {
+        if (v.getId() == btnMyGroups.getId()) {
             Log.d(TAG, "Create Ride clicked");
-            startActivity(new Intent(this, CreateRideActivity.class));
+            startActivity(new Intent(this, MyGroupsActivity.class));
             return;
         }
-        if (v.getId() == btnMyActivities.getId()) {
-            Log.d(TAG, "My Activities clicked");
-            startActivity(new Intent(this, MyActivitiesActivity.class));
-            return;
-        }
-        if (v.getId() == btnToContact.getId()) {
-            Log.d(TAG, "Contact clicked");
-            startActivity(new Intent(this, JoinRunActivity.class));
-            return;
-        }
-         */
         if (v.getId() == btnAdminPanel.getId()) {
             Log.d(TAG, "Admin Panel clicked");
             startActivity(new Intent(this, AdminActivity.class));
@@ -104,7 +94,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         if (v.getId() == btnToExit.getId()) {
             Log.d(TAG, "Sign out clicked");
             logout();
-            return;
         }
     }
 }

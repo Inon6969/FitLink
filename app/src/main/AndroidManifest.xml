@@ -12,7 +12,9 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.CAMERA" /> <!-- For Android 13+ -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" /> <!-- For older Android -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
@@ -24,6 +26,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.FitLink">
+        <activity
+            android:name=".screens.MyGroupsActivity"
+            android:exported="false" />
         <activity
             android:name=".screens.MapPickerActivity"
             android:exported="false"

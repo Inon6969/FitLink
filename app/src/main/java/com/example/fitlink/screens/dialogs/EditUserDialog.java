@@ -54,27 +54,27 @@ public class EditUserDialog {
             String pass = inputPassword.getText().toString().trim();
 
             // 1. וולידציה בסיסית של השדות
-            if (!Validator.isNameValid(fName)) {
+            if (Validator.isNameValid(fName)) {
                 inputFirstName.setError("שם פרטי קצר מדי");
                 inputFirstName.requestFocus();
                 return;
             }
-            if (!Validator.isNameValid(lName)) {
+            if (Validator.isNameValid(lName)) {
                 inputLastName.setError("שם משפחה קצר מדי");
                 inputLastName.requestFocus();
                 return;
             }
-            if (!Validator.isEmailValid(newEmail)) {
+            if (Validator.isEmailValid(newEmail)) {
                 inputEmail.setError("כתובת אימייל לא תקינה");
                 inputEmail.requestFocus();
                 return;
             }
-            if (!Validator.isPhoneValid(phone)) {
+            if (Validator.isPhoneValid(phone)) {
                 inputPhone.setError("מספר טלפון לא תקין");
                 inputPhone.requestFocus();
                 return;
             }
-            if (!Validator.isPasswordValid(pass)) {
+            if (Validator.isPasswordValid(pass)) {
                 inputPassword.setError("הסיסמה חייבת להכיל לפחות 6 תווים");
                 inputPassword.requestFocus();
                 return;
@@ -83,7 +83,7 @@ public class EditUserDialog {
             // 2. בדיקה האם האימייל השתנה
             if (!newEmail.equalsIgnoreCase(user.getEmail())) {
                 // האימייל שונה - יש לבדוק אם הוא קיים במערכת
-                DatabaseService.getInstance().checkIfEmailExists(newEmail, new DatabaseService.DatabaseCallback<Boolean>() {
+                DatabaseService.getInstance().checkIfEmailExists(newEmail, new DatabaseService.DatabaseCallback<>() {
                     @Override
                     public void onCompleted(Boolean exists) {
                         if (exists) {
@@ -118,7 +118,7 @@ public class EditUserDialog {
         user.setPhone(phone);
         user.setPassword(pass);
 
-        DatabaseService.getInstance().updateUser(user, new DatabaseService.DatabaseCallback<Void>() {
+        DatabaseService.getInstance().updateUser(user, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Void object) {
                 Toast.makeText(context, "הפרטים עודכנו בהצלחה!", Toast.LENGTH_SHORT).show();

@@ -31,6 +31,7 @@ import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.google.android.material.button.MaterialButton;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -96,9 +97,7 @@ public class UsersListActivity extends BaseActivity {
         userAdapter = new UserAdapter(new UserAdapter.OnUserClickListener() {
             @Override
             public void onUserClick(User user) {
-                new EditUserDialog(UsersListActivity.this, user, () -> {
-                    loadUsers();
-                }).show();
+                new EditUserDialog(UsersListActivity.this, user, () -> loadUsers()).show();
             }
 
             @Override
@@ -169,11 +168,7 @@ public class UsersListActivity extends BaseActivity {
     }
 
     private void setupAddUserButton() {
-        btnAddUser.setOnClickListener(v -> {
-            new AddUserDialog(this, newUser -> {
-                loadUsers();
-            }).show();
-        });
+        btnAddUser.setOnClickListener(v -> new AddUserDialog(this, newUser -> loadUsers()).show());
     }
 
     @Override
@@ -184,7 +179,7 @@ public class UsersListActivity extends BaseActivity {
 
     private void loadUsers() {
         progressBar.setVisibility(View.VISIBLE);
-        databaseService.getUserList(new DatabaseService.DatabaseCallback<List<User>>() {
+        databaseService.getUserList(new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(List<User> users) {
                 progressBar.setVisibility(View.GONE);
@@ -203,7 +198,7 @@ public class UsersListActivity extends BaseActivity {
 
     private void updateListDisplay(List<User> listToDisplay) {
         userAdapter.setUserList(listToDisplay);
-        tvUserCount.setText("Total users: " + listToDisplay.size());
+        tvUserCount.setText(MessageFormat.format("Total users: {0}", listToDisplay.size()));
 
         if (listToDisplay.isEmpty()) {
             emptyState.setVisibility(View.VISIBLE);
@@ -214,7 +209,7 @@ public class UsersListActivity extends BaseActivity {
 
     private void handleToggleAdmin(User user) {
         boolean newRole = !user.getIsAdmin();
-        databaseService.updateUserAdminStatus(user.getId(), newRole, new DatabaseService.DatabaseCallback<Void>() {
+        databaseService.updateUserAdminStatus(user.getId(), newRole, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Void object) {
                 Toast.makeText(UsersListActivity.this, "Status updated", Toast.LENGTH_SHORT).show();
@@ -231,7 +226,7 @@ public class UsersListActivity extends BaseActivity {
     private void handleDeleteUser(User user) {
         boolean isSelf = user.equals(SharedPreferencesUtil.getUser(UsersListActivity.this));
 
-        databaseService.deleteUser(user.getId(), new DatabaseService.DatabaseCallback<Void>() {
+        databaseService.deleteUser(user.getId(), new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Void object) {
                 if (isSelf) {

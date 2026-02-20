@@ -228,8 +228,8 @@ public class DatabaseService {
     ///
     /// @param user     the user object to create
     /// @param callback the callback to call when the operation is completed
-    ///                                                                              the callback will receive void
-    ///                                                                            if the operation fails, the callback will receive an exception
+    ///                                                                                                                                                              the callback will receive void
+    ///                                                                                                                                                            if the operation fails, the callback will receive an exception
     /// @see DatabaseCallback
     /// @see User
     public void createNewUser(@NotNull final User user, @Nullable final DatabaseCallback<Void> callback) {
@@ -240,8 +240,8 @@ public class DatabaseService {
     ///
     /// @param uid      the id of the user to get
     /// @param callback the callback to call when the operation is completed
-    ///                                                                               the callback will receive the user object
-    ///                                                                             if the operation fails, the callback will receive an exception
+    ///                                                                                                                                                               the callback will receive the user object
+    ///                                                                                                                                                             if the operation fails, the callback will receive an exception
     /// @see DatabaseCallback
     /// @see User
     public void getUser(@NotNull final String uid, @NotNull final DatabaseCallback<User> callback) {
@@ -251,8 +251,8 @@ public class DatabaseService {
     /// get all the users from the database
     ///
     /// @param callback the callback to call when the operation is completed
-    ///                                                                              the callback will receive a list of user objects
-    ///                                                                            if the operation fails, the callback will receive an exception
+    ///                                                                                                                                                              the callback will receive a list of user objects
+    ///                                                                                                                                                            if the operation fails, the callback will receive an exception
     /// @see DatabaseCallback
     /// @see List
     /// @see User
@@ -273,12 +273,12 @@ public class DatabaseService {
     /// @param email    the email of the user
     /// @param password the password of the user
     /// @param callback the callback to call when the operation is completed
-    ///                                                                            the callback will receive the user object
-    ///                                                                          if the operation fails, the callback will receive an exception
+    ///                                                                                                                                                            the callback will receive the user object
+    ///                                                                                                                                                          if the operation fails, the callback will receive an exception
     /// @see DatabaseCallback
     /// @see User
     public void getUserByEmailAndPassword(@NotNull final String email, @NotNull final String password, @NotNull final DatabaseCallback<User> callback) {
-        getUserList(new DatabaseCallback<List<User>>() {
+        getUserList(new DatabaseCallback<>() {
             @Override
             public void onCompleted(List<User> users) {
                 for (User user : users) {
@@ -302,7 +302,7 @@ public class DatabaseService {
     /// @param email    the email to check
     /// @param callback the callback to call when the operation is completed
     public void checkIfEmailExists(@NotNull final String email, @NotNull final DatabaseCallback<Boolean> callback) {
-        getUserList(new DatabaseCallback<List<User>>() {
+        getUserList(new DatabaseCallback<>() {
             @Override
             public void onCompleted(List<User> users) {
                 for (User user : users) {
@@ -322,7 +322,7 @@ public class DatabaseService {
     }
 
     public void updateUser(@NotNull final User user, @Nullable final DatabaseCallback<Void> callback) {
-        runTransaction(USERS_PATH + "/" + user.getId(), User.class, currentUser -> user, new DatabaseCallback<User>() {
+        runTransaction(USERS_PATH + "/" + user.getId(), User.class, currentUser -> user, new DatabaseCallback<>() {
             @Override
             public void onCompleted(User object) {
                 if (callback != null) {
@@ -383,10 +383,6 @@ public class DatabaseService {
     // region Group Section
 
     /**
-     * Creates a new sports group in the database.
-     */
-
-    /**
      * Retrieves all available groups.
      */
     public void getAllGroups(@NotNull final DatabaseCallback<List<Group>> callback) {
@@ -437,10 +433,10 @@ public class DatabaseService {
     /// @see DatabaseCallback#onFailed(Exception)
     public interface DatabaseCallback<T> {
         /// called when the operation is completed successfully
-        public void onCompleted(T object);
+        void onCompleted(T object);
 
         /// called when the operation fails with an exception
-        public void onFailed(Exception e);
+        void onFailed(Exception e);
     }
 
     // endregion Group Section

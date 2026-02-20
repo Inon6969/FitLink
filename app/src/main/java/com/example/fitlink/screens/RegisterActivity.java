@@ -92,7 +92,7 @@ public class RegisterActivity extends BaseActivity implements View.OnClickListen
             /// Register user
             registerUser(email, password, fName, lName, phone);
         } else if (v.getId() == tvLogin.getId()) {
-            /// Navigate back to Login Activity
+            /// Navigate back to Log in Activity
             finish();
         }
     }
@@ -103,7 +103,7 @@ public class RegisterActivity extends BaseActivity implements View.OnClickListen
     /// @see Validator
     private boolean checkInput(String email, String password, String fName, String lName, String phone) {
 
-        if (!Validator.isEmailValid(email)) {
+        if (Validator.isEmailValid(email)) {
             Log.e(TAG, "checkInput: Invalid email address");
             /// show error message to user
             etEmail.setError("Invalid email address");
@@ -112,7 +112,7 @@ public class RegisterActivity extends BaseActivity implements View.OnClickListen
             return false;
         }
 
-        if (!Validator.isPasswordValid(password)) {
+        if (Validator.isPasswordValid(password)) {
             Log.e(TAG, "checkInput: Password must be at least 6 characters long");
             /// show error message to user
             etPassword.setError("Password must be at least 6 characters long");
@@ -121,7 +121,7 @@ public class RegisterActivity extends BaseActivity implements View.OnClickListen
             return false;
         }
 
-        if (!Validator.isNameValid(fName)) {
+        if (Validator.isNameValid(fName)) {
             Log.e(TAG, "checkInput: First name must be at least 3 characters long");
             /// show error message to user
             etFName.setError("First name must be at least 3 characters long");
@@ -130,7 +130,7 @@ public class RegisterActivity extends BaseActivity implements View.OnClickListen
             return false;
         }
 
-        if (!Validator.isNameValid(lName)) {
+        if (Validator.isNameValid(lName)) {
             Log.e(TAG, "checkInput: Last name must be at least 3 characters long");
             /// show error message to user
             etLName.setError("Last name must be at least 3 characters long");
@@ -139,7 +139,7 @@ public class RegisterActivity extends BaseActivity implements View.OnClickListen
             return false;
         }
 
-        if (!Validator.isPhoneValid(phone)) {
+        if (Validator.isPhoneValid(phone)) {
             Log.e(TAG, "checkInput: Phone number must be at least 10 characters long");
             /// show error message to user
             etPhone.setError("Phone number must be at least 10 characters long");
@@ -184,7 +184,7 @@ public class RegisterActivity extends BaseActivity implements View.OnClickListen
     }
 
     private void createUserInDatabase(User user) {
-        databaseService.createNewUser(user, new DatabaseService.DatabaseCallback<Void>() {
+        databaseService.createNewUser(user, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Void object) {
                 Log.d(TAG, "createUserInDatabase: User created successfully");

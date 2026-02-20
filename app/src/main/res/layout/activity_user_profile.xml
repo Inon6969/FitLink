@@ -16,7 +16,6 @@
         android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar">
 
         <LinearLayout
-            android:id="@+id/topMenuDetailsAboutUser"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:gravity="center"
@@ -36,7 +35,6 @@
                 android:textSize="12sp" />
 
             <Button
-                android:id="@+id/btn_DetailsAboutUser_to_DetailsAboutUserPage"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"

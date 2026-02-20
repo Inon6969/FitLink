@@ -7,6 +7,8 @@ import android.widget.Button;
 
 import com.example.fitlink.R;
 
+import java.util.Objects;
+
 public class ProfileImageDialog {
     private final Context context;
     private final boolean hasImage;
@@ -21,7 +23,7 @@ public class ProfileImageDialog {
     public void show() {
         Dialog dialog = new Dialog(context);
         dialog.setContentView(R.layout.dialog_profile_image);
-        dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        Objects.requireNonNull(dialog.getWindow()).setBackgroundDrawableResource(android.R.color.transparent);
         dialog.setCancelable(true);
 
         // מציאת הרכיבים

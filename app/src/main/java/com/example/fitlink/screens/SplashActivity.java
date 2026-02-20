@@ -36,7 +36,7 @@ public class SplashActivity extends AppCompatActivity {
                 if (SharedPreferencesUtil.isUserLoggedIn(this)) {
                     User current = SharedPreferencesUtil.getUser(this);
                     if (current != null) {
-                        DatabaseService.getInstance().getUser(current.getId(), new DatabaseService.DatabaseCallback<User>() {
+                        DatabaseService.getInstance().getUser(current.getId(), new DatabaseService.DatabaseCallback<>() {
                             @Override
                             public void onCompleted(User user) {
                                 if (user != null) {
