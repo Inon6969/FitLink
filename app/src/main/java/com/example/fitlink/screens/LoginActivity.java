@@ -95,7 +95,7 @@ public class LoginActivity extends BaseActivity implements View.OnClickListener 
     /// @see Validator#isEmailValid(String)
     /// @see Validator#isPasswordValid(String)
     private boolean checkInput(String email, String password) {
-        if (Validator.isEmailValid(email)) {
+        if (!Validator.isEmailValid(email)) {
             Log.e(TAG, "checkInput: Invalid email address");
             /// show error message to user
             etEmail.setError("Invalid email address");
@@ -104,7 +104,7 @@ public class LoginActivity extends BaseActivity implements View.OnClickListener 
             return false;
         }
 
-        if (Validator.isPasswordValid(password)) {
+        if (!Validator.isPasswordValid(password)) {
             Log.e(TAG, "checkInput: Invalid password");
             /// show error message to user
             etPassword.setError("Password must be at least 6 characters long");
