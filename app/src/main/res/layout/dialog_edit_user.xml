@@ -112,23 +112,21 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnEditUserSave"
-                android:layout_width="130dp"
+                android:layout_width="140dp"
                 android:layout_height="wrap_content"
                 android:layout_margin="4dp"
                 android:backgroundTint="@color/fitlinkPrimary"
                 android:fontFamily="@font/poppins_medium"
-                android:minWidth="80dp"
                 android:text="Save"
                 android:textSize="22sp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnEditUserCancel"
-                android:layout_width="130dp"
+                android:layout_width="140dp"
                 android:layout_height="wrap_content"
                 android:layout_margin="4dp"
                 android:backgroundTint="@color/white"
                 android:fontFamily="@font/poppins_medium"
-                android:minWidth="80dp"
                 android:text="Cancel"
                 android:textColor="@color/fitlinkPrimary"
                 android:textSize="22sp"

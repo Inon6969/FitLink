@@ -47,15 +47,25 @@ public class UserProfileActivity extends BaseActivity {
 
         user = SharedPreferencesUtil.getUser(this);
 
-        //משתמש מחובר
+        // אתחול כפתורי הניווט בסרגל העליון
         Button btnToMain = findViewById(R.id.btn_DetailsAboutUser_to_main);
         Button btnToContact = findViewById(R.id.btn_DetailsAboutUser_to_contact);
         Button btnToExit = findViewById(R.id.btn_DetailsAboutUser_to_exit);
 
-        btnToMain.setOnClickListener(v -> startActivity(new Intent(this, MainActivity.class)));
-        /*
-        btnToContact.setOnClickListener(v -> startActivity(new Intent(this, ContactActivity.class)));
-         */
+        btnToMain.setOnClickListener(v -> {
+            Intent intent = new Intent(this, MainActivity.class);
+            // מנקה את כל המסכים שמעל מסך הבית ומונע יצירת כפילויות
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+        });
+
+        // עדכון: הוספת מעבר לדף Contact עם ניהול מחסנית תקין
+        btnToContact.setOnClickListener(v -> {
+            Intent intent = new Intent(this, ContactActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+        });
+
         btnToExit.setOnClickListener(v -> logout());
 
         Button btnEditUser = findViewById(R.id.btn_DetailsAboutUser_edit_user);

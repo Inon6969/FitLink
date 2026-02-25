@@ -11,6 +11,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 
 import com.example.fitlink.R;
+import com.example.fitlink.models.DifficultyLevel;
 import com.example.fitlink.models.Group;
 import com.example.fitlink.models.Location;
 import com.example.fitlink.models.SportType;
@@ -30,13 +31,14 @@ public class AddGroupDialog extends Dialog {
     private final Context context;
     private final DatabaseService databaseService;
 
-    // רכיבי UI
+    // UI Elements
     private MaterialButton btnOpenMap;
     private TextInputEditText inputName;
+    private TextInputEditText inputDescription;
     private Spinner spinnerSport;
     private ChipGroup chipGroupLevel;
 
-    // נתוני מיקום שנבחרו
+    // Selected location data
     private String selectedAddress = "";
     private double selectedLat = 0;
     private double selectedLng = 0;
@@ -52,25 +54,25 @@ public class AddGroupDialog extends Dialog {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.dialog_add_group);
 
-        // אתחול רכיבים
+        // Initialize components
         inputName = findViewById(R.id.inputAddGroupName);
+        inputDescription = findViewById(R.id.inputAddGroupDescription);
         btnOpenMap = findViewById(R.id.btnOpenMapPicker);
         spinnerSport = findViewById(R.id.spinnerAddGroupSportType);
         chipGroupLevel = findViewById(R.id.chipGroupAddGroupLevel);
         MaterialButton btnSave = findViewById(R.id.btnAddGroupSave);
         MaterialButton btnCancel = findViewById(R.id.btnAddGroupCancel);
 
-        // הגדרת ספינר סוגי ספורט
+        // Setup sport type spinner
         ArrayAdapter<SportType> sportAdapter = new ArrayAdapter<>(context,
                 android.R.layout.simple_spinner_item, SportType.values());
         sportAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerSport.setAdapter(sportAdapter);
 
-        // לחיצה על כפתור המפה
+        // Map button click
         btnOpenMap.setOnClickListener(v -> {
             Intent intent = new Intent(context, MapPickerActivity.class);
             if (context instanceof GroupsListActivity) {
-                // הפעלה דרך הלאנצ'ר של ה-Activity כדי לקבל חזרה את המיקום
                 ((GroupsListActivity) context).getMapPickerLauncher().launch(intent);
             }
         });
@@ -79,14 +81,30 @@ public class AddGroupDialog extends Dialog {
 
         btnSave.setOnClickListener(v -> {
             String name = Objects.requireNonNull(inputName.getText()).toString().trim();
+
+            String description = "";
+            if (inputDescription.getText() != null) {
+                description = inputDescription.getText().toString().trim();
+            }
+
             SportType selectedSport = (SportType) spinnerSport.getSelectedItem();
 
-            // קבלת הרמה מה-Chip הנבחר
+            // Get level from the selected chip
             int checkedChipId = chipGroupLevel.getCheckedChipId();
             Chip selectedChip = findViewById(checkedChipId);
-            String level = (selectedChip != null) ? selectedChip.getText().toString() : "Beginner";
+            String levelText = (selectedChip != null) ? selectedChip.getText().toString() : "Beginner";
 
-            // ולידציה - חובה להזין שם ולבחור מיקום במפה
+            // Map string to DifficultyLevel Enum
+            DifficultyLevel selectedLevel;
+            if (levelText.equals("Intermediate")) {
+                selectedLevel = DifficultyLevel.INTERMEDIATE;
+            } else if (levelText.equals("Advanced")) {
+                selectedLevel = DifficultyLevel.ADVANCED;
+            } else {
+                selectedLevel = DifficultyLevel.BEGINNER;
+            }
+
+            // Validation
             if (name.isEmpty()) {
                 inputName.setError("Please enter a group name");
                 return;
@@ -97,13 +115,13 @@ public class AddGroupDialog extends Dialog {
                 return;
             }
 
-            // יצירת אובייקט ה-Location והקבוצה
             Location locationObj = new Location(selectedAddress, selectedLat, selectedLng);
             String adminId = SharedPreferencesUtil.getUserId(context);
 
-            Group newGroup = new Group(null, name, "", selectedSport, level, locationObj, adminId);
+            // Create Group using the Enum
+            Group newGroup = new Group(null, name, description, selectedSport, selectedLevel, locationObj, adminId);
 
-            // שמירה ל-Firebase
+            // Save to Firebase
             databaseService.createNewGroup(newGroup, new DatabaseService.DatabaseCallback<>() {
                 @Override
                 public void onCompleted(Void object) {
@@ -119,15 +137,11 @@ public class AddGroupDialog extends Dialog {
         });
     }
 
-    /**
-     * מתודה לעדכון פרטי המיקום - נקראת מה-GroupsListActivity לאחר חזרה מהמפה
-     */
     public void updateLocationDetails(String address, double lat, double lng) {
         this.selectedAddress = address;
         this.selectedLat = lat;
         this.selectedLng = lng;
 
-        // עדכון הטקסט על הכפתור כדי להראות למשתמש מה הוא בחר
         if (btnOpenMap != null) {
             btnOpenMap.setText(address);
         }

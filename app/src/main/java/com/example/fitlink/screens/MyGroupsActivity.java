@@ -20,6 +20,7 @@ import com.example.fitlink.R;
 import com.example.fitlink.adapters.GroupAdapter;
 import com.example.fitlink.models.Group;
 import com.example.fitlink.models.User;
+import com.example.fitlink.screens.dialogs.GroupDescriptionDialog;
 import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 
@@ -75,8 +76,20 @@ public class MyGroupsActivity extends BaseActivity {
 
     private void setupRecyclerView() {
         rvMyGroups.setLayoutManager(new LinearLayoutManager(this));
-        // Initialize with an empty list
-        adapter = new GroupAdapter(new ArrayList<>(), this::handleGroupClick);
+
+        adapter = new GroupAdapter(new ArrayList<>(), new GroupAdapter.OnGroupClickListener() {
+            @Override
+            public void onJoinClick(Group group) {
+                Toast.makeText(MyGroupsActivity.this, "You are already a member of this group!", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onGroupClick(Group group) {
+                // Instantiating and showing our new clean dialog class
+                new GroupDescriptionDialog(MyGroupsActivity.this, group).show();
+            }
+        });
+
         rvMyGroups.setAdapter(adapter);
     }
 
@@ -92,7 +105,6 @@ public class MyGroupsActivity extends BaseActivity {
 
         String currentUserId = SharedPreferencesUtil.getUserId(this);
 
-        // 1. Get the current user to find out which groups they belong to
         databaseService.getUser(Objects.requireNonNull(currentUserId), new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(User user) {
@@ -103,7 +115,6 @@ public class MyGroupsActivity extends BaseActivity {
 
                 Map<String, Boolean> myGroupIds = user.getGroupIds();
 
-                // 2. Fetch all groups and filter based on user's groupIds
                 databaseService.getAllGroups(new DatabaseService.DatabaseCallback<>() {
                     @Override
                     public void onCompleted(List<Group> allGroups) {
@@ -133,9 +144,9 @@ public class MyGroupsActivity extends BaseActivity {
     private void updateListDisplay(List<Group> listToDisplay) {
         progressBar.setVisibility(View.GONE);
 
-        // Refresh the adapter
-        adapter = new GroupAdapter(listToDisplay, this::handleGroupClick);
-        rvMyGroups.setAdapter(adapter);
+        if (adapter != null) {
+            adapter.updateList(listToDisplay);
+        }
 
         tvGroupCount.setText(MessageFormat.format("Showing {0} groups", listToDisplay.size()));
 
@@ -150,10 +161,5 @@ public class MyGroupsActivity extends BaseActivity {
         progressBar.setVisibility(View.GONE);
         Log.e(TAG, "Failed to load my groups", e);
         Toast.makeText(MyGroupsActivity.this, "Error loading groups", Toast.LENGTH_SHORT).show();
-    }
-
-    private void handleGroupClick(Group group) {
-        // Since they are already members, clicking could open a "Group Details" screen
-        Toast.makeText(this, "Opening details for: " + group.getName(), Toast.LENGTH_SHORT).show();
     }
 }

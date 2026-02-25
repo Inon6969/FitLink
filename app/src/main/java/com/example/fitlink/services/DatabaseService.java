@@ -440,4 +440,19 @@ public class DatabaseService {
     }
 
     // endregion Group Section
+
+    // הוסף את זה בתוך DatabaseService.java
+    public void sendContactMessage(String name, String email, String message, @Nullable final DatabaseCallback<Void> callback) {
+        // יצירת מזהה ייחודי להודעה תחת הנתיב contact_messages
+        String messageId = generateNewId("contact_messages");
+
+        Map<String, Object> messageData = new HashMap<>();
+        messageData.put("name", name);
+        messageData.put("email", email);
+        messageData.put("message", message);
+        messageData.put("timestamp", System.currentTimeMillis());
+
+        // כתיבת הנתונים ל-Firebase
+        writeData("contact_messages/" + messageId, messageData, callback);
+    }
 }

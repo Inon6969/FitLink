@@ -13,11 +13,10 @@ public class Group implements Serializable {
     private String name;            // Group Name
     private String description;     // Group Description
     private SportType sportType;    // Restricted to RUNNING, CYCLING, SWIMMING
-    private String level;           // e.g., Beginner, Intermediate, Advanced
-    private Location location;        // Meeting point or city
+    private DifficultyLevel level;  // Difficulty Level using the new Enum
+    private Location location;      // Meeting point or city
     private String adminId;         // The UID of the user who created the group
 
-    // שינוי ל-Map למניעת כפילויות ושיפור ביצועים ב-Firebase
     private Map<String, Boolean> members;
 
     // Required empty constructor for Firebase
@@ -25,7 +24,7 @@ public class Group implements Serializable {
         this.members = new HashMap<>();
     }
 
-    public Group(String id, String name, String description, SportType sportType, String level, Location location, String adminId) {
+    public Group(String id, String name, String description, SportType sportType, DifficultyLevel level, Location location, String adminId) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -72,11 +71,11 @@ public class Group implements Serializable {
         this.sportType = sportType;
     }
 
-    public String getLevel() {
+    public DifficultyLevel getLevel() {
         return level;
     }
 
-    public void setLevel(String level) {
+    public void setLevel(DifficultyLevel level) {
         this.level = level;
     }
 
@@ -104,14 +103,10 @@ public class Group implements Serializable {
         this.members = members;
     }
 
-    /**
-     * Helper method to add a new member to the group
-     */
     public void addMember(String userId) {
         if (this.members == null) {
             this.members = new HashMap<>();
         }
-        // במפה, put פשוט יחליף את הערך הקיים אם ה-ID כבר קיים, מה שמונע כפילויות באופן טבעי
         this.members.put(userId, true);
     }
 }

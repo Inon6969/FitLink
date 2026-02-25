@@ -1,13 +1,13 @@
 package com.example.fitlink.models;
 
-public enum SportType {
-    RUNNING("Running"),
-    CYCLING("Cycling"),
-    SWIMMING("Swimming");
+public enum DifficultyLevel {
+    BEGINNER("Beginner"),
+    INTERMEDIATE("Intermediate"),
+    ADVANCED("Advanced");
 
     private final String displayName;
 
-    SportType(String displayName) {
+    DifficultyLevel(String displayName) {
         this.displayName = displayName;
     }
 
@@ -15,7 +15,6 @@ public enum SportType {
         return displayName;
     }
 
-    // הוספנו את הפונקציה הזו כדי שהספינר יציג את הטקסט היפה
     @Override
     public String toString() {
         return displayName;

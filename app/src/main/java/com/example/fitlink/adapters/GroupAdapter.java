@@ -21,12 +21,17 @@ import java.util.List;
 
 public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHolder> {
 
-    private final List<Group> groupList;
+    private List<Group> groupList;
     private final OnGroupClickListener listener;
 
     public GroupAdapter(List<Group> groupList, OnGroupClickListener listener) {
         this.groupList = groupList;
         this.listener = listener;
+    }
+
+    public void updateList(List<Group> newList) {
+        this.groupList = newList;
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -40,26 +45,33 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
     public void onBindViewHolder(@NonNull GroupViewHolder holder, int position) {
         Group group = groupList.get(position);
 
-        // הגדרת טקסטים בסיסיים
+        // Basic texts
         holder.tvName.setText(group.getName());
         if (group.getLocation() != null) {
             holder.tvLocation.setText(group.getLocation().getAddress());
         } else {
             holder.tvLocation.setText("No location");
         }
-        holder.chipLevel.setText(group.getLevel());
+
+        // Use the Enum's display name
+        if (group.getLevel() != null) {
+            holder.chipLevel.setText(group.getLevel().getDisplayName());
+        } else {
+            holder.chipLevel.setText("Unknown");
+        }
+
         holder.tvSport.setText(group.getSportType().getDisplayName());
 
-        // עדכון אייקונים דינמיים (גם הראשי וגם המיני)
+        // Icons
         int sportIconRes = getSportIconResource(group.getSportType());
         holder.imgIcon.setImageResource(sportIconRes);
         holder.imgSportMini.setImageResource(sportIconRes);
 
-        // חישוב כמות חברים מתוך ה-Map (שימוש ב-size)
+        // Member count
         int memberCount = (group.getMembers() != null) ? group.getMembers().size() : 0;
         holder.tvMembers.setText(memberCount + (memberCount == 1 ? " Member" : " Members"));
 
-        // שליפת שם היוצר מה-Database
+        // Fetch Creator Name
         holder.tvCreator.setText("Loading...");
         DatabaseService.getInstance().getUser(group.getAdminId(), new DatabaseService.DatabaseCallback<>() {
             @Override
@@ -75,9 +87,16 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
             }
         });
 
+        // Click listeners
         holder.btnJoin.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onJoinClick(group);
+            }
+        });
+
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onGroupClick(group);
             }
         });
     }
@@ -100,6 +119,7 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
 
     public interface OnGroupClickListener {
         void onJoinClick(Group group);
+        void onGroupClick(Group group);
     }
 
     public static class GroupViewHolder extends RecyclerView.ViewHolder {

@@ -22,8 +22,10 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
     private MaterialButton btnJoinorCreateGroup;
     private MaterialButton btnMyGroups;
+    private MaterialButton btnMyActivities;
     private MaterialButton btnAdminPanel;
     private MaterialButton btnToDetailsAboutUser;
+    private MaterialButton btnToContact;
     private MaterialButton btnToExit;
 
     @Override
@@ -38,7 +40,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             return insets;
         });
 
-
         // Get current user from shared preferences
         User user = SharedPreferencesUtil.getUser(this);
         Log.d(TAG, "User: " + user);
@@ -46,10 +47,10 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         // Find views
         btnJoinorCreateGroup = findViewById(R.id.btn_join_or_create_group);
         btnMyGroups = findViewById(R.id.btn_my_groups);
-        MaterialButton btnMyActivities = findViewById(R.id.btn_my_activities);
+        btnMyActivities = findViewById(R.id.btn_my_activities);
         btnAdminPanel = findViewById(R.id.btn_admin_panel);
-        MaterialButton btnToContact = findViewById(R.id.btn_main_to_contact);
         btnToDetailsAboutUser = findViewById(R.id.btn_main_to_DetailsAboutUser);
+        btnToContact = findViewById(R.id.btn_main_to_contact);
         btnToExit = findViewById(R.id.btn_main_to_exit);
 
         // Set click listeners
@@ -57,8 +58,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         btnMyGroups.setOnClickListener(this);
         btnMyActivities.setOnClickListener(this);
         btnAdminPanel.setOnClickListener(this);
-        btnToContact.setOnClickListener(this);
         btnToDetailsAboutUser.setOnClickListener(this);
+        btnToContact.setOnClickListener(this);
         btnToExit.setOnClickListener(this);
 
         // Show admin card only if user is admin
@@ -69,31 +70,55 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         }
     }
 
-
     @Override
     public void onClick(View v) {
-        if (v.getId() == btnJoinorCreateGroup.getId()) {
+        int id = v.getId();
+
+        if (id == btnJoinorCreateGroup.getId()) {
             Log.d(TAG, "Join Group clicked");
             startActivity(new Intent(this, GroupsListActivity.class));
             return;
         }
-        if (v.getId() == btnMyGroups.getId()) {
-            Log.d(TAG, "Create Ride clicked");
+
+        if (id == btnMyGroups.getId()) {
+            Log.d(TAG, "My Groups clicked");
             startActivity(new Intent(this, MyGroupsActivity.class));
             return;
         }
-        if (v.getId() == btnAdminPanel.getId()) {
-            Log.d(TAG, "Admin Panel clicked");
-            startActivity(new Intent(this, AdminActivity.class));
-        }
-        if (v.getId() == btnToDetailsAboutUser.getId()) {
-            Log.d(TAG, "Account clicked");
-            startActivity(new Intent(this, UserProfileActivity.class));
+
+        if (id == btnMyActivities.getId()) {
+            Log.d(TAG, "My Activities clicked");
+            // startActivity(new Intent(this, MyActivitiesActivity.class)); // במידה ויש לך מסך כזה
             return;
         }
-        if (v.getId() == btnToExit.getId()) {
+
+        if (id == btnAdminPanel.getId()) {
+            Log.d(TAG, "Admin Panel clicked");
+            startActivity(new Intent(this, AdminActivity.class));
+            return;
+        }
+
+        if (id == btnToDetailsAboutUser.getId()) {
+            Log.d(TAG, "Account clicked");
+            Intent intent = new Intent(this, UserProfileActivity.class);
+            // מנקה את המחסנית ומונע כפילויות של מסך הפרופיל
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+            return;
+        }
+
+        if (id == btnToContact.getId()) {
+            Log.d(TAG, "Contact clicked");
+            Intent intent = new Intent(this, ContactActivity.class);
+            // מנקה את המחסנית ומונע כפילויות של מסך יצירת הקשר
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+            return;
+        }
+
+        if (id == btnToExit.getId()) {
             Log.d(TAG, "Sign out clicked");
-            logout();
+            logout(); // מתודה שיורשת מ-BaseActivity
         }
     }
 }

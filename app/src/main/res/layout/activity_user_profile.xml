@@ -32,7 +32,7 @@
                 android:fontFamily="@font/poppins_semibold"
                 android:text="Home"
                 android:textColor="@color/white"
-                android:textSize="12sp" />
+                android:textSize="11sp" />
 
             <Button
                 android:layout_width="0dp"
@@ -42,7 +42,7 @@
                 android:fontFamily="@font/poppins_semibold"
                 android:text="Account"
                 android:textColor="@color/white"
-                android:textSize="12sp" />
+                android:textSize="11sp" />
 
             <Button
                 android:id="@+id/btn_DetailsAboutUser_to_contact"
@@ -53,7 +53,7 @@
                 android:fontFamily="@font/poppins_semibold"
                 android:text="Contact"
                 android:textColor="@color/white"
-                android:textSize="12sp" />
+                android:textSize="11sp" />
 
             <Button
                 android:id="@+id/btn_DetailsAboutUser_to_exit"
@@ -64,7 +64,7 @@
                 android:fontFamily="@font/poppins_semibold"
                 android:text="Sign out"
                 android:textColor="@color/white"
-                android:textSize="12sp" />
+                android:textSize="11sp" />
         </LinearLayout>
 
     </com.google.android.material.appbar.AppBarLayout>
@@ -228,7 +228,7 @@
                     android:layout_height="60dp"
                     android:backgroundTint="@color/fitlinkPrimary"
                     android:fontFamily="@font/poppins_medium"
-                    android:text="✏️ Edit Profile"
+                    android:text="Edit Profile ✏️"
                     android:textColor="@color/white"
                     android:textSize="18sp"
                     app:cornerRadius="30dp" />
