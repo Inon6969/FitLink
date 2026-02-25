@@ -455,4 +455,20 @@ public class DatabaseService {
         // כתיבת הנתונים ל-Firebase
         writeData("contact_messages/" + messageId, messageData, callback);
     }
+    public void checkIfPhoneExists(String phone, @NonNull final DatabaseCallback<Boolean> callback) {
+        // Query the "users" node where the "phone" child matches the input
+        databaseReference.child("users").orderByChild("phone").equalTo(phone)
+                .addListenerForSingleValueEvent(new com.google.firebase.database.ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull com.google.firebase.database.DataSnapshot snapshot) {
+                        // If snapshot.exists() is true, it means the phone number is already taken
+                        callback.onCompleted(snapshot.exists());
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull com.google.firebase.database.DatabaseError error) {
+                        callback.onFailed(error.toException());
+                    }
+                });
+    }
 }

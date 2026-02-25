@@ -134,7 +134,7 @@
                 android:focusable="true"
                 android:padding="8dp"
                 android:text="Create Account"
-                android:textColor="?attr/colorPrimary"
+                android:textColor="@color/fitlinkPrimary"
                 android:textSize="16sp"
                 android:textStyle="bold" />
 

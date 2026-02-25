@@ -20,11 +20,10 @@ import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.example.fitlink.utils.Validator;
 
-/// Activity for registering the user
-/// This activity is used to register the user
-/// It contains fields for the user to enter their information
-/// It also contains a button to register the user
-/// When the user is registered, they are redirected to the main activity
+/**
+ * Activity for registering a new user.
+ * Validates user input and checks for existing email or phone number before creation.
+ */
 public class RegisterActivity extends BaseActivity implements View.OnClickListener {
 
     private static final String TAG = "RegisterActivity";
@@ -37,16 +36,15 @@ public class RegisterActivity extends BaseActivity implements View.OnClickListen
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        /// set the layout for the activity
         setContentView(R.layout.activity_register);
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-
-        /// get the views
+        // Initialize views
         etEmail = findViewById(R.id.et_register_email);
         etPassword = findViewById(R.id.et_register_password);
         etFName = findViewById(R.id.et_register_first_name);
@@ -55,7 +53,7 @@ public class RegisterActivity extends BaseActivity implements View.OnClickListen
         btnRegister = findViewById(R.id.btn_register_register);
         tvLogin = findViewById(R.id.tv_register_login);
 
-        /// set the click listener
+        // Set click listeners
         btnRegister.setOnClickListener(this);
         tvLogin.setOnClickListener(this);
     }
@@ -63,147 +61,135 @@ public class RegisterActivity extends BaseActivity implements View.OnClickListen
     @Override
     public void onClick(View v) {
         if (v.getId() == btnRegister.getId()) {
-            Log.d(TAG, "onClick: Register button clicked");
+            Log.d(TAG, "Register button clicked");
 
-            /// get the input from the user
-            String email = etEmail.getText().toString();
-            String password = etPassword.getText().toString();
-            String fName = etFName.getText().toString();
-            String lName = etLName.getText().toString();
-            String phone = etPhone.getText().toString();
+            String email = etEmail.getText().toString().trim();
+            String password = etPassword.getText().toString().trim();
+            String fName = etFName.getText().toString().trim();
+            String lName = etLName.getText().toString().trim();
+            String phone = etPhone.getText().toString().trim();
 
-            /// log the input
-            Log.d(TAG, "onClick: Email: " + email);
-            Log.d(TAG, "onClick: Password: " + password);
-            Log.d(TAG, "onClick: First Name: " + fName);
-            Log.d(TAG, "onClick: Last Name: " + lName);
-            Log.d(TAG, "onClick: Phone: " + phone);
-
-
-            /// Validate input
-            Log.d(TAG, "onClick: Validating input...");
+            // Validate local input fields
             if (!checkInput(email, password, fName, lName, phone)) {
-                /// stop if input is invalid
                 return;
             }
 
-            Log.d(TAG, "onClick: Registering user...");
-
-            /// Register user
+            // Start registration process with availability checks
             registerUser(email, password, fName, lName, phone);
         } else if (v.getId() == tvLogin.getId()) {
-            /// Navigate back to Log in Activity
+            // Navigate back to Login Activity
             finish();
         }
     }
 
-    /// Check if the input is valid
-    ///
-    /// @return true if the input is valid, false otherwise
-    /// @see Validator
+    /**
+     * Checks if the user input follows basic validation rules.
+     */
     private boolean checkInput(String email, String password, String fName, String lName, String phone) {
-
         if (!Validator.isEmailValid(email)) {
-            Log.e(TAG, "checkInput: Invalid email address");
-            /// show error message to user
             etEmail.setError("Invalid email address");
-            /// set focus to email field
             etEmail.requestFocus();
             return false;
         }
 
         if (!Validator.isPasswordValid(password)) {
-            Log.e(TAG, "checkInput: Password must be at least 6 characters long");
-            /// show error message to user
             etPassword.setError("Password must be at least 6 characters long");
-            /// set focus to password field
             etPassword.requestFocus();
             return false;
         }
 
         if (!Validator.isNameValid(fName)) {
-            Log.e(TAG, "checkInput: First name must be at least 3 characters long");
-            /// show error message to user
-            etFName.setError("First name must be at least 3 characters long");
-            /// set focus to first name field
+            etFName.setError("First name is too short");
             etFName.requestFocus();
             return false;
         }
 
         if (!Validator.isNameValid(lName)) {
-            Log.e(TAG, "checkInput: Last name must be at least 3 characters long");
-            /// show error message to user
-            etLName.setError("Last name must be at least 3 characters long");
-            /// set focus to last name field
+            etLName.setError("Last name is too short");
             etLName.requestFocus();
             return false;
         }
 
         if (!Validator.isPhoneValid(phone)) {
-            Log.e(TAG, "checkInput: Phone number must be at least 10 characters long");
-            /// show error message to user
-            etPhone.setError("Phone number must be at least 10 characters long");
-            /// set focus to phone field
+            etPhone.setError("Invalid phone number");
             etPhone.requestFocus();
             return false;
         }
 
-        Log.d(TAG, "checkInput: Input is valid");
         return true;
     }
 
-    /// Register the user
+    /**
+     * Checks phone and email availability sequentially before creating the user.
+     */
     private void registerUser(String email, String password, String fName, String lName, String phone) {
-        Log.d(TAG, "registerUser: Registering user...");
+        Log.d(TAG, "Starting registration availability checks...");
 
-        String uid = databaseService.generateUserId();
-
-        /// create a new user object
-        User user = new User(uid, email, password, fName, lName, phone, false, null);
-
-        databaseService.checkIfEmailExists(email, new DatabaseService.DatabaseCallback<>() {
+        // First: Check if phone number is already registered
+        databaseService.checkIfPhoneExists(phone, new DatabaseService.DatabaseCallback<Boolean>() {
             @Override
-            public void onCompleted(Boolean exists) {
-                if (exists) {
-                    Log.e(TAG, "onCompleted: Email already exists");
-                    /// show error message to user
-                    Toast.makeText(RegisterActivity.this, "Email already exists", Toast.LENGTH_SHORT).show();
+            public void onCompleted(Boolean phoneExists) {
+                if (phoneExists) {
+                    Toast.makeText(RegisterActivity.this, "Phone number is already registered", Toast.LENGTH_SHORT).show();
+                    etPhone.setError("Already in use");
+                    etPhone.requestFocus();
                 } else {
-                    /// proceed to create the user
-                    createUserInDatabase(user);
+                    // Second: If phone is available, check if email is already registered
+                    checkEmailAndRegister(email, password, fName, lName, phone);
                 }
             }
 
             @Override
             public void onFailed(Exception e) {
-                Log.e(TAG, "onFailed: Failed to check if email exists", e);
-                /// show error message to user
-                Toast.makeText(RegisterActivity.this, "Failed to register user", Toast.LENGTH_SHORT).show();
+                Log.e(TAG, "Failed to check phone existence", e);
+                Toast.makeText(RegisterActivity.this, "Error verifying registration details", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void checkEmailAndRegister(String email, String password, String fName, String lName, String phone) {
+        databaseService.checkIfEmailExists(email, new DatabaseService.DatabaseCallback<Boolean>() {
+            @Override
+            public void onCompleted(Boolean emailExists) {
+                if (emailExists) {
+                    Toast.makeText(RegisterActivity.this, "Email is already registered", Toast.LENGTH_SHORT).show();
+                    etEmail.setError("Already in use");
+                    etEmail.requestFocus();
+                } else {
+                    // Final: Both available, proceed to create user
+                    String uid = databaseService.generateUserId();
+                    User newUser = new User(uid, email, password, fName, lName, phone, false, null);
+                    createUserInDatabase(newUser);
+                }
+            }
+
+            @Override
+            public void onFailed(Exception e) {
+                Log.e(TAG, "Failed to check email existence", e);
+                Toast.makeText(RegisterActivity.this, "Error verifying registration details", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
     private void createUserInDatabase(User user) {
-        databaseService.createNewUser(user, new DatabaseService.DatabaseCallback<>() {
+        databaseService.createNewUser(user, new DatabaseService.DatabaseCallback<Void>() {
             @Override
             public void onCompleted(Void object) {
-                Log.d(TAG, "createUserInDatabase: User created successfully");
-                /// save the user to shared preferences
+                Log.d(TAG, "User created successfully in database");
+
+                // Save to local storage
                 SharedPreferencesUtil.saveUser(RegisterActivity.this, user);
-                Log.d(TAG, "createUserInDatabase: Redirecting to MainActivity");
-                /// Redirect to MainActivity and clear back stack to prevent user from going back to register screen
+
+                // Redirect to MainActivity and clear history
                 Intent mainIntent = new Intent(RegisterActivity.this, MainActivity.class);
-                /// clear the back stack (clear history) and start the MainActivity
                 mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(mainIntent);
             }
 
             @Override
             public void onFailed(Exception e) {
-                Log.e(TAG, "createUserInDatabase: Failed to create user", e);
-                /// show error message to user
+                Log.e(TAG, "Failed to create user", e);
                 Toast.makeText(RegisterActivity.this, "Failed to register user", Toast.LENGTH_SHORT).show();
-                /// sign out the user if failed to register
                 SharedPreferencesUtil.signOutUser(RegisterActivity.this);
             }
         });

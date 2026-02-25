@@ -20,6 +20,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.fitlink.R;
 import com.example.fitlink.models.User;
+import com.example.fitlink.screens.dialogs.EditUserDialog;
 import com.example.fitlink.screens.dialogs.ProfileImageDialog;
 import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.ImageUtil;
@@ -101,43 +102,12 @@ public class UserProfileActivity extends BaseActivity {
     }
 
     private void openEditDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_edit_user, null);
-        builder.setView(dialogView);
-
-        EditText inputFirstName = dialogView.findViewById(R.id.inputEditUserFirstName);
-        EditText inputLastName = dialogView.findViewById(R.id.inputEditUserLastName);
-        EditText inputPassword = dialogView.findViewById(R.id.inputEditUserPassword);
-        Button btnSave = dialogView.findViewById(R.id.btnEditUserSave);
-        Button btnCancel = dialogView.findViewById(R.id.btnEditUserCancel);
-
-        inputFirstName.setText(user.getFirstName());
-        inputLastName.setText(user.getLastName());
-        inputPassword.setText(user.getPassword());
-
-        AlertDialog dialog = builder.create();
-
-        btnSave.setOnClickListener(v -> {
-            String newFirst = inputFirstName.getText().toString().trim();
-            String newLast = inputLastName.getText().toString().trim();
-            String newPass = inputPassword.getText().toString().trim();
-
-            if (newFirst.isEmpty() || newLast.isEmpty() || newPass.isEmpty()) {
-                Toast.makeText(this, "נא למלא את כל השדות", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            user.setFirstName(newFirst);
-            user.setLastName(newLast);
-            user.setPassword(newPass);
-
-            updateUserInDatabaseAndSharedPreference();
-            dialog.dismiss();
+        // שימוש במחלקה שיצרת במקום המימוש הידני הקודם
+        EditUserDialog editDialog = new EditUserDialog(this, user, () -> {
+            // קוד שירוץ לאחר עדכון מוצלח - רענון התצוגה ב-Activity
+            loadUserDetailsFromSharedPref();
         });
-
-        btnCancel.setOnClickListener(v -> dialog.dismiss());
-
-        dialog.show();
+        editDialog.show();
     }
 
     private void updateUserInDatabaseAndSharedPreference() {

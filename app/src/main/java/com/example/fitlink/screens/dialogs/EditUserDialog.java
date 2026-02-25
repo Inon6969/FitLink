@@ -39,7 +39,7 @@ public class EditUserDialog {
         Button btnSave = dialog.findViewById(R.id.btnEditUserSave);
         Button btnCancel = dialog.findViewById(R.id.btnEditUserCancel);
 
-        // טעינת נתונים קיימים
+        // Load existing data
         inputFirstName.setText(user.getFirstName());
         inputLastName.setText(user.getLastName());
         inputEmail.setText(user.getEmail());
@@ -50,67 +50,90 @@ public class EditUserDialog {
             String fName = inputFirstName.getText().toString().trim();
             String lName = inputLastName.getText().toString().trim();
             String newEmail = inputEmail.getText().toString().trim();
-            String phone = inputPhone.getText().toString().trim();
+            String newPhone = inputPhone.getText().toString().trim();
             String pass = inputPassword.getText().toString().trim();
 
-            // 1. וולידציה בסיסית של השדות
-            if (Validator.isNameValid(fName)) {
-                inputFirstName.setError("שם פרטי קצר מדי");
-                inputFirstName.requestFocus();
+            // 1. Basic field validation
+            if (!Validator.isNameValid(fName)) {
+                inputFirstName.setError("First name is too short");
                 return;
             }
-            if (Validator.isNameValid(lName)) {
-                inputLastName.setError("שם משפחה קצר מדי");
-                inputLastName.requestFocus();
+            if (!Validator.isNameValid(lName)) {
+                inputLastName.setError("Last name is too short");
                 return;
             }
-            if (Validator.isEmailValid(newEmail)) {
-                inputEmail.setError("כתובת אימייל לא תקינה");
-                inputEmail.requestFocus();
+            if (!Validator.isEmailValid(newEmail)) {
+                inputEmail.setError("Invalid email address");
                 return;
             }
-            if (Validator.isPhoneValid(phone)) {
-                inputPhone.setError("מספר טלפון לא תקין");
-                inputPhone.requestFocus();
+            if (!Validator.isPhoneValid(newPhone)) {
+                inputPhone.setError("Invalid phone number");
                 return;
             }
-            if (Validator.isPasswordValid(pass)) {
-                inputPassword.setError("הסיסמה חייבת להכיל לפחות 6 תווים");
-                inputPassword.requestFocus();
+            if (!Validator.isPasswordValid(pass)) {
+                inputPassword.setError("Password must be at least 6 characters");
                 return;
             }
 
-            // 2. בדיקה האם האימייל השתנה
-            if (!newEmail.equalsIgnoreCase(user.getEmail())) {
-                // האימייל שונה - יש לבדוק אם הוא קיים במערכת
-                DatabaseService.getInstance().checkIfEmailExists(newEmail, new DatabaseService.DatabaseCallback<>() {
-                    @Override
-                    public void onCompleted(Boolean exists) {
-                        if (exists) {
-                            inputEmail.setError("אימייל זה כבר קיים במערכת");
-                            inputEmail.requestFocus();
-                        } else {
-                            // האימייל החדש פנוי - ממשיכים לעדכון
-                            performUpdate(fName, lName, newEmail, phone, pass, dialog);
-                        }
-                    }
-
-                    @Override
-                    public void onFailed(Exception e) {
-                        Toast.makeText(context, "שגיאה בבדיקת אימייל", Toast.LENGTH_SHORT).show();
-                    }
-                });
-            } else {
-                // האימייל לא השתנה - מעדכנים ישירות את שאר הפרטים
-                performUpdate(fName, lName, newEmail, phone, pass, dialog);
-            }
+            // 2. Hierarchical availability check (Phone -> Email -> Update)
+            checkPhoneAvailability(fName, lName, newEmail, newPhone, pass, dialog, inputEmail, inputPhone);
         });
 
         btnCancel.setOnClickListener(v -> dialog.dismiss());
         dialog.show();
     }
 
-    // פונקציית עזר לביצוע העדכון ב-Database
+    private void checkPhoneAvailability(String fName, String lName, String email, String phone, String pass, Dialog dialog, EditText inputEmail, EditText inputPhone) {
+        // Only check if the phone number has actually changed
+        if (!phone.equals(user.getPhone())) {
+            DatabaseService.getInstance().checkIfPhoneExists(phone, new DatabaseService.DatabaseCallback<Boolean>() {
+                @Override
+                public void onCompleted(Boolean exists) {
+                    if (exists) {
+                        inputPhone.setError("This phone number is already registered");
+                        inputPhone.requestFocus();
+                    } else {
+                        // Phone is available, now check email
+                        checkEmailAvailability(fName, lName, email, phone, pass, dialog, inputEmail);
+                    }
+                }
+
+                @Override
+                public void onFailed(Exception e) {
+                    Toast.makeText(context, "Error verifying phone number", Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            // Phone didn't change, proceed to check email
+            checkEmailAvailability(fName, lName, email, phone, pass, dialog, inputEmail);
+        }
+    }
+
+    private void checkEmailAvailability(String fName, String lName, String email, String phone, String pass, Dialog dialog, EditText inputEmail) {
+        if (!email.equalsIgnoreCase(user.getEmail())) {
+            DatabaseService.getInstance().checkIfEmailExists(email, new DatabaseService.DatabaseCallback<Boolean>() {
+                @Override
+                public void onCompleted(Boolean exists) {
+                    if (exists) {
+                        inputEmail.setError("This email is already registered");
+                        inputEmail.requestFocus();
+                    } else {
+                        // All checks passed, perform update
+                        performUpdate(fName, lName, email, phone, pass, dialog);
+                    }
+                }
+
+                @Override
+                public void onFailed(Exception e) {
+                    Toast.makeText(context, "Error verifying email", Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            // No changes or all changes verified
+            performUpdate(fName, lName, email, phone, pass, dialog);
+        }
+    }
+
     private void performUpdate(String fName, String lName, String email, String phone, String pass, Dialog dialog) {
         user.setFirstName(fName);
         user.setLastName(lName);
@@ -118,17 +141,17 @@ public class EditUserDialog {
         user.setPhone(phone);
         user.setPassword(pass);
 
-        DatabaseService.getInstance().updateUser(user, new DatabaseService.DatabaseCallback<>() {
+        DatabaseService.getInstance().updateUser(user, new DatabaseService.DatabaseCallback<Void>() {
             @Override
             public void onCompleted(Void object) {
-                Toast.makeText(context, "הפרטים עודכנו בהצלחה!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, "Profile updated successfully!", Toast.LENGTH_SHORT).show();
                 if (onSuccess != null) onSuccess.run();
                 dialog.dismiss();
             }
 
             @Override
             public void onFailed(Exception e) {
-                Toast.makeText(context, "שגיאה בעדכון: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, "Update failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
