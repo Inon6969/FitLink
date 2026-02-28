@@ -7,6 +7,7 @@ import androidx.annotation.Nullable;
 
 import com.example.fitlink.models.Group;
 import com.example.fitlink.models.User;
+import com.example.fitlink.models.Event;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -42,6 +43,7 @@ public class DatabaseService {
     /// @see DatabaseService#readData(String)
     private static final String USERS_PATH = "users";
     private static final String GROUPS_PATH = "groups";
+    private static final String EVENTS_PATH = "events";
     /// the instance of this class
     ///
     /// @see #getInstance()
@@ -440,10 +442,69 @@ public class DatabaseService {
         });
     }
 
+    /**
+     * Creates a new event in the database.
+     */
+    public void createNewEvent(@NotNull final com.example.fitlink.models.Event event, @Nullable final DatabaseCallback<Void> callback) {
+        String eventId = event.getId();
+        if (eventId == null) {
+            eventId = generateNewId(EVENTS_PATH);
+            event.setId(eventId);
+        }
+        writeData(EVENTS_PATH + "/" + eventId, event, callback);
+    }
+    /**
+     * Retrieves all events associated with a specific group ID.
+     */
+    public void getEventsByGroupId(@NotNull final String groupId, @NotNull final DatabaseCallback<List<com.example.fitlink.models.Event>> callback) {
+        databaseReference.child(EVENTS_PATH).orderByChild("groupId").equalTo(groupId)
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        List<com.example.fitlink.models.Event> events = new ArrayList<>();
+                        for (DataSnapshot eventSnapshot : snapshot.getChildren()) {
+                            com.example.fitlink.models.Event event = eventSnapshot.getValue(com.example.fitlink.models.Event.class);
+                            if (event != null) {
+                                events.add(event);
+                            }
+                        }
+                        callback.onCompleted(events);
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        callback.onFailed(error.toException());
+                    }
+                });
+    }
 
     /**
-     * Adds a user to a specific group.
+     * User joins an event.
      */
+    public void joinEvent(@NotNull final String eventId, @NotNull final String userId, @Nullable final DatabaseCallback<Void> callback) {
+        databaseReference.child(EVENTS_PATH).child(eventId).child("participants").child(userId).setValue(true)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        if (callback != null) callback.onCompleted(null);
+                    } else {
+                        if (callback != null) callback.onFailed(task.getException());
+                    }
+                });
+    }
+
+    /**
+     * User leaves an event.
+     */
+    public void leaveEvent(@NotNull final String eventId, @NotNull final String userId, @Nullable final DatabaseCallback<Void> callback) {
+        databaseReference.child(EVENTS_PATH).child(eventId).child("participants").child(userId).removeValue()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        if (callback != null) callback.onCompleted(null);
+                    } else {
+                        if (callback != null) callback.onFailed(task.getException());
+                    }
+                });
+    }
     /// callback interface for database operations
     ///
     /// @param <T> the type of the object to return

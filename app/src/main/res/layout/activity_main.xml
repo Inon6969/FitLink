@@ -171,13 +171,14 @@
                 android:layout_marginBottom="16dp"
                 android:visibility="gone"
                 app:cardCornerRadius="30dp"
-                app:cardElevation="6dp">
+                app:cardElevation="6dp"
+                tools:visibility="visible">
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_admin_panel"
                     android:layout_width="match_parent"
                     android:layout_height="80dp"
-                    android:backgroundTint="@color/fitlinkPrimary"
+                    android:backgroundTint="@color/fitlinkTextSecondary"
                     android:fontFamily="@font/poppins_medium"
                     android:text="Admin Panel ⚙️"
                     android:textAllCaps="false"

@@ -11,42 +11,98 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <androidx.cardview.widget.CardView
-        android:layout_width="wrap_content"
+    <ImageView
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_centerInParent="true"
+        android:translationY="-24dp"
+        android:src="@drawable/ic_location"
+        app:tint="@color/fitlinkPrimary" />
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="50dp"
-        app:cardBackgroundColor="?attr/colorSurface"
-        app:cardCornerRadius="12dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="40dp"
+        app:cardCornerRadius="16dp"
         app:cardElevation="8dp">
 
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/poppins_semibold"
-            android:paddingHorizontal="24dp"
-            android:paddingVertical="10dp"
-            android:text="Select Location"
-            android:textColor="@color/fitlinkPrimary"
-            android:textSize="20sp" />
-    </androidx.cardview.widget.CardView>
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="8dp">
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnConfirmLocation"
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@android:drawable/ic_menu_search"
+                app:tint="@color/fitlinkPrimary" />
+
+            <EditText
+                android:id="@+id/etSearchAddress"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:fontFamily="@font/poppins_regular"
+                android:hint="Search city or address..."
+                android:imeOptions="actionSearch"
+                android:inputType="textCapWords"
+                android:paddingVertical="12dp"
+                android:singleLine="true"
+                android:textSize="16sp" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginHorizontal="24dp"
-        android:layout_marginBottom="60dp"
-        android:backgroundTint="@color/fitlinkPrimary"
-        android:fontFamily="@font/poppins_bold"
-        android:text="Confirm Location"
-        android:textAllCaps="false"
-        android:textColor="?attr/colorOnSecondary"
-        android:textSize="18sp"
-        app:cornerRadius="12dp"
-        app:elevation="6dp" />
+        android:layout_margin="16dp"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="12dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/poppins_bold"
+                android:text="Selected Location:"
+                android:textColor="@color/fitlinkPrimary"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/tvSelectedAddress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="20dp"
+                android:fontFamily="@font/poppins_regular"
+                android:text="Locating..."
+                android:textColor="@color/fitlinkTextSecondary"
+                android:textSize="16sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnConfirmLocation"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:backgroundTint="@color/fitlinkPrimary"
+                android:fontFamily="@font/poppins_bold"
+                android:text="Confirm Location"
+                android:textAllCaps="false"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                app:cornerRadius="16dp" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
 
 </RelativeLayout>

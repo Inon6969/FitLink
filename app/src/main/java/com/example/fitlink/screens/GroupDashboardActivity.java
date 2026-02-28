@@ -1,11 +1,14 @@
 package com.example.fitlink.screens;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -13,6 +16,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.fitlink.R;
 import com.example.fitlink.models.Group;
+import com.example.fitlink.screens.dialogs.CreateEventDialog;
 import com.example.fitlink.screens.dialogs.LeaveGroupDialog;
 import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.SharedPreferencesUtil;
@@ -22,6 +26,29 @@ import com.google.android.material.card.MaterialCardView;
 public class GroupDashboardActivity extends BaseActivity {
 
     private Group currentGroup;
+    private CreateEventDialog currentCreateEventDialog;
+
+    // הלאונצ'ר שאחראי לקבל את המיקום ממסך המפה
+    private final ActivityResultLauncher<Intent> mapPickerLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    String address = result.getData().getStringExtra("address");
+                    double lat = result.getData().getDoubleExtra("lat", 0);
+                    double lng = result.getData().getDoubleExtra("lng", 0);
+
+                    // מעביר את הנתונים חזרה לדיאלוג היצירה
+                    if (currentCreateEventDialog != null && currentCreateEventDialog.isShowing()) {
+                        currentCreateEventDialog.updateLocationDetails(address, lat, lng);
+                    }
+                }
+            }
+    );
+
+    // מתודה ציבורית כדי שהדיאלוג יוכל לקרוא ללאונצ'ר
+    public ActivityResultLauncher<Intent> getMapPickerLauncher() {
+        return mapPickerLauncher;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,7 +56,6 @@ public class GroupDashboardActivity extends BaseActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_group_dashboard);
 
-        // מקבל את אובייקט הקבוצה מהמסך הקודם
         currentGroup = (Group) getIntent().getSerializableExtra("GROUP_EXTRA");
         if (currentGroup == null) {
             Toast.makeText(this, "Error loading group details", Toast.LENGTH_SHORT).show();
@@ -55,11 +81,9 @@ public class GroupDashboardActivity extends BaseActivity {
             toolbar.setNavigationOnClickListener(v -> onBackPressed());
         }
 
-        // כותרת
         TextView tvTitle = findViewById(R.id.tv_dashboard_title);
         tvTitle.setText(currentGroup.getName());
 
-        // תיאור הקבוצה
         TextView tvDescription = findViewById(R.id.tv_dashboard_description);
         if (currentGroup.getDescription() != null && !currentGroup.getDescription().trim().isEmpty()) {
             tvDescription.setText(currentGroup.getDescription());
@@ -76,24 +100,27 @@ public class GroupDashboardActivity extends BaseActivity {
 
         String currentUserId = SharedPreferencesUtil.getUserId(this);
 
-        // מציג את כפתור היצירה/קביעת אירוע רק אם המשתמש הוא היוצר של הקבוצה.
-        // בנוסף, נסתיר ממנו את אפשרות ה"עזיבה" (כפי שהגדרנו גם במסך הרשימה).
         if (currentGroup.getAdminId() != null && currentGroup.getAdminId().equals(currentUserId)) {
             cardSchedule.setVisibility(View.VISIBLE);
-            btnLeave.setVisibility(View.GONE); // מנהל לא יכול לעזוב את הקבוצה של עצמו
+            btnLeave.setVisibility(View.GONE);
         } else {
             cardSchedule.setVisibility(View.GONE);
-            btnLeave.setVisibility(View.VISIBLE); // משתמש רגיל יכול לעזוב
+            btnLeave.setVisibility(View.VISIBLE);
         }
 
-        // הגדרת פעולת עזיבה
+        // פתיחת דיאלוג יצירת האירוע
+        btnSchedule.setOnClickListener(v -> {
+            currentCreateEventDialog = new CreateEventDialog(this, currentGroup);
+            currentCreateEventDialog.show();
+        });
+
         btnLeave.setOnClickListener(v -> {
             new LeaveGroupDialog(this, currentGroup, () -> {
                 DatabaseService.getInstance().leaveGroup(currentGroup.getId(), currentUserId, new DatabaseService.DatabaseCallback<Void>() {
                     @Override
                     public void onCompleted(Void object) {
                         Toast.makeText(GroupDashboardActivity.this, "Left group successfully", Toast.LENGTH_SHORT).show();
-                        finish(); // סוגר את הדשבורד וחוזר אחורה למסך הקבוצות
+                        finish();
                     }
 
                     @Override
@@ -104,10 +131,12 @@ public class GroupDashboardActivity extends BaseActivity {
             }).show();
         });
 
-        // הגדרת פעולות לכפתורים - ישמש כהכנה למסכים העתידיים
         btnMembers.setOnClickListener(v -> Toast.makeText(this, "Opening Members...", Toast.LENGTH_SHORT).show());
         btnChat.setOnClickListener(v -> Toast.makeText(this, "Opening Chat...", Toast.LENGTH_SHORT).show());
-        btnCalendar.setOnClickListener(v -> Toast.makeText(this, "Opening Calendar...", Toast.LENGTH_SHORT).show());
-        btnSchedule.setOnClickListener(v -> Toast.makeText(this, "Opening Scheduler...", Toast.LENGTH_SHORT).show());
-    }
+// פתיחת לוח השנה הקבוצתי והעברת אובייקט הקבוצה אליו
+        btnCalendar.setOnClickListener(v -> {
+            Intent intent = new Intent(GroupDashboardActivity.this, GroupCalendarActivity.class);
+            intent.putExtra("GROUP_EXTRA", currentGroup);
+            startActivity(intent);
+        });    }
 }

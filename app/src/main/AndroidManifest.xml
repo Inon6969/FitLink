@@ -27,6 +27,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.FitLink">
         <activity
+            android:name=".screens.GroupCalendarActivity"
+            android:exported="false" />
+        <activity
             android:name=".screens.GroupDashboardActivity"
             android:exported="false" />
         <activity
