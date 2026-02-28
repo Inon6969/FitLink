@@ -1,5 +1,6 @@
 package com.example.fitlink.screens;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
@@ -24,8 +25,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.fitlink.R;
 import com.example.fitlink.adapters.UserAdapter;
+import com.example.fitlink.models.Group;
 import com.example.fitlink.models.User;
 import com.example.fitlink.screens.dialogs.AddUserDialog;
+import com.example.fitlink.screens.dialogs.DeleteUserDialog;
 import com.example.fitlink.screens.dialogs.EditUserDialog;
 import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.SharedPreferencesUtil;
@@ -102,12 +105,12 @@ public class UsersListActivity extends BaseActivity {
 
             @Override
             public void onToggleAdmin(User user) {
-                handleToggleAdmin(user); // פונקציה חדשה
+                handleToggleAdmin(user);
             }
 
             @Override
             public void onDeleteUser(User user) {
-                handleDeleteUser(user); // פונקציה חדשה
+                handleDeleteUser(user);
             }
 
             @Override
@@ -224,11 +227,78 @@ public class UsersListActivity extends BaseActivity {
     }
 
     private void handleDeleteUser(User user) {
-        boolean isSelf = user.equals(SharedPreferencesUtil.getUser(UsersListActivity.this));
+        boolean isSelf = user.getId().equals(SharedPreferencesUtil.getUserId(this));
 
-        databaseService.deleteUser(user.getId(), new DatabaseService.DatabaseCallback<>() {
+        new DeleteUserDialog(this, user, deleteGroups -> {
+            executeUserDeletion(user, isSelf, deleteGroups);
+        }).show();
+    }
+
+    private void executeUserDeletion(User user, boolean isSelf, boolean deleteGroups) {
+        progressBar.setVisibility(View.VISIBLE);
+
+        if (deleteGroups) {
+            // שולפים את כל הקבוצות ומחפשים קבוצות שהמשתמש יצר
+            databaseService.getAllGroups(new DatabaseService.DatabaseCallback<List<Group>>() {
+                @Override
+                public void onCompleted(List<Group> allGroups) {
+                    List<Group> userGroups = new ArrayList<>();
+                    if (allGroups != null) {
+                        for (Group g : allGroups) {
+                            if (g.getAdminId() != null && g.getAdminId().equals(user.getId())) {
+                                userGroups.add(g);
+                            }
+                        }
+                    }
+
+                    if (userGroups.isEmpty()) {
+                        // אם אין לו קבוצות, פשוט מוחקים את המשתמש
+                        performFinalUserDeletion(user, isSelf);
+                    } else {
+                        // יש קבוצות - נמחק אותן קודם אחת-אחת
+                        int[] deletedCount = {0};
+                        boolean[] hasFailed = {false};
+                        for (Group g : userGroups) {
+                            databaseService.deleteGroup(g.getId(), new DatabaseService.DatabaseCallback<Void>() {
+                                @Override
+                                public void onCompleted(Void object) {
+                                    deletedCount[0]++;
+                                    // כשכל הקבוצות נמחקו בהצלחה, מוחקים את המשתמש
+                                    if (deletedCount[0] == userGroups.size() && !hasFailed[0]) {
+                                        performFinalUserDeletion(user, isSelf);
+                                    }
+                                }
+
+                                @Override
+                                public void onFailed(Exception e) {
+                                    if (!hasFailed[0]) {
+                                        hasFailed[0] = true;
+                                        progressBar.setVisibility(View.GONE);
+                                        Toast.makeText(UsersListActivity.this, "Failed to delete user's groups", Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            });
+                        }
+                    }
+                }
+
+                @Override
+                public void onFailed(Exception e) {
+                    progressBar.setVisibility(View.GONE);
+                    Toast.makeText(UsersListActivity.this, "Failed to fetch groups", Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            // אם המנהל בחר לא למחוק את הקבוצות, מוחקים ישירות את המשתמש
+            performFinalUserDeletion(user, isSelf);
+        }
+    }
+
+    private void performFinalUserDeletion(User user, boolean isSelf) {
+        databaseService.deleteUser(user.getId(), new DatabaseService.DatabaseCallback<Void>() {
             @Override
             public void onCompleted(Void object) {
+                progressBar.setVisibility(View.GONE);
                 if (isSelf) {
                     SharedPreferencesUtil.signOutUser(UsersListActivity.this);
                     Intent intent = new Intent(UsersListActivity.this, LoginActivity.class);
@@ -236,13 +306,14 @@ public class UsersListActivity extends BaseActivity {
                     startActivity(intent);
                     return;
                 }
-                Toast.makeText(UsersListActivity.this, "User deleted", Toast.LENGTH_SHORT).show();
-                loadUsers();
+                Toast.makeText(UsersListActivity.this, "User deleted successfully", Toast.LENGTH_SHORT).show();
+                loadUsers(); // רענון המסך אחרי המחיקה
             }
 
             @Override
             public void onFailed(Exception e) {
-                Toast.makeText(UsersListActivity.this, "Delete failed", Toast.LENGTH_SHORT).show();
+                progressBar.setVisibility(View.GONE);
+                Toast.makeText(UsersListActivity.this, "Failed to delete user", Toast.LENGTH_SHORT).show();
             }
         });
     }

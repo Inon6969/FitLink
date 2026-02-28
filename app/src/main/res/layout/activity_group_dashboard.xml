@@ -169,7 +169,30 @@
                     android:layout_height="70dp"
                     android:backgroundTint="@color/fitlinkTextSecondary"
                     android:fontFamily="@font/poppins_medium"
-                    android:text="Schedule Event ✏️"
+                    android:text="Schedule Event ⏱️"
+                    android:textAllCaps="false"
+                    android:textColor="@color/white"
+                    android:textSize="18sp"
+                    app:cornerRadius="24dp" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_dashboard_edit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="4dp"
+                tools:visibility="visible">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_dashboard_edit"
+                    android:layout_width="match_parent"
+                    android:layout_height="70dp"
+                    android:backgroundTint="@color/fitlinkTextSecondary"
+                    android:fontFamily="@font/poppins_medium"
+                    android:text="Edit Group ✏️"
                     android:textAllCaps="false"
                     android:textColor="@color/white"
                     android:textSize="18sp"
@@ -190,6 +213,23 @@
                 app:cornerRadius="24dp"
                 app:strokeColor="#D32F2F"
                 app:strokeWidth="2dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_dashboard_delete"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginTop="16dp"
+                android:fontFamily="@font/poppins_medium"
+                android:text="Delete Group"
+                android:textAllCaps="false"
+                android:textColor="#D32F2F"
+                android:textSize="16sp"
+                android:visibility="gone"
+                app:cornerRadius="24dp"
+                app:strokeColor="#D32F2F"
+                app:strokeWidth="2dp"
+                tools:visibility="visible" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

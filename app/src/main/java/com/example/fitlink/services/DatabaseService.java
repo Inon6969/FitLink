@@ -380,8 +380,6 @@ public class DatabaseService {
         });
     }
 
-
-    // endregion User Section
     // region Group Section
 
     /**
@@ -441,6 +439,26 @@ public class DatabaseService {
             }
         });
     }
+    /**
+     * Updates an existing group in the database.
+     */
+    public void updateGroup(@NotNull final Group group, @Nullable final DatabaseCallback<Void> callback) {
+        databaseReference.child(GROUPS_PATH).child(group.getId()).setValue(group)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        if (callback != null) callback.onCompleted(null);
+                    } else {
+                        if (callback != null) callback.onFailed(task.getException());
+                    }
+                });
+    }
+
+    /**
+     * Retrieves a specific group by its ID.
+     */
+    public void getGroup(@NotNull final String groupId, @NotNull final DatabaseCallback<Group> callback) {
+        getData(GROUPS_PATH + "/" + groupId, Group.class, callback);
+    }
 
     /**
      * Creates a new event in the database.
@@ -476,6 +494,49 @@ public class DatabaseService {
                         callback.onFailed(error.toException());
                     }
                 });
+    }
+    /**
+     * Deletes a group entirely from the database and removes its reference from all members.
+     */
+    public void deleteGroup(@NotNull final String groupId, @Nullable final DatabaseCallback<Void> callback) {
+        // שלב 1: שולפים את הקבוצה כדי לדעת מי החברים בה
+        getGroup(groupId, new DatabaseCallback<Group>() {
+            @Override
+            public void onCompleted(Group group) {
+                if (group == null) {
+                    if (callback != null) callback.onFailed(new Exception("Group not found"));
+                    return;
+                }
+
+                Map<String, Object> updates = new HashMap<>();
+
+                // שלב 2: מוחקים את הקבוצה עצמה מנתיב הקבוצות
+                updates.put(GROUPS_PATH + "/" + groupId, null);
+
+                // שלב 3: עוברים על כל החברים ומוחקים את הקבוצה מרשימת הקבוצות האישית שלהם
+                if (group.getMembers() != null) {
+                    for (String userId : group.getMembers().keySet()) {
+                        updates.put(USERS_PATH + "/" + userId + "/groupIds/" + groupId, null);
+                    }
+                }
+
+                // הערה: אם תרצה בעתיד למחוק גם את כל האירועים של הקבוצה, יהיה צריך להוסיף אותם ל-updates כאן
+
+                // שלב 4: מבצעים את המחיקה הכפולה בבת אחת (Atomic update)
+                databaseReference.updateChildren(updates).addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        if (callback != null) callback.onCompleted(null);
+                    } else {
+                        if (callback != null) callback.onFailed(task.getException());
+                    }
+                });
+            }
+
+            @Override
+            public void onFailed(Exception e) {
+                if (callback != null) callback.onFailed(e);
+            }
+        });
     }
 
     /**
@@ -517,8 +578,6 @@ public class DatabaseService {
         /// called when the operation fails with an exception
         void onFailed(Exception e);
     }
-
-    // endregion Group Section
 
     public void sendContactMessage(String name, String email, String message, @Nullable final DatabaseCallback<Void> callback) {
         String messageId = generateNewId("contact_messages");

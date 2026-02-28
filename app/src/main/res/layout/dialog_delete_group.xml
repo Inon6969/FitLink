@@ -19,27 +19,27 @@
             android:layout_height="50dp"
             android:layout_gravity="center_horizontal"
             android:layout_marginBottom="12dp"
-            android:src="@drawable/ic_logout"
-            app:tint="@color/fitlinkPrimary" />
+            android:src="@drawable/ic_delete"
+            app:tint="#FF5252" />
 
         <TextView
-            android:id="@+id/txtDialogTitle"
+            android:id="@+id/txtDeleteGroupTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_marginBottom="16dp"
             android:fontFamily="@font/poppins_bold"
-            android:text="Logout"
+            android:text="Delete Group"
             android:textColor="@color/fitlinkPrimary"
             android:textSize="22sp" />
 
         <TextView
-            android:id="@+id/txtDialogMessage"
+            android:id="@+id/txtDeleteGroupMessage"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="32dp"
             android:fontFamily="@font/poppins_regular"
-            android:text="Are you sure you want to log out of your account?"
+            android:text="Are you sure you want to permanently delete this group? This action cannot be undone."
             android:textAlignment="center"
             android:textColor="@color/fitlinkTextSecondary"
             android:textSize="16sp" />
@@ -51,7 +51,7 @@
             android:orientation="horizontal">
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnLogoutCancel"
+                android:id="@+id/btnDeleteGroupCancel"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="0dp"
                 android:layout_height="55dp"
@@ -66,14 +66,14 @@
                 app:strokeWidth="2dp" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnLogoutConfirm"
+                android:id="@+id/btnDeleteGroupConfirm"
                 android:layout_width="0dp"
                 android:layout_height="55dp"
                 android:layout_marginStart="8dp"
                 android:layout_weight="1"
-                android:backgroundTint="@color/fitlinkPrimary"
+                android:backgroundTint="#FF5252"
                 android:fontFamily="@font/poppins_medium"
-                android:text="Logout"
+                android:text="Delete"
                 android:textAllCaps="false"
                 android:textColor="@color/white"
                 app:cornerRadius="16dp" />

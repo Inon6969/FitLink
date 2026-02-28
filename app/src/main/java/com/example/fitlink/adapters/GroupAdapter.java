@@ -73,9 +73,19 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
         int memberCount = (group.getMembers() != null) ? group.getMembers().size() : 0;
         holder.tvMembers.setText(memberCount + (memberCount == 1 ? " Member" : " Members"));
 
+        // --- הלוגיקה החדשה לתגית היוצר (Creator) ---
+        String creatorId = group.getAdminId(); // שנה ל-getCreatorId() אם עדכנת את מודל Group
+
+        if (creatorId != null && creatorId.equals(currentUserId)) {
+            holder.chipCreator.setVisibility(View.VISIBLE);
+        } else {
+            holder.chipCreator.setVisibility(View.GONE);
+        }
+        // --------------------------------------------
+
         holder.tvCreator.setText("Loading...");
-        if (group.getAdminId() != null && !group.getAdminId().isEmpty()) {
-            DatabaseService.getInstance().getUser(group.getAdminId(), new DatabaseService.DatabaseCallback<>() {
+        if (creatorId != null && !creatorId.isEmpty()) {
+            DatabaseService.getInstance().getUser(creatorId, new DatabaseService.DatabaseCallback<>() {
                 @Override
                 public void onCompleted(User user) {
                     if (user != null) {
@@ -149,6 +159,9 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
         final Chip chipLevel;
         final Button btnJoin;
 
+        // התגית החדשה שהוספנו
+        final Chip chipCreator;
+
         public GroupViewHolder(@NonNull View itemView) {
             super(itemView);
             tvName = itemView.findViewById(R.id.tv_item_group_name);
@@ -160,6 +173,9 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
             imgSportMini = itemView.findViewById(R.id.img_item_group_sport_mini);
             chipLevel = itemView.findViewById(R.id.chip_group_level);
             btnJoin = itemView.findViewById(R.id.btn_item_group_join);
+
+            // קישור התגית מתוך קובץ העיצוב (XML)
+            chipCreator = itemView.findViewById(R.id.chip_group_creator);
         }
     }
 }

@@ -26,10 +26,21 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
     private final List<User> userList;
     private final OnUserClickListener onUserClickListener;
 
-    // עדכון הקונסטרקטור לקבלת ה-ID של המשתמש הנוכחי לצורך השוואה
+    // דגלים למצב קבוצה
+    private boolean isGroupMode = false;
+    private boolean isCurrentUserGroupAdmin = false;
+
+    // הקונסטרקטור
     public UserAdapter(@Nullable final OnUserClickListener onUserClickListener) {
         this.userList = new ArrayList<>();
         this.onUserClickListener = onUserClickListener;
+    }
+
+    // מתודה להפעלת מצב קבוצה והעברת הרשאות הניהול
+    public void setGroupMode(boolean isGroupMode, boolean isGroupAdmin) {
+        this.isGroupMode = isGroupMode;
+        this.isCurrentUserGroupAdmin = isGroupAdmin;
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -63,40 +74,62 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
             holder.imgProfile.setImageResource(R.drawable.ic_user);
         }
 
-        // בדיקה האם זה המשתמש המחובר (בהנחה שקיימת מתודת getId)
+        // בדיקה האם זה המשתמש המחובר
         boolean isSelf = user.getId() != null && Objects.requireNonNull(onUserClickListener).isCurrentUser(user);
 
-        // לוגיקת הרשאות וניהול
-        if (isSelf) {
-            // משתמש לא יכול לשנות לעצמו את הסטטוס "אדמין"
-            holder.btnToggleAdmin.setVisibility(View.GONE);
-
-            if (user.getIsAdmin()) {
-                holder.chipRole.setVisibility(View.VISIBLE);
-                holder.chipRole.setText("Admin (Me)");
-            } else {
-                holder.chipRole.setVisibility(View.GONE);
-            }
+        // הסתרת שדה הסיסמה והאייקון שלו כאשר צופים ברשימת חברי קבוצה
+        View passwordLayout = (View) holder.tvPassword.getParent();
+        if (isGroupMode) {
+            passwordLayout.setVisibility(View.GONE);
+            holder.chipRole.setVisibility(View.GONE); // מסתיר את תגית ה-Admin הכללית של האפליקציה בתוך קבוצה
         } else {
-            // משתמש אחר - הצג אפשרות לשינוי הרשאות
-            holder.btnToggleAdmin.setVisibility(View.VISIBLE);
-
-            if (user.getIsAdmin()) {
-                holder.chipRole.setVisibility(View.VISIBLE);
-                holder.chipRole.setText("Admin");
-                holder.btnToggleAdmin.setImageResource(R.drawable.ic_remove_admin);
-            } else {
-                holder.chipRole.setVisibility(View.INVISIBLE);
-                holder.btnToggleAdmin.setImageResource(R.drawable.ic_add_admin);
-            }
-
-            holder.btnToggleAdmin.setOnClickListener(v -> {
-                if (onUserClickListener != null) onUserClickListener.onToggleAdmin(user);
-            });
+            passwordLayout.setVisibility(View.VISIBLE);
         }
 
-        // כפתור מחיקה - תמיד גלוי (גם למשתמש עצמו)
-        holder.btnDeleteUser.setVisibility(View.VISIBLE);
+        // לוגיקת הרשאות וניהול כפתורים
+        if (isGroupMode) {
+            // === לוגיקה למסך חברי הקבוצה (MembersListActivity) ===
+            holder.btnToggleAdmin.setVisibility(View.GONE); // מוסתר תמיד במצב קבוצה
+
+            if (isCurrentUserGroupAdmin && !isSelf) {
+                // מנהל הקבוצה רואה פח אשפה ליד משתמשים אחרים
+                holder.btnDeleteUser.setVisibility(View.VISIBLE);
+            } else {
+                // משתמשים רגילים (או מנהל על עצמו) לא רואים פח אשפה
+                holder.btnDeleteUser.setVisibility(View.GONE);
+            }
+
+        } else {
+            // === לוגיקה למסך הניהול הראשי (UsersListActivity) ===
+            if (isSelf) {
+                holder.btnToggleAdmin.setVisibility(View.GONE);
+                if (user.getIsAdmin()) {
+                    holder.chipRole.setVisibility(View.VISIBLE);
+                    holder.chipRole.setText("Admin (Me)");
+                } else {
+                    holder.chipRole.setVisibility(View.GONE);
+                }
+            } else {
+                holder.btnToggleAdmin.setVisibility(View.VISIBLE);
+                if (user.getIsAdmin()) {
+                    holder.chipRole.setVisibility(View.VISIBLE);
+                    holder.chipRole.setText("Admin");
+                    holder.btnToggleAdmin.setImageResource(R.drawable.ic_remove_admin);
+                } else {
+                    holder.chipRole.setVisibility(View.INVISIBLE);
+                    holder.btnToggleAdmin.setImageResource(R.drawable.ic_add_admin);
+                }
+
+                holder.btnToggleAdmin.setOnClickListener(v -> {
+                    if (onUserClickListener != null) onUserClickListener.onToggleAdmin(user);
+                });
+            }
+
+            // כפתור מחיקה גלוי למנהל הראשי
+            holder.btnDeleteUser.setVisibility(View.VISIBLE);
+        }
+
+        // הגדרת לחיצה על כפתור המחיקה (משמש גם למחיקת משתמש וגם להסרה מקבוצה)
         holder.btnDeleteUser.setOnClickListener(v -> {
             if (onUserClickListener != null) onUserClickListener.onDeleteUser(user);
         });
