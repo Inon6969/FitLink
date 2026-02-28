@@ -9,58 +9,61 @@
     tools:context=".screens.MainActivity">
 
     <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appbar_main"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/fitlinkPrimary"
-        android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar">
+        android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar"
+        app:elevation="0dp"
+        app:liftOnScroll="false"
+        android:stateListAnimator="@null">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@color/fitlinkPrimary"
             android:gravity="center"
             android:orientation="horizontal"
             android:paddingStart="4dp"
             android:paddingEnd="4dp">
 
-            <Button
+            <com.google.android.material.button.MaterialButton
+                style="@style/Widget.MaterialComponents.Button.TextButton"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:backgroundTint="@color/fitlinkPrimary"
                 android:fontFamily="@font/poppins_semibold"
                 android:text="Home"
                 android:textColor="@color/white"
                 android:textSize="11sp" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_main_to_DetailsAboutUser"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:backgroundTint="@color/fitlinkPrimary"
                 android:fontFamily="@font/poppins_semibold"
                 android:text="Account"
                 android:textColor="@color/white"
                 android:textSize="11sp" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_main_to_contact"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:backgroundTint="@color/fitlinkPrimary"
                 android:fontFamily="@font/poppins_semibold"
                 android:text="Contact"
                 android:textColor="@color/white"
                 android:textSize="11sp" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_main_to_exit"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:backgroundTint="@color/fitlinkPrimary"
                 android:fontFamily="@font/poppins_semibold"
                 android:text="Log out"
                 android:textColor="@color/white"

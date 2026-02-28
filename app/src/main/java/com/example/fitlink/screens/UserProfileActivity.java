@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.text.method.HideReturnsTransformationMethod;
+import android.text.method.PasswordTransformationMethod;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -31,9 +33,12 @@ import java.util.Objects;
 public class UserProfileActivity extends BaseActivity {
     private static final int REQ_CAMERA = 100;
     private static final int REQ_GALLERY = 200;
-    private TextView txtTitle, txtFirstName, txtLastName, txtEmail, txtPassword;
-    private ImageView imgUserProfile;
+    private TextView txtTitle, txtFirstName, txtLastName, txtEmail, txtPhone, txtPassword;
+    private ImageView imgUserProfile, imgTogglePassword;
     private User user;
+
+    // Track password visibility state
+    private boolean isPasswordVisible = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,19 +53,16 @@ public class UserProfileActivity extends BaseActivity {
 
         user = SharedPreferencesUtil.getUser(this);
 
-        // אתחול כפתורי הניווט בסרגל העליון
         Button btnToMain = findViewById(R.id.btn_DetailsAboutUser_to_main);
         Button btnToContact = findViewById(R.id.btn_DetailsAboutUser_to_contact);
         Button btnToExit = findViewById(R.id.btn_DetailsAboutUser_to_exit);
 
         btnToMain.setOnClickListener(v -> {
             Intent intent = new Intent(this, MainActivity.class);
-            // מנקה את כל המסכים שמעל מסך הבית ומונע יצירת כפילויות
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             startActivity(intent);
         });
 
-        // עדכון: הוספת מעבר לדף Contact עם ניהול מחסנית תקין
         btnToContact.setOnClickListener(v -> {
             Intent intent = new Intent(this, ContactActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -83,7 +85,26 @@ public class UserProfileActivity extends BaseActivity {
         txtFirstName = findViewById(R.id.txt_DetailsAboutUser_first_name);
         txtLastName = findViewById(R.id.txt_DetailsAboutUser_last_name);
         txtEmail = findViewById(R.id.txt_DetailsAboutUser_email);
+        txtPhone = findViewById(R.id.txt_DetailsAboutUser_phone);
         txtPassword = findViewById(R.id.txt_DetailsAboutUser_password);
+        imgTogglePassword = findViewById(R.id.img_DetailsAboutUser_toggle_password);
+
+        // Set password to be hidden by default
+        txtPassword.setTransformationMethod(PasswordTransformationMethod.getInstance());
+
+        // Handle password visibility toggle
+        imgTogglePassword.setOnClickListener(v -> {
+            isPasswordVisible = !isPasswordVisible;
+            if (isPasswordVisible) {
+                // Show Password
+                txtPassword.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+                imgTogglePassword.setImageResource(R.drawable.ic_visibility); // Ensure you have this icon
+            } else {
+                // Hide Password
+                txtPassword.setTransformationMethod(PasswordTransformationMethod.getInstance());
+                imgTogglePassword.setImageResource(R.drawable.ic_visibility_off); // Ensure you have this icon
+            }
+        });
 
         loadUserDetailsFromSharedPref();
     }
@@ -93,6 +114,7 @@ public class UserProfileActivity extends BaseActivity {
         txtFirstName.setText(user.getFirstName());
         txtLastName.setText(user.getLastName());
         txtEmail.setText(user.getEmail());
+        txtPhone.setText(user.getPhone());
         txtPassword.setText(user.getPassword());
 
         if (user.getProfileImage() != null && !user.getProfileImage().isEmpty()) {
@@ -102,9 +124,7 @@ public class UserProfileActivity extends BaseActivity {
     }
 
     private void openEditDialog() {
-        // שימוש במחלקה שיצרת במקום המימוש הידני הקודם
         EditUserDialog editDialog = new EditUserDialog(this, user, () -> {
-            // קוד שירוץ לאחר עדכון מוצלח - רענון התצוגה ב-Activity
             loadUserDetailsFromSharedPref();
         });
         editDialog.show();
@@ -116,6 +136,7 @@ public class UserProfileActivity extends BaseActivity {
             public void onCompleted(Void object) {
                 txtFirstName.setText(user.getFirstName());
                 txtLastName.setText(user.getLastName());
+                txtPhone.setText(user.getPhone());
                 txtPassword.setText(user.getPassword());
                 txtTitle.setText(user.getFullName());
 
@@ -197,7 +218,6 @@ public class UserProfileActivity extends BaseActivity {
         if (bitmap != null) {
             imgUserProfile.setImageBitmap(bitmap);
 
-            //המרה ל־Base64 ושמירה
             String base64 = ImageUtil.convertTo64Base(imgUserProfile);
             user.setProfileImage(base64);
 
@@ -227,10 +247,8 @@ public class UserProfileActivity extends BaseActivity {
 
         ImageView dialogImage = dialog.findViewById(R.id.dialogImage);
 
-        //מציב את התמונה שיש בתמונה המקורית
         dialogImage.setImageDrawable(imgUserProfile.getDrawable());
 
-        //לוחצים על התמונה - יוצא
         dialogImage.setOnClickListener(v -> dialog.dismiss());
 
         dialog.show();

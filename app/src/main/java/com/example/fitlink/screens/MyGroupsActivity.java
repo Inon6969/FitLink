@@ -1,10 +1,17 @@
 package com.example.fitlink.screens;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -18,28 +25,35 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.fitlink.R;
 import com.example.fitlink.adapters.GroupAdapter;
+import com.example.fitlink.models.DifficultyLevel;
 import com.example.fitlink.models.Group;
+import com.example.fitlink.models.SportType;
 import com.example.fitlink.models.User;
-import com.example.fitlink.screens.dialogs.GroupDescriptionDialog;
 import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.SharedPreferencesUtil;
+import com.google.android.material.textfield.TextInputLayout;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class MyGroupsActivity extends BaseActivity {
 
     private static final String TAG = "MyGroupsActivity";
 
-    // UI Elements
     private GroupAdapter adapter;
     private TextView tvGroupCount;
+    private EditText etSearch;
+    private Spinner spinnerSearchType, spinnerSearchOptions;
+    private TextInputLayout layoutSearchText;
     private ProgressBar progressBar;
     private LinearLayout emptyState;
     private RecyclerView rvMyGroups;
+
+    private List<Group> allMyGroups = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +63,7 @@ public class MyGroupsActivity extends BaseActivity {
 
         initViews();
         setupToolbar();
+        setupSearchLogic();
         setupRecyclerView();
     }
 
@@ -60,6 +75,10 @@ public class MyGroupsActivity extends BaseActivity {
         });
 
         tvGroupCount = findViewById(R.id.tv_my_group_count);
+        etSearch = findViewById(R.id.edit_GroupsList_search);
+        spinnerSearchType = findViewById(R.id.spinner_groups_search_type);
+        spinnerSearchOptions = findViewById(R.id.spinner_search_options);
+        layoutSearchText = findViewById(R.id.layout_search_text);
         progressBar = findViewById(R.id.my_groups_progress_bar);
         emptyState = findViewById(R.id.my_groups_empty_state);
         rvMyGroups = findViewById(R.id.rv_my_groups_list);
@@ -74,19 +93,77 @@ public class MyGroupsActivity extends BaseActivity {
         }
     }
 
+    private void setupSearchLogic() {
+        String[] searchOptions = {"Name", "Sport Type", "Level", "Location"};
+        spinnerSearchType.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, searchOptions));
+
+        DifficultyLevel[] levels = DifficultyLevel.values();
+        String[] levelNames = new String[levels.length];
+        for(int i=0; i<levels.length; i++) levelNames[i] = levels[i].getDisplayName();
+        ArrayAdapter<String> levelAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, levelNames);
+
+        SportType[] sports = SportType.values();
+        String[] sportNames = new String[sports.length];
+        for(int i=0; i<sports.length; i++) sportNames[i] = sports[i].getDisplayName();
+        ArrayAdapter<String> sportAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, sportNames);
+
+        spinnerSearchType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selectedType = searchOptions[position];
+
+                if (selectedType.equals("Level")) {
+                    layoutSearchText.setVisibility(View.GONE);
+                    spinnerSearchOptions.setVisibility(View.VISIBLE);
+                    spinnerSearchOptions.setAdapter(levelAdapter);
+                } else if (selectedType.equals("Sport Type")) {
+                    layoutSearchText.setVisibility(View.GONE);
+                    spinnerSearchOptions.setVisibility(View.VISIBLE);
+                    spinnerSearchOptions.setAdapter(sportAdapter);
+                } else {
+                    layoutSearchText.setVisibility(View.VISIBLE);
+                    spinnerSearchOptions.setVisibility(View.GONE);
+                }
+                executeSearch();
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        spinnerSearchOptions.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) { executeSearch(); }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        etSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) { executeSearch(); }
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+    }
+
     private void setupRecyclerView() {
         rvMyGroups.setLayoutManager(new LinearLayoutManager(this));
 
-        adapter = new GroupAdapter(new ArrayList<>(), new GroupAdapter.OnGroupClickListener() {
+        String currentUserId = SharedPreferencesUtil.getUserId(this);
+
+        adapter = new GroupAdapter(new ArrayList<>(), false, currentUserId, new GroupAdapter.OnGroupClickListener() {
             @Override
-            public void onJoinClick(Group group) {
-                Toast.makeText(MyGroupsActivity.this, "You are already a member of this group!", Toast.LENGTH_SHORT).show();
-            }
+            public void onJoinClick(Group group) {}
+
+            @Override
+            public void onLeaveClick(Group group) {}
 
             @Override
             public void onGroupClick(Group group) {
-                // Instantiating and showing our new clean dialog class
-                new GroupDescriptionDialog(MyGroupsActivity.this, group).show();
+                Intent intent = new Intent(MyGroupsActivity.this, GroupDashboardActivity.class);
+                intent.putExtra("GROUP_EXTRA", group);
+                startActivity(intent);
             }
         });
 
@@ -109,7 +186,8 @@ public class MyGroupsActivity extends BaseActivity {
             @Override
             public void onCompleted(User user) {
                 if (user == null || user.getGroupIds() == null || user.getGroupIds().isEmpty()) {
-                    updateListDisplay(new ArrayList<>());
+                    allMyGroups = new ArrayList<>();
+                    executeSearch();
                     return;
                 }
 
@@ -117,49 +195,66 @@ public class MyGroupsActivity extends BaseActivity {
 
                 databaseService.getAllGroups(new DatabaseService.DatabaseCallback<>() {
                     @Override
-                    public void onCompleted(List<Group> allGroups) {
-                        List<Group> myGroups = new ArrayList<>();
-                        for (Group group : allGroups) {
+                    public void onCompleted(List<Group> allGroupsList) {
+                        allMyGroups = new ArrayList<>();
+                        for (Group group : allGroupsList) {
                             if (myGroupIds.containsKey(group.getId())) {
-                                myGroups.add(group);
+                                allMyGroups.add(group);
                             }
                         }
-                        updateListDisplay(myGroups);
+                        executeSearch();
                     }
 
                     @Override
-                    public void onFailed(Exception e) {
-                        handleError(e);
-                    }
+                    public void onFailed(Exception e) { handleError(e); }
                 });
             }
-
             @Override
-            public void onFailed(Exception e) {
-                handleError(e);
-            }
+            public void onFailed(Exception e) { handleError(e); }
         });
+    }
+
+    private void executeSearch() {
+        if (allMyGroups == null) return;
+        String searchType = spinnerSearchType.getSelectedItem() != null ? spinnerSearchType.getSelectedItem().toString() : "Name";
+        List<Group> filteredList;
+
+        if (searchType.equals("Level")) {
+            if (spinnerSearchOptions.getSelectedItem() == null) return;
+            String selectedLvl = spinnerSearchOptions.getSelectedItem().toString();
+            filteredList = allMyGroups.stream()
+                    .filter(g -> g.getLevel() != null && g.getLevel().getDisplayName().equals(selectedLvl))
+                    .collect(Collectors.toList());
+        } else if (searchType.equals("Sport Type")) {
+            if (spinnerSearchOptions.getSelectedItem() == null) return;
+            String selectedSport = spinnerSearchOptions.getSelectedItem().toString();
+            filteredList = allMyGroups.stream()
+                    .filter(g -> g.getSportType() != null && g.getSportType().getDisplayName().equals(selectedSport))
+                    .collect(Collectors.toList());
+        } else {
+            String query = etSearch.getText().toString().toLowerCase().trim();
+            if (query.isEmpty()) {
+                updateListDisplay(allMyGroups);
+                return;
+            }
+            filteredList = allMyGroups.stream().filter(group -> {
+                if (searchType.equals("Name")) return group.getName() != null && group.getName().toLowerCase().contains(query);
+                if (searchType.equals("Location")) return group.getLocation() != null && group.getLocation().getAddress() != null && group.getLocation().getAddress().toLowerCase().contains(query);
+                return false;
+            }).collect(Collectors.toList());
+        }
+        updateListDisplay(filteredList);
     }
 
     private void updateListDisplay(List<Group> listToDisplay) {
         progressBar.setVisibility(View.GONE);
-
-        if (adapter != null) {
-            adapter.updateList(listToDisplay);
-        }
-
+        if (adapter != null) adapter.updateList(listToDisplay);
         tvGroupCount.setText(MessageFormat.format("Showing {0} groups", listToDisplay.size()));
-
-        if (listToDisplay.isEmpty()) {
-            emptyState.setVisibility(View.VISIBLE);
-        } else {
-            emptyState.setVisibility(View.GONE);
-        }
+        emptyState.setVisibility(listToDisplay.isEmpty() ? View.VISIBLE : View.GONE);
     }
 
     private void handleError(Exception e) {
         progressBar.setVisibility(View.GONE);
-        Log.e(TAG, "Failed to load my groups", e);
         Toast.makeText(MyGroupsActivity.this, "Error loading groups", Toast.LENGTH_SHORT).show();
     }
 }

@@ -3,6 +3,8 @@ package com.example.fitlink.screens.dialogs;
 import android.app.Dialog;
 import android.content.Context;
 import android.util.Log;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -35,40 +37,78 @@ public class AddUserDialog {
         EditText inputLastName = dialog.findViewById(R.id.inputAddUserLastName);
         EditText inputEmail = dialog.findViewById(R.id.inputAddUserEmail);
         EditText inputPassword = dialog.findViewById(R.id.inputAddUserPassword);
-        EditText inputPhone = dialog.findViewById(R.id.inputAddUserPhone); // הוספת שדה טלפון
+        EditText inputPhone = dialog.findViewById(R.id.inputAddUserPhone);
+        AutoCompleteTextView inputCountryCode = dialog.findViewById(R.id.inputAddUserCountryCode);
 
         Button btnAdd = dialog.findViewById(R.id.btnAddUserSave);
         Button btnCancel = dialog.findViewById(R.id.btnAddUserCancel);
+
+        // הגדרת תפריט הקידומות
+        String[] countryCodes = new String[]{
+                "+972", // ישראל
+                "+1",   // ארה"ב וקנדה
+                "+44",  // בריטניה
+                "+91",  // הודו
+                "+86",  // סין
+                "+33",  // צרפת
+                "+49",  // גרמניה
+                "+34",  // ספרד
+                "+39",  // איטליה
+                "+55",  // ברזיל
+                "+61",  // אוסטרליה
+                "+7",   // רוסיה / קזחסטן
+                "+52",  // מקסיקו
+                "+81",  // יפן
+                "+82",  // דרום קוריאה
+                "+31",  // הולנד
+                "+41",  // שוויץ
+                "+46",  // שוודיה
+                "+27",  // דרום אפריקה
+                "+971", // איחוד האמירויות
+                "+65",  // סינגפור
+                "+60",  // מלזיה
+                "+62",  // אינדונזיה
+                "+63",  // הפיליפינים
+                "+90"   // טורקיה
+        };
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(context, android.R.layout.simple_dropdown_item_1line, countryCodes);
+        inputCountryCode.setAdapter(adapter);
 
         btnAdd.setOnClickListener(v -> {
             String fName = inputFirstName.getText().toString().trim();
             String lName = inputLastName.getText().toString().trim();
             String email = inputEmail.getText().toString().trim();
             String password = inputPassword.getText().toString().trim();
-            String phone = inputPhone.getText().toString().trim();
 
-            // וולידציה לפי התבנית של RegisterActivity
-            if (Validator.isNameValid(fName)) {
+            String prefix = inputCountryCode.getText().toString().trim();
+            String rawPhone = inputPhone.getText().toString().trim();
+
+            if (rawPhone.startsWith("0")) {
+                rawPhone = rawPhone.substring(1);
+            }
+            String fullPhone = prefix + rawPhone;
+
+            if (!Validator.isNameValid(fName)) {
                 inputFirstName.setError("שם פרטי קצר מדי");
                 inputFirstName.requestFocus();
                 return;
             }
-            if (Validator.isNameValid(lName)) {
+            if (!Validator.isNameValid(lName)) {
                 inputLastName.setError("שם משפחה קצר מדי");
                 inputLastName.requestFocus();
                 return;
             }
-            if (Validator.isEmailValid(email)) {
+            if (!Validator.isEmailValid(email)) {
                 inputEmail.setError("כתובת אימייל לא תקינה");
                 inputEmail.requestFocus();
                 return;
             }
-            if (Validator.isPhoneValid(phone)) {
+            if (!Validator.isPhoneValid(fullPhone)) {
                 inputPhone.setError("מספר טלפון לא תקין");
                 inputPhone.requestFocus();
                 return;
             }
-            if (Validator.isPasswordValid(password)) {
+            if (!Validator.isPasswordValid(password)) {
                 inputPassword.setError("הסיסמה חייבת להכיל לפחות 6 תווים");
                 inputPassword.requestFocus();
                 return;
@@ -76,16 +116,14 @@ public class AddUserDialog {
 
             Log.d(TAG, "Adding user: " + email);
             String uid = databaseService.generateUserId();
-            User user = new User(uid, email, password, fName, lName, phone, false, null);
+            User user = new User(uid, email, password, fName, lName, fullPhone, false, null);
 
-            // בדיקת כפילות אימייל בדיוק כמו ב-RegisterActivity
             databaseService.checkIfEmailExists(email, new DatabaseService.DatabaseCallback<>() {
                 @Override
                 public void onCompleted(Boolean exists) {
                     if (exists) {
                         Toast.makeText(context, "אימייל זה כבר קיים במערכת", Toast.LENGTH_SHORT).show();
                     } else {
-                        // יצירת המשתמש
                         databaseService.createNewUser(user, new DatabaseService.DatabaseCallback<>() {
                             @Override
                             public void onCompleted(Void unused) {

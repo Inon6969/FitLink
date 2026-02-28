@@ -424,6 +424,24 @@ public class DatabaseService {
     }
 
     /**
+     * Removes a user from a specific group and updates both records atomically.
+     */
+    public void leaveGroup(@NotNull final String groupId, @NotNull final String userId, @Nullable final DatabaseCallback<Void> callback) {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put(GROUPS_PATH + "/" + groupId + "/members/" + userId, null);
+        updates.put(USERS_PATH + "/" + userId + "/groupIds/" + groupId, null);
+
+        databaseReference.updateChildren(updates).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                if (callback != null) callback.onCompleted(null);
+            } else {
+                if (callback != null) callback.onFailed(task.getException());
+            }
+        });
+    }
+
+
+    /**
      * Adds a user to a specific group.
      */
     /// callback interface for database operations
@@ -441,9 +459,7 @@ public class DatabaseService {
 
     // endregion Group Section
 
-    // הוסף את זה בתוך DatabaseService.java
     public void sendContactMessage(String name, String email, String message, @Nullable final DatabaseCallback<Void> callback) {
-        // יצירת מזהה ייחודי להודעה תחת הנתיב contact_messages
         String messageId = generateNewId("contact_messages");
 
         Map<String, Object> messageData = new HashMap<>();
@@ -452,16 +468,13 @@ public class DatabaseService {
         messageData.put("message", message);
         messageData.put("timestamp", System.currentTimeMillis());
 
-        // כתיבת הנתונים ל-Firebase
         writeData("contact_messages/" + messageId, messageData, callback);
     }
     public void checkIfPhoneExists(String phone, @NonNull final DatabaseCallback<Boolean> callback) {
-        // Query the "users" node where the "phone" child matches the input
         databaseReference.child("users").orderByChild("phone").equalTo(phone)
                 .addListenerForSingleValueEvent(new com.google.firebase.database.ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull com.google.firebase.database.DataSnapshot snapshot) {
-                        // If snapshot.exists() is true, it means the phone number is already taken
                         callback.onCompleted(snapshot.exists());
                     }
 

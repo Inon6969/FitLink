@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="24dp"
+    app:cardBackgroundColor="@color/fitlinkBackground"
+    app:cardCornerRadius="24dp"
+    app:cardElevation="8dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <TextView
+            android:id="@+id/txtLeaveGroupTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:fontFamily="@font/poppins_bold"
+            android:text="Leave Group"
+            android:textAlignment="center"
+            android:textColor="@color/fitlinkPrimary"
+            android:textSize="22sp" />
+
+        <TextView
+            android:id="@+id/txtLeaveGroupMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="32dp"
+            android:fontFamily="@font/poppins_regular"
+            android:text="Are you sure you want to leave this group?"
+            android:textAlignment="center"
+            android:textColor="@color/fitlinkTextSecondary"
+            android:textSize="16sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnLeaveGroupCancel"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="55dp"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:fontFamily="@font/poppins_medium"
+                android:text="Cancel"
+                android:textAllCaps="false"
+                android:textColor="@color/fitlinkPrimary"
+                app:cornerRadius="16dp"
+                app:strokeColor="@color/fitlinkPrimary" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnLeaveGroupConfirm"
+                android:layout_width="0dp"
+                android:layout_height="55dp"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:backgroundTint="@color/fitlinkPrimary"
+                android:fontFamily="@font/poppins_medium"
+                android:text="Leave"
+                android:textAllCaps="false"
+                android:textColor="@color/white"
+                app:cornerRadius="16dp" />
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

@@ -2,6 +2,8 @@ package com.example.fitlink.screens.dialogs;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -34,24 +36,78 @@ public class EditUserDialog {
         EditText inputLastName = dialog.findViewById(R.id.inputEditUserLastName);
         EditText inputEmail = dialog.findViewById(R.id.inputEditUserEmail);
         EditText inputPhone = dialog.findViewById(R.id.inputEditUserPhone);
+        AutoCompleteTextView inputCountryCode = dialog.findViewById(R.id.inputEditUserCountryCode);
         EditText inputPassword = dialog.findViewById(R.id.inputEditUserPassword);
 
         Button btnSave = dialog.findViewById(R.id.btnEditUserSave);
         Button btnCancel = dialog.findViewById(R.id.btnEditUserCancel);
 
-        // Load existing data
+        // הגדרת תפריט הקידומות
+        String[] countryCodes = new String[]{
+                "+972", // ישראל
+                "+1",   // ארה"ב וקנדה
+                "+44",  // בריטניה
+                "+91",  // הודו
+                "+86",  // סין
+                "+33",  // צרפת
+                "+49",  // גרמניה
+                "+34",  // ספרד
+                "+39",  // איטליה
+                "+55",  // ברזיל
+                "+61",  // אוסטרליה
+                "+7",   // רוסיה / קזחסטן
+                "+52",  // מקסיקו
+                "+81",  // יפן
+                "+82",  // דרום קוריאה
+                "+31",  // הולנד
+                "+41",  // שוויץ
+                "+46",  // שוודיה
+                "+27",  // דרום אפריקה
+                "+971", // איחוד האמירויות
+                "+65",  // סינגפור
+                "+60",  // מלזיה
+                "+62",  // אינדונזיה
+                "+63",  // הפיליפינים
+                "+90"   // טורקיה
+        };
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(context, android.R.layout.simple_dropdown_item_1line, countryCodes);
+        inputCountryCode.setAdapter(adapter);
+
+        // פיצול מספר הטלפון הקיים לקידומת ומספר
+        String fullPhone = user.getPhone();
+        String currentPrefix = "+972";
+        String currentPhoneRaw = fullPhone != null ? fullPhone : "";
+
+        if (fullPhone != null) {
+            for (String code : countryCodes) {
+                if (fullPhone.startsWith(code)) {
+                    currentPrefix = code;
+                    currentPhoneRaw = fullPhone.substring(code.length());
+                    break;
+                }
+            }
+        }
+
+        // טעינת הנתונים
         inputFirstName.setText(user.getFirstName());
         inputLastName.setText(user.getLastName());
         inputEmail.setText(user.getEmail());
-        inputPhone.setText(user.getPhone());
+        inputCountryCode.setText(currentPrefix, false);
+        inputPhone.setText(currentPhoneRaw);
         inputPassword.setText(user.getPassword());
 
         btnSave.setOnClickListener(v -> {
             String fName = inputFirstName.getText().toString().trim();
             String lName = inputLastName.getText().toString().trim();
             String newEmail = inputEmail.getText().toString().trim();
-            String newPhone = inputPhone.getText().toString().trim();
             String pass = inputPassword.getText().toString().trim();
+
+            String prefix = inputCountryCode.getText().toString().trim();
+            String rawPhone = inputPhone.getText().toString().trim();
+            if (rawPhone.startsWith("0")) {
+                rawPhone = rawPhone.substring(1);
+            }
+            String newFullPhone = prefix + rawPhone;
 
             // 1. Basic field validation
             if (!Validator.isNameValid(fName)) {
@@ -66,7 +122,7 @@ public class EditUserDialog {
                 inputEmail.setError("Invalid email address");
                 return;
             }
-            if (!Validator.isPhoneValid(newPhone)) {
+            if (!Validator.isPhoneValid(newFullPhone)) {
                 inputPhone.setError("Invalid phone number");
                 return;
             }
@@ -76,7 +132,7 @@ public class EditUserDialog {
             }
 
             // 2. Hierarchical availability check (Phone -> Email -> Update)
-            checkPhoneAvailability(fName, lName, newEmail, newPhone, pass, dialog, inputEmail, inputPhone);
+            checkPhoneAvailability(fName, lName, newEmail, newFullPhone, pass, dialog, inputEmail, inputPhone);
         });
 
         btnCancel.setOnClickListener(v -> dialog.dismiss());
@@ -84,7 +140,6 @@ public class EditUserDialog {
     }
 
     private void checkPhoneAvailability(String fName, String lName, String email, String phone, String pass, Dialog dialog, EditText inputEmail, EditText inputPhone) {
-        // Only check if the phone number has actually changed
         if (!phone.equals(user.getPhone())) {
             DatabaseService.getInstance().checkIfPhoneExists(phone, new DatabaseService.DatabaseCallback<Boolean>() {
                 @Override
@@ -93,7 +148,6 @@ public class EditUserDialog {
                         inputPhone.setError("This phone number is already registered");
                         inputPhone.requestFocus();
                     } else {
-                        // Phone is available, now check email
                         checkEmailAvailability(fName, lName, email, phone, pass, dialog, inputEmail);
                     }
                 }
@@ -104,7 +158,6 @@ public class EditUserDialog {
                 }
             });
         } else {
-            // Phone didn't change, proceed to check email
             checkEmailAvailability(fName, lName, email, phone, pass, dialog, inputEmail);
         }
     }
@@ -118,7 +171,6 @@ public class EditUserDialog {
                         inputEmail.setError("This email is already registered");
                         inputEmail.requestFocus();
                     } else {
-                        // All checks passed, perform update
                         performUpdate(fName, lName, email, phone, pass, dialog);
                     }
                 }
@@ -129,7 +181,6 @@ public class EditUserDialog {
                 }
             });
         } else {
-            // No changes or all changes verified
             performUpdate(fName, lName, email, phone, pass, dialog);
         }
     }

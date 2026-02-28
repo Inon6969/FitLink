@@ -97,27 +97,39 @@
                     <Spinner
                         android:id="@+id/spinner_groups_search_type"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_height="55dp"
                         android:layout_marginBottom="12dp" />
 
-                    <com.google.android.material.textfield.TextInputLayout
+                    <FrameLayout
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Type to search..."
-                        app:boxBackgroundMode="outline"
-                        app:boxCornerRadiusBottomEnd="16dp"
-                        app:boxCornerRadiusBottomStart="16dp"
-                        app:boxCornerRadiusTopEnd="16dp"
-                        app:boxCornerRadiusTopStart="16dp"
-                        app:startIconDrawable="@android:drawable/ic_menu_search">
+                        android:layout_height="wrap_content">
 
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/edit_GroupsList_search"
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/layout_search_text"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:fontFamily="@font/poppins_regular"
-                            android:textSize="16sp" />
-                    </com.google.android.material.textfield.TextInputLayout>
+                            android:hint="Type to search..."
+                            app:boxBackgroundMode="outline"
+                            app:boxCornerRadiusBottomEnd="16dp"
+                            app:boxCornerRadiusBottomStart="16dp"
+                            app:boxCornerRadiusTopEnd="16dp"
+                            app:boxCornerRadiusTopStart="16dp"
+                            app:startIconDrawable="@android:drawable/ic_menu_search">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/edit_GroupsList_search"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/poppins_regular"
+                                android:textSize="16sp" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <Spinner
+                            android:id="@+id/spinner_search_options"
+                            android:layout_width="match_parent"
+                            android:layout_height="55dp"
+                            android:visibility="gone" />
+                    </FrameLayout>
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

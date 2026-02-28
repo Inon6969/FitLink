@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_group_dashboard"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/fitlinkBackground"
+    tools:context=".screens.GroupDashboardActivity">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar_group_dashboard"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/fitlinkPrimary"
+            app:navigationIcon="?attr/homeAsUpIndicator"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+            app:title="Group Name"
+            app:titleTextColor="@color/fitlinkBackground" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:padding="32dp">
+
+            <ImageView
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/circle_background_primary_light"
+                android:padding="20dp"
+                android:src="@drawable/ic_sport"
+                app:tint="@color/fitlinkPrimary" />
+
+            <TextView
+                android:id="@+id/tv_dashboard_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:fontFamily="@font/poppins_bold"
+                android:text="Group Dashboard"
+                android:textAlignment="center"
+                android:textColor="@color/fitlinkPrimary"
+                android:textSize="26sp" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="32dp"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="2dp"
+                app:strokeColor="@color/fitlinkPrimary"
+                app:strokeWidth="0.5dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:fontFamily="@font/poppins_semibold"
+                        android:text="About the Group"
+                        android:textColor="@color/fitlinkPrimary"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:id="@+id/tv_dashboard_description"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/poppins_regular"
+                        android:text="Loading description..."
+                        android:textColor="@color/fitlinkTextSecondary"
+                        android:textSize="14sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="4dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_dashboard_members"
+                    android:layout_width="match_parent"
+                    android:layout_height="70dp"
+                    android:backgroundTint="@color/fitlinkPrimary"
+                    android:fontFamily="@font/poppins_medium"
+                    android:text="Members List 👥"
+                    android:textAllCaps="false"
+                    android:textColor="@color/white"
+                    android:textSize="18sp"
+                    app:cornerRadius="24dp" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="4dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_dashboard_chat"
+                    android:layout_width="match_parent"
+                    android:layout_height="70dp"
+                    android:backgroundTint="@color/fitlinkPrimary"
+                    android:fontFamily="@font/poppins_medium"
+                    android:text="Group Chat 💬"
+                    android:textAllCaps="false"
+                    android:textColor="@color/white"
+                    android:textSize="18sp"
+                    app:cornerRadius="24dp" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="4dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_dashboard_calendar"
+                    android:layout_width="match_parent"
+                    android:layout_height="70dp"
+                    android:backgroundTint="@color/fitlinkPrimary"
+                    android:fontFamily="@font/poppins_medium"
+                    android:text="Group Calendar 📅"
+                    android:textAllCaps="false"
+                    android:textColor="@color/white"
+                    android:textSize="18sp"
+                    app:cornerRadius="24dp" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_dashboard_schedule"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="4dp"
+                tools:visibility="visible">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_dashboard_schedule"
+                    android:layout_width="match_parent"
+                    android:layout_height="70dp"
+                    android:backgroundTint="@color/fitlinkTextSecondary"
+                    android:fontFamily="@font/poppins_medium"
+                    android:text="Schedule Event ✏️"
+                    android:textAllCaps="false"
+                    android:textColor="@color/white"
+                    android:textSize="18sp"
+                    app:cornerRadius="24dp" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_dashboard_leave"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginTop="16dp"
+                android:fontFamily="@font/poppins_medium"
+                android:text="Leave Group"
+                android:textAllCaps="false"
+                android:textColor="#D32F2F"
+                android:textSize="16sp"
+                app:cornerRadius="24dp"
+                app:strokeColor="#D32F2F"
+                app:strokeWidth="2dp" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -29,6 +31,7 @@ public class RegisterActivity extends BaseActivity implements View.OnClickListen
     private static final String TAG = "RegisterActivity";
 
     private EditText etEmail, etPassword, etFName, etLName, etPhone;
+    private AutoCompleteTextView etCountryCode;
     private Button btnRegister;
     private TextView tvLogin;
 
@@ -50,12 +53,51 @@ public class RegisterActivity extends BaseActivity implements View.OnClickListen
         etFName = findViewById(R.id.et_register_first_name);
         etLName = findViewById(R.id.et_register_last_name);
         etPhone = findViewById(R.id.et_register_phone);
+        etCountryCode = findViewById(R.id.et_register_country_code);
         btnRegister = findViewById(R.id.btn_register_register);
         tvLogin = findViewById(R.id.tv_register_login);
+
+        setupCountryCodeDropdown();
 
         // Set click listeners
         btnRegister.setOnClickListener(this);
         tvLogin.setOnClickListener(this);
+    }
+
+    private void setupCountryCodeDropdown() {
+        String[] countryCodes = new String[]{
+                "+972", // ישראל
+                "+1",   // ארה"ב וקנדה
+                "+44",  // בריטניה
+                "+91",  // הודו
+                "+86",  // סין
+                "+33",  // צרפת
+                "+49",  // גרמניה
+                "+34",  // ספרד
+                "+39",  // איטליה
+                "+55",  // ברזיל
+                "+61",  // אוסטרליה
+                "+7",   // רוסיה / קזחסטן
+                "+52",  // מקסיקו
+                "+81",  // יפן
+                "+82",  // דרום קוריאה
+                "+31",  // הולנד
+                "+41",  // שוויץ
+                "+46",  // שוודיה
+                "+27",  // דרום אפריקה
+                "+971", // איחוד האמירויות
+                "+65",  // סינגפור
+                "+60",  // מלזיה
+                "+62",  // אינדונזיה
+                "+63",  // הפיליפינים
+                "+90"   // טורקיה
+        };
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_dropdown_item_1line,
+                countryCodes
+        );
+        etCountryCode.setAdapter(adapter);
     }
 
     @Override
@@ -67,15 +109,24 @@ public class RegisterActivity extends BaseActivity implements View.OnClickListen
             String password = etPassword.getText().toString().trim();
             String fName = etFName.getText().toString().trim();
             String lName = etLName.getText().toString().trim();
-            String phone = etPhone.getText().toString().trim();
+
+            String prefix = etCountryCode.getText().toString().trim();
+            String rawPhone = etPhone.getText().toString().trim();
+
+            // Clean up: If the user typed "050" instead of "50" with a +972 prefix, remove the 0.
+            if (rawPhone.startsWith("0")) {
+                rawPhone = rawPhone.substring(1);
+            }
+
+            String fullPhone = prefix + rawPhone;
 
             // Validate local input fields
-            if (!checkInput(email, password, fName, lName, phone)) {
+            if (!checkInput(email, password, fName, lName, fullPhone)) {
                 return;
             }
 
             // Start registration process with availability checks
-            registerUser(email, password, fName, lName, phone);
+            registerUser(email, password, fName, lName, fullPhone);
         } else if (v.getId() == tvLogin.getId()) {
             // Navigate back to Login Activity
             finish();
@@ -85,7 +136,7 @@ public class RegisterActivity extends BaseActivity implements View.OnClickListen
     /**
      * Checks if the user input follows basic validation rules.
      */
-    private boolean checkInput(String email, String password, String fName, String lName, String phone) {
+    private boolean checkInput(String email, String password, String fName, String lName, String fullPhone) {
         if (!Validator.isEmailValid(email)) {
             etEmail.setError("Invalid email address");
             etEmail.requestFocus();
@@ -110,8 +161,8 @@ public class RegisterActivity extends BaseActivity implements View.OnClickListen
             return false;
         }
 
-        if (!Validator.isPhoneValid(phone)) {
-            etPhone.setError("Invalid phone number");
+        if (!Validator.isPhoneValid(fullPhone)) {
+            etPhone.setError("Invalid phone number format");
             etPhone.requestFocus();
             return false;
         }
@@ -122,11 +173,10 @@ public class RegisterActivity extends BaseActivity implements View.OnClickListen
     /**
      * Checks phone and email availability sequentially before creating the user.
      */
-    private void registerUser(String email, String password, String fName, String lName, String phone) {
+    private void registerUser(String email, String password, String fName, String lName, String fullPhone) {
         Log.d(TAG, "Starting registration availability checks...");
 
-        // First: Check if phone number is already registered
-        databaseService.checkIfPhoneExists(phone, new DatabaseService.DatabaseCallback<Boolean>() {
+        databaseService.checkIfPhoneExists(fullPhone, new DatabaseService.DatabaseCallback<Boolean>() {
             @Override
             public void onCompleted(Boolean phoneExists) {
                 if (phoneExists) {
@@ -134,8 +184,7 @@ public class RegisterActivity extends BaseActivity implements View.OnClickListen
                     etPhone.setError("Already in use");
                     etPhone.requestFocus();
                 } else {
-                    // Second: If phone is available, check if email is already registered
-                    checkEmailAndRegister(email, password, fName, lName, phone);
+                    checkEmailAndRegister(email, password, fName, lName, fullPhone);
                 }
             }
 
@@ -147,7 +196,7 @@ public class RegisterActivity extends BaseActivity implements View.OnClickListen
         });
     }
 
-    private void checkEmailAndRegister(String email, String password, String fName, String lName, String phone) {
+    private void checkEmailAndRegister(String email, String password, String fName, String lName, String fullPhone) {
         databaseService.checkIfEmailExists(email, new DatabaseService.DatabaseCallback<Boolean>() {
             @Override
             public void onCompleted(Boolean emailExists) {
@@ -156,9 +205,8 @@ public class RegisterActivity extends BaseActivity implements View.OnClickListen
                     etEmail.setError("Already in use");
                     etEmail.requestFocus();
                 } else {
-                    // Final: Both available, proceed to create user
                     String uid = databaseService.generateUserId();
-                    User newUser = new User(uid, email, password, fName, lName, phone, false, null);
+                    User newUser = new User(uid, email, password, fName, lName, fullPhone, false, null);
                     createUserInDatabase(newUser);
                 }
             }

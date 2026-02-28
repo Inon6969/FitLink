@@ -3,8 +3,8 @@ package com.example.fitlink.screens;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -13,8 +13,9 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.fitlink.R;
-// ה-IMPORT הקריטי שפתר את השגיאה:
+import com.example.fitlink.models.User;
 import com.example.fitlink.services.DatabaseService;
+import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.textfield.TextInputEditText;
@@ -23,7 +24,9 @@ import java.util.Objects;
 
 public class ContactActivity extends BaseActivity {
 
-    private TextInputEditText etName, etEmail, etMessage;
+    private TextInputEditText etMessage;
+    private TextView tvSendingAs;
+    private User currentUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,9 +34,19 @@ public class ContactActivity extends BaseActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_contact);
 
+        // Fetch the logged-in user details
+        currentUser = SharedPreferencesUtil.getUser(this);
+
         initViews();
         setupNavigation();
         setupClickListeners();
+
+        // Display who the message will be sent as
+        if (currentUser != null) {
+            tvSendingAs.setText("Sending as: " + currentUser.getFullName() + " (" + currentUser.getEmail() + ")");
+        } else {
+            tvSendingAs.setText("Sending as: Unknown User");
+        }
     }
 
     private void initViews() {
@@ -43,9 +56,8 @@ public class ContactActivity extends BaseActivity {
             return insets;
         });
 
-        etName = findViewById(R.id.et_contact_name);
-        etEmail = findViewById(R.id.et_contact_email);
         etMessage = findViewById(R.id.et_contact_message);
+        tvSendingAs = findViewById(R.id.tv_contact_sending_as);
     }
 
     private void setupNavigation() {
@@ -98,34 +110,29 @@ public class ContactActivity extends BaseActivity {
     }
 
     private void handleSendMessage() {
-        String name = Objects.requireNonNull(etName.getText()).toString().trim();
-        String email = Objects.requireNonNull(etEmail.getText()).toString().trim();
         String message = Objects.requireNonNull(etMessage.getText()).toString().trim();
 
-        if (name.isEmpty()) {
-            etName.setError("Name is required");
-            return;
-        }
-
-        if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            etEmail.setError("Valid email is required");
+        if (currentUser == null) {
+            Toast.makeText(this, "Error: User identity not found. Please log in again.", Toast.LENGTH_SHORT).show();
             return;
         }
 
         if (message.isEmpty()) {
             etMessage.setError("Please enter a message");
+            etMessage.requestFocus();
             return;
         }
 
-        // עכשיו המחלקה והמתודה מוכרות
+        // Get the identity dynamically from the SharedPreferences
+        String name = currentUser.getFullName();
+        String email = currentUser.getEmail();
+
         databaseService.sendContactMessage(name, email, message, new DatabaseService.DatabaseCallback<Void>() {
             @Override
             public void onCompleted(Void object) {
                 Toast.makeText(ContactActivity.this, "Message sent successfully!", Toast.LENGTH_LONG).show();
-                etName.setText("");
-                etEmail.setText("");
                 etMessage.setText("");
-                etName.clearFocus();
+                etMessage.clearFocus();
             }
 
             @Override

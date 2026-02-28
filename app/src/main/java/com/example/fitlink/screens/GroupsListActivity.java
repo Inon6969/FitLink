@@ -27,12 +27,16 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.fitlink.R;
 import com.example.fitlink.adapters.GroupAdapter;
+import com.example.fitlink.models.DifficultyLevel;
 import com.example.fitlink.models.Group;
+import com.example.fitlink.models.SportType;
 import com.example.fitlink.screens.dialogs.AddGroupDialog;
 import com.example.fitlink.screens.dialogs.GroupDescriptionDialog;
+import com.example.fitlink.screens.dialogs.LeaveGroupDialog; // הייבוא של הדיאלוג החדש
 import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.textfield.TextInputLayout;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -44,16 +48,15 @@ public class GroupsListActivity extends BaseActivity {
 
     private static final String TAG = "GroupsListActivity";
 
-    // UI Elements
     private GroupAdapter groupAdapter;
     private TextView tvGroupCount;
     private EditText etSearch;
-    private Spinner spinnerSearchType;
+    private Spinner spinnerSearchType, spinnerSearchOptions;
+    private TextInputLayout layoutSearchText;
     private ProgressBar progressBar;
     private LinearLayout emptyState;
     private MaterialButton btnCreateGroup;
 
-    // Data
     private List<Group> allGroups = new ArrayList<>();
     private AddGroupDialog currentAddGroupDialog;
 
@@ -64,7 +67,6 @@ public class GroupsListActivity extends BaseActivity {
                     String address = result.getData().getStringExtra("address");
                     double lat = result.getData().getDoubleExtra("lat", 0);
                     double lng = result.getData().getDoubleExtra("lng", 0);
-
                     if (currentAddGroupDialog != null && currentAddGroupDialog.isShowing()) {
                         currentAddGroupDialog.updateLocationDetails(address, lat, lng);
                     }
@@ -72,9 +74,7 @@ public class GroupsListActivity extends BaseActivity {
             }
     );
 
-    public ActivityResultLauncher<Intent> getMapPickerLauncher() {
-        return mapPickerLauncher;
-    }
+    public ActivityResultLauncher<Intent> getMapPickerLauncher() { return mapPickerLauncher; }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,6 +99,8 @@ public class GroupsListActivity extends BaseActivity {
         tvGroupCount = findViewById(R.id.tv_group_count);
         etSearch = findViewById(R.id.edit_GroupsList_search);
         spinnerSearchType = findViewById(R.id.spinner_groups_search_type);
+        spinnerSearchOptions = findViewById(R.id.spinner_search_options);
+        layoutSearchText = findViewById(R.id.layout_search_text);
         progressBar = findViewById(R.id.groups_progress_bar);
         emptyState = findViewById(R.id.groups_empty_state);
         btnCreateGroup = findViewById(R.id.btn_GroupsList_create_group);
@@ -117,11 +119,14 @@ public class GroupsListActivity extends BaseActivity {
         RecyclerView rvGroups = findViewById(R.id.rv_groups_list);
         rvGroups.setLayoutManager(new LinearLayoutManager(this));
 
-        groupAdapter = new GroupAdapter(new ArrayList<>(), new GroupAdapter.OnGroupClickListener() {
+        String currentUserId = SharedPreferencesUtil.getUserId(this);
+
+        groupAdapter = new GroupAdapter(new ArrayList<>(), true, currentUserId, new GroupAdapter.OnGroupClickListener() {
             @Override
-            public void onJoinClick(Group group) {
-                handleJoinGroup(group);
-            }
+            public void onJoinClick(Group group) { handleJoinGroup(group); }
+
+            @Override
+            public void onLeaveClick(Group group) { handleLeaveGroup(group); }
 
             @Override
             public void onGroupClick(Group group) {
@@ -133,73 +138,87 @@ public class GroupsListActivity extends BaseActivity {
 
     private void setupSearchLogic() {
         String[] searchOptions = {"Name", "Sport Type", "Level", "Location"};
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, searchOptions);
-        spinnerSearchType.setAdapter(adapter);
+        spinnerSearchType.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, searchOptions));
+
+        DifficultyLevel[] levels = DifficultyLevel.values();
+        String[] levelNames = new String[levels.length];
+        for(int i=0; i<levels.length; i++) levelNames[i] = levels[i].getDisplayName();
+        ArrayAdapter<String> levelAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, levelNames);
+
+        SportType[] sports = SportType.values();
+        String[] sportNames = new String[sports.length];
+        for(int i=0; i<sports.length; i++) sportNames[i] = sports[i].getDisplayName();
+        ArrayAdapter<String> sportAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, sportNames);
 
         spinnerSearchType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                filterGroups(etSearch.getText().toString());
-            }
+                String selectedType = searchOptions[position];
 
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
+                if (selectedType.equals("Level")) {
+                    layoutSearchText.setVisibility(View.GONE);
+                    spinnerSearchOptions.setVisibility(View.VISIBLE);
+                    spinnerSearchOptions.setAdapter(levelAdapter);
+                } else if (selectedType.equals("Sport Type")) {
+                    layoutSearchText.setVisibility(View.GONE);
+                    spinnerSearchOptions.setVisibility(View.VISIBLE);
+                    spinnerSearchOptions.setAdapter(sportAdapter);
+                } else {
+                    layoutSearchText.setVisibility(View.VISIBLE);
+                    spinnerSearchOptions.setVisibility(View.GONE);
+                }
+                executeSearch();
             }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        spinnerSearchOptions.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) { executeSearch(); }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
         });
 
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
-
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                filterGroups(s.toString());
-            }
-
+            public void onTextChanged(CharSequence s, int start, int before, int count) { executeSearch(); }
             @Override
-            public void afterTextChanged(Editable s) {
-            }
+            public void afterTextChanged(Editable s) {}
         });
     }
 
-    private void filterGroups(String query) {
-        if (query == null || query.isEmpty()) {
-            updateListDisplay(allGroups);
-            return;
+    private void executeSearch() {
+        if (allGroups == null) return;
+        String searchType = spinnerSearchType.getSelectedItem() != null ? spinnerSearchType.getSelectedItem().toString() : "Name";
+        List<Group> filteredList;
+
+        if (searchType.equals("Level")) {
+            if (spinnerSearchOptions.getSelectedItem() == null) return;
+            String selectedLvl = spinnerSearchOptions.getSelectedItem().toString();
+            filteredList = allGroups.stream()
+                    .filter(g -> g.getLevel() != null && g.getLevel().getDisplayName().equals(selectedLvl))
+                    .collect(Collectors.toList());
+        } else if (searchType.equals("Sport Type")) {
+            if (spinnerSearchOptions.getSelectedItem() == null) return;
+            String selectedSport = spinnerSearchOptions.getSelectedItem().toString();
+            filteredList = allGroups.stream()
+                    .filter(g -> g.getSportType() != null && g.getSportType().getDisplayName().equals(selectedSport))
+                    .collect(Collectors.toList());
+        } else {
+            String query = etSearch.getText().toString().toLowerCase().trim();
+            if (query.isEmpty()) {
+                updateListDisplay(allGroups);
+                return;
+            }
+            filteredList = allGroups.stream().filter(group -> {
+                if (searchType.equals("Name")) return group.getName() != null && group.getName().toLowerCase().contains(query);
+                if (searchType.equals("Location")) return group.getLocation() != null && group.getLocation().getAddress() != null && group.getLocation().getAddress().toLowerCase().contains(query);
+                return false;
+            }).collect(Collectors.toList());
         }
-
-        String q = query.toLowerCase().trim();
-        String searchType = spinnerSearchType.getSelectedItem() != null ?
-                spinnerSearchType.getSelectedItem().toString() : "Name";
-
-        List<Group> filteredList = allGroups.stream()
-                .filter(group -> {
-                    switch (searchType) {
-                        case "Name":
-                            return group.getName() != null &&
-                                    group.getName().toLowerCase().contains(q);
-
-                        case "Sport Type":
-                            return group.getSportType() != null &&
-                                    group.getSportType().name().toLowerCase().contains(q);
-
-                        case "Level":
-                            // Updated to extract the string from the Enum for filtering
-                            return group.getLevel() != null &&
-                                    group.getLevel().getDisplayName().toLowerCase().contains(q);
-
-                        case "Location":
-                            return group.getLocation() != null &&
-                                    group.getLocation().getAddress() != null &&
-                                    group.getLocation().getAddress().toLowerCase().contains(q);
-
-                        default:
-                            return false;
-                    }
-                })
-                .collect(Collectors.toList());
-
         updateListDisplay(filteredList);
     }
 
@@ -227,54 +246,70 @@ public class GroupsListActivity extends BaseActivity {
             public void onCompleted(List<Group> groups) {
                 progressBar.setVisibility(View.GONE);
                 allGroups = (groups != null) ? groups : new ArrayList<>();
-                filterGroups(etSearch.getText().toString());
+                executeSearch();
             }
-
             @Override
             public void onFailed(Exception e) {
                 progressBar.setVisibility(View.GONE);
-                Log.e(TAG, "Failed to load groups", e);
                 Toast.makeText(GroupsListActivity.this, "Error loading groups", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
     private void updateListDisplay(List<Group> listToDisplay) {
-        if (groupAdapter != null) {
-            groupAdapter.updateList(listToDisplay);
-        }
-
+        if (groupAdapter != null) groupAdapter.updateList(listToDisplay);
         tvGroupCount.setText(MessageFormat.format("Showing {0} groups", listToDisplay.size()));
-
-        if (listToDisplay.isEmpty()) {
-            emptyState.setVisibility(View.VISIBLE);
-        } else {
-            emptyState.setVisibility(View.GONE);
-        }
+        emptyState.setVisibility(listToDisplay.isEmpty() ? View.VISIBLE : View.GONE);
     }
 
     private void handleJoinGroup(Group group) {
         String currentUserId = SharedPreferencesUtil.getUserId(this);
-
         if (group.getMembers() != null && group.getMembers().containsKey(currentUserId)) {
             Toast.makeText(this, "You are already a member of this group", Toast.LENGTH_SHORT).show();
             return;
         }
-
         progressBar.setVisibility(View.VISIBLE);
         databaseService.joinGroup(group.getId(), Objects.requireNonNull(currentUserId), new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Void object) {
                 progressBar.setVisibility(View.GONE);
                 Toast.makeText(GroupsListActivity.this, "Joined successfully!", Toast.LENGTH_SHORT).show();
-                loadGroups();
+                loadGroups(); // מרענן את הרשימה ומחליף את הכפתור ל-LEAVE
             }
-
             @Override
             public void onFailed(Exception e) {
                 progressBar.setVisibility(View.GONE);
                 Toast.makeText(GroupsListActivity.this, "Failed to join group", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void handleLeaveGroup(Group group) {
+        String currentUserId = SharedPreferencesUtil.getUserId(this);
+
+        // מונע מיוצר הקבוצה לעזוב אותה
+        if (group.getAdminId() != null && group.getAdminId().equals(currentUserId)) {
+            Toast.makeText(this, "As the creator of the group, you cannot leave it.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // קריאה לדיאלוג המעוצב שיצרנו!
+        new LeaveGroupDialog(this, group, () -> {
+            progressBar.setVisibility(View.VISIBLE);
+            databaseService.leaveGroup(group.getId(), Objects.requireNonNull(currentUserId), new DatabaseService.DatabaseCallback<Void>() {
+                @Override
+                public void onCompleted(Void object) {
+                    progressBar.setVisibility(View.GONE);
+                    Toast.makeText(GroupsListActivity.this, "Left group successfully", Toast.LENGTH_SHORT).show();
+                    loadGroups(); // מרענן את הרשימה ומחליף את הכפתור בחזרה ל-JOIN
+                }
+
+                @Override
+                public void onFailed(Exception e) {
+                    progressBar.setVisibility(View.GONE);
+                    Toast.makeText(GroupsListActivity.this, "Failed to leave group", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }).show();
     }
 }

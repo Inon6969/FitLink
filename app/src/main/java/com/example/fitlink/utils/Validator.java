@@ -28,6 +28,7 @@ public class Validator {
 
 
     /// Check if the phone number is valid
+    /// Handles international formats (e.g. +972501234567)
     ///
     /// @param phone phone number to validate
     /// @return true if the phone number is valid, false otherwise

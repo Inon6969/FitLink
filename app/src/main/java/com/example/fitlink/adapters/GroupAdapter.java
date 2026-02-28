@@ -1,5 +1,6 @@
 package com.example.fitlink.adapters;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,6 +9,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.fitlink.R;
@@ -22,10 +24,14 @@ import java.util.List;
 public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHolder> {
 
     private List<Group> groupList;
+    private final boolean showJoinButton;
+    private final String currentUserId;
     private final OnGroupClickListener listener;
 
-    public GroupAdapter(List<Group> groupList, OnGroupClickListener listener) {
+    public GroupAdapter(List<Group> groupList, boolean showJoinButton, String currentUserId, OnGroupClickListener listener) {
         this.groupList = groupList;
+        this.showJoinButton = showJoinButton;
+        this.currentUserId = currentUserId;
         this.listener = listener;
     }
 
@@ -45,7 +51,6 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
     public void onBindViewHolder(@NonNull GroupViewHolder holder, int position) {
         Group group = groupList.get(position);
 
-        // Basic texts
         holder.tvName.setText(group.getName());
         if (group.getLocation() != null) {
             holder.tvLocation.setText(group.getLocation().getAddress());
@@ -53,7 +58,6 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
             holder.tvLocation.setText("No location");
         }
 
-        // Use the Enum's display name
         if (group.getLevel() != null) {
             holder.chipLevel.setText(group.getLevel().getDisplayName());
         } else {
@@ -62,53 +66,69 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
 
         holder.tvSport.setText(group.getSportType().getDisplayName());
 
-        // Icons
         int sportIconRes = getSportIconResource(group.getSportType());
         holder.imgIcon.setImageResource(sportIconRes);
         holder.imgSportMini.setImageResource(sportIconRes);
 
-        // Member count
         int memberCount = (group.getMembers() != null) ? group.getMembers().size() : 0;
         holder.tvMembers.setText(memberCount + (memberCount == 1 ? " Member" : " Members"));
 
-        // Fetch Creator Name
         holder.tvCreator.setText("Loading...");
-        DatabaseService.getInstance().getUser(group.getAdminId(), new DatabaseService.DatabaseCallback<>() {
-            @Override
-            public void onCompleted(User user) {
-                if (user != null) {
-                    holder.tvCreator.setText(String.format("By %s %s", user.getFirstName(), user.getLastName()));
+        if (group.getAdminId() != null && !group.getAdminId().isEmpty()) {
+            DatabaseService.getInstance().getUser(group.getAdminId(), new DatabaseService.DatabaseCallback<>() {
+                @Override
+                public void onCompleted(User user) {
+                    if (user != null) {
+                        holder.tvCreator.setText(String.format("By %s %s", user.getFirstName(), user.getLastName()));
+                    } else {
+                        holder.tvCreator.setText("By Unknown");
+                    }
                 }
-            }
 
-            @Override
-            public void onFailed(Exception e) {
-                holder.tvCreator.setText("By Unknown");
-            }
-        });
+                @Override
+                public void onFailed(Exception e) {
+                    holder.tvCreator.setText("By Unknown");
+                }
+            });
+        } else {
+            holder.tvCreator.setText("By Unknown");
+        }
 
-        // Click listeners
-        holder.btnJoin.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onJoinClick(group);
+        // הלוגיקה שמחליטה איך נראה הכפתור: JOIN או LEAVE
+        if (showJoinButton && currentUserId != null) {
+            holder.btnJoin.setVisibility(View.VISIBLE);
+            Context context = holder.itemView.getContext();
+
+            boolean isMember = group.getMembers() != null && group.getMembers().containsKey(currentUserId);
+
+            if (isMember) {
+                // המשתמש כבר בקבוצה - הכפתור הופך לכפתור עזיבה אפור
+                holder.btnJoin.setText("LEAVE");
+                holder.btnJoin.setTextColor(ContextCompat.getColor(context, R.color.fitlinkTextSecondary));
+                holder.btnJoin.setOnClickListener(v -> {
+                    if (listener != null) listener.onLeaveClick(group);
+                });
+            } else {
+                // המשתמש לא בקבוצה - כפתור הצטרפות רגיל
+                holder.btnJoin.setText("JOIN");
+                holder.btnJoin.setTextColor(ContextCompat.getColor(context, R.color.fitlinkPrimary));
+                holder.btnJoin.setOnClickListener(v -> {
+                    if (listener != null) listener.onJoinClick(group);
+                });
             }
-        });
+        } else {
+            holder.btnJoin.setVisibility(View.GONE);
+        }
 
         holder.itemView.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onGroupClick(group);
-            }
+            if (listener != null) listener.onGroupClick(group);
         });
     }
 
     private int getSportIconResource(SportType type) {
-        if (type == SportType.RUNNING) {
-            return R.drawable.ic_running;
-        } else if (type == SportType.SWIMMING) {
-            return R.drawable.ic_swimming;
-        } else if (type == SportType.CYCLING) {
-            return R.drawable.ic_cycling;
-        }
+        if (type == SportType.RUNNING) return R.drawable.ic_running;
+        else if (type == SportType.SWIMMING) return R.drawable.ic_swimming;
+        else if (type == SportType.CYCLING) return R.drawable.ic_cycling;
         return R.drawable.ic_sport;
     }
 
@@ -119,17 +139,13 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
 
     public interface OnGroupClickListener {
         void onJoinClick(Group group);
+        void onLeaveClick(Group group);
         void onGroupClick(Group group);
     }
 
     public static class GroupViewHolder extends RecyclerView.ViewHolder {
-        final TextView tvName;
-        final TextView tvSport;
-        final TextView tvLocation;
-        final TextView tvMembers;
-        final TextView tvCreator;
-        final ImageView imgIcon;
-        final ImageView imgSportMini;
+        final TextView tvName, tvSport, tvLocation, tvMembers, tvCreator;
+        final ImageView imgIcon, imgSportMini;
         final Chip chipLevel;
         final Button btnJoin;
 
