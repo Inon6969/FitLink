@@ -30,7 +30,7 @@ public class GroupDashboardActivity extends BaseActivity {
 
     private Group currentGroup;
     private CreateEventDialog currentCreateEventDialog;
-    private EditGroupDialog currentEditGroupDialog; // המשתנה החדש לדיאלוג העריכה
+    private EditGroupDialog currentEditGroupDialog;
 
     private final ActivityResultLauncher<Intent> mapPickerLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -40,7 +40,6 @@ public class GroupDashboardActivity extends BaseActivity {
                     double lat = result.getData().getDoubleExtra("lat", 0);
                     double lng = result.getData().getDoubleExtra("lng", 0);
 
-                    // ניתוב התוצאה לדיאלוג הפתוח הנכון (יצירת אירוע או עריכת קבוצה)
                     if (currentCreateEventDialog != null && currentCreateEventDialog.isShowing()) {
                         currentCreateEventDialog.updateLocationDetails(address, lat, lng);
                     } else if (currentEditGroupDialog != null && currentEditGroupDialog.isShowing()) {
@@ -99,46 +98,59 @@ public class GroupDashboardActivity extends BaseActivity {
         MaterialButton btnChat = findViewById(R.id.btn_dashboard_chat);
         MaterialButton btnCalendar = findViewById(R.id.btn_dashboard_calendar);
 
+        // כרטיסיית וכפתור בקשות ההצטרפות
+        MaterialCardView cardRequests = findViewById(R.id.card_dashboard_requests);
+        MaterialButton btnRequests = findViewById(R.id.btn_dashboard_requests);
+
         MaterialCardView cardSchedule = findViewById(R.id.card_dashboard_schedule);
         MaterialButton btnSchedule = findViewById(R.id.btn_dashboard_schedule);
 
         MaterialCardView cardEdit = findViewById(R.id.card_dashboard_edit);
         MaterialButton btnEdit = findViewById(R.id.btn_dashboard_edit);
         MaterialButton btnDelete = findViewById(R.id.btn_dashboard_delete);
-
         MaterialButton btnLeave = findViewById(R.id.btn_dashboard_leave);
 
         String currentUserId = SharedPreferencesUtil.getUserId(this);
 
-        // הגדרת הרשאות ותצוגה: מנהל יראה אפשרויות ניהול, משתמש רגיל יראה רק אופציה לעזוב
-        if (currentGroup.getAdminId() != null && currentGroup.getAdminId().equals(currentUserId)) {
+        boolean isCreator = currentGroup.getCreatorId() != null && currentGroup.getCreatorId().equals(currentUserId);
+        boolean isManager = currentGroup.getManagers() != null && currentGroup.getManagers().containsKey(currentUserId);
+
+        // גם היוצר וגם המנהלים רואים את כפתורי העריכה, יצירת אירועים, ובקשות הצטרפות
+        if (isCreator || isManager) {
             cardSchedule.setVisibility(View.VISIBLE);
             cardEdit.setVisibility(View.VISIBLE);
-            btnDelete.setVisibility(View.VISIBLE);
-
-            btnLeave.setVisibility(View.GONE);
+            cardRequests.setVisibility(View.VISIBLE);
         } else {
             cardSchedule.setVisibility(View.GONE);
             cardEdit.setVisibility(View.GONE);
-            btnDelete.setVisibility(View.GONE);
+            cardRequests.setVisibility(View.GONE);
+        }
 
+        // היוצר רואה כעת גם מחיקה וגם עזיבה. שאר המשתמשים (ומנהלים) רואים רק עזיבה.
+        if (isCreator) {
+            btnDelete.setVisibility(View.VISIBLE);
+            btnLeave.setVisibility(View.VISIBLE);
+        } else {
+            btnDelete.setVisibility(View.GONE);
             btnLeave.setVisibility(View.VISIBLE);
         }
+
+        // מעבר למסך בקשות הצטרפות
+        btnRequests.setOnClickListener(v -> {
+            Intent intent = new Intent(GroupDashboardActivity.this, JoinRequestsActivity.class);
+            intent.putExtra("GROUP_EXTRA", currentGroup);
+            startActivity(intent);
+        });
 
         btnSchedule.setOnClickListener(v -> {
             currentCreateEventDialog = new CreateEventDialog(this, currentGroup);
             currentCreateEventDialog.show();
         });
 
-        // פתיחת דיאלוג עריכת הקבוצה ועדכון התצוגה לאחר שמירה
         btnEdit.setOnClickListener(v -> {
             currentEditGroupDialog = new EditGroupDialog(this, currentGroup, updatedGroup -> {
-                // מתרחש כשהשמירה מצליחה: מעדכן את האובייקט ואת התצוגה בממשק
                 currentGroup = updatedGroup;
-
-                if (getSupportActionBar() != null) {
-                    getSupportActionBar().setTitle(currentGroup.getName());
-                }
+                if (getSupportActionBar() != null) getSupportActionBar().setTitle(currentGroup.getName());
                 tvTitle.setText(currentGroup.getName());
 
                 if (currentGroup.getDescription() != null && !currentGroup.getDescription().trim().isEmpty()) {
@@ -151,16 +163,13 @@ public class GroupDashboardActivity extends BaseActivity {
         });
 
         btnDelete.setOnClickListener(v -> {
-            // הצגת הדיאלוג המעוצב החדש במקום ה-AlertDialog הישן
             new DeleteGroupDialog(this, () -> {
                 Toast.makeText(this, "Deleting group...", Toast.LENGTH_SHORT).show();
-
-                // קריאה לפונקציית המחיקה ב-DatabaseService
                 DatabaseService.getInstance().deleteGroup(currentGroup.getId(), new DatabaseService.DatabaseCallback<Void>() {
                     @Override
                     public void onCompleted(Void object) {
                         Toast.makeText(GroupDashboardActivity.this, "Group deleted successfully", Toast.LENGTH_SHORT).show();
-                        finish(); // חזרה לרשימת הקבוצות
+                        finish();
                     }
 
                     @Override
@@ -172,7 +181,14 @@ public class GroupDashboardActivity extends BaseActivity {
         });
 
         btnLeave.setOnClickListener(v -> {
-            new LeaveGroupDialog(this, currentGroup, () -> {
+            // הגנת רפאים: יוצר לא יכול לעזוב בלי למנות לפחות מנהל אחד
+            if (isCreator && (currentGroup.getManagers() == null || currentGroup.getManagers().isEmpty())) {
+                Toast.makeText(this, "You must appoint at least one Manager before leaving the group.", Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            // העברת currentUserId לדיאלוג
+            new LeaveGroupDialog(this, currentGroup, currentUserId, () -> {
                 DatabaseService.getInstance().leaveGroup(currentGroup.getId(), currentUserId, new DatabaseService.DatabaseCallback<Void>() {
                     @Override
                     public void onCompleted(Void object) {
@@ -194,7 +210,11 @@ public class GroupDashboardActivity extends BaseActivity {
             startActivity(intent);
         });
 
-        btnChat.setOnClickListener(v -> Toast.makeText(this, "Opening Chat...", Toast.LENGTH_SHORT).show());
+        btnChat.setOnClickListener(v -> {
+            Intent intent = new Intent(GroupDashboardActivity.this, GroupChatActivity.class);
+            intent.putExtra("GROUP_EXTRA", currentGroup);
+            startActivity(intent);
+        });
 
         btnCalendar.setOnClickListener(v -> {
             Intent intent = new Intent(GroupDashboardActivity.this, GroupCalendarActivity.class);

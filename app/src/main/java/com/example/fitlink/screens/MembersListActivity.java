@@ -33,7 +33,8 @@ public class MembersListActivity extends BaseActivity {
 
     private UserAdapter userAdapter;
     private String currentUserId;
-    private boolean isGroupAdmin = false;
+    private boolean isGroupCreator = false;
+    private boolean isGroupManager = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,8 +51,9 @@ public class MembersListActivity extends BaseActivity {
 
         currentUserId = SharedPreferencesUtil.getUserId(this);
 
-        // בדיקה האם המשתמש שנכנס למסך הוא המנהל של הקבוצה
-        isGroupAdmin = currentGroup.getAdminId() != null && currentGroup.getAdminId().equals(currentUserId);
+        // בדיקת תפקיד המשתמש הנוכחי בקבוצה (יוצר או מנהל)
+        isGroupCreator = currentGroup.getCreatorId() != null && currentGroup.getCreatorId().equals(currentUserId);
+        isGroupManager = currentGroup.getManagers() != null && currentGroup.getManagers().containsKey(currentUserId);
 
         initViews();
         setupToolbar();
@@ -92,7 +94,8 @@ public class MembersListActivity extends BaseActivity {
 
             @Override
             public void onToggleAdmin(User user) {
-                // ויתרנו על הוספת מנהלים, ולכן הפונקציה הזו לא תעשה כלום במסך הזה.
+                // הוספה או הסרה של מנהל קבוצה
+                handleToggleManager(user);
             }
 
             @Override
@@ -107,9 +110,29 @@ public class MembersListActivity extends BaseActivity {
             }
         });
 
-        // כאן אנחנו מעבירים ל-Adapter מצב מיוחד שמסתיר את כפתורי מנהל-העל (ראה שלב 3)
-        userAdapter.setGroupMode(true, isGroupAdmin);
+        // מעבירים למתאם את הרשאות המשתמש הנוכחי ואת רשימת המנהלים
+        userAdapter.setGroupMode(true, isGroupCreator, isGroupManager, currentGroup.getCreatorId(), currentGroup.getManagers());
         rvMembers.setAdapter(userAdapter);
+    }
+
+    private void handleToggleManager(User user) {
+        boolean isCurrentlyManager = currentGroup.getManagers() != null && currentGroup.getManagers().containsKey(user.getId());
+        boolean newStatus = !isCurrentlyManager;
+
+        progressBar.setVisibility(View.VISIBLE);
+        databaseService.updateGroupManager(currentGroup.getId(), user.getId(), newStatus, new DatabaseService.DatabaseCallback<Void>() {
+            @Override
+            public void onCompleted(Void object) {
+                Toast.makeText(MembersListActivity.this, newStatus ? "Manager added" : "Manager removed", Toast.LENGTH_SHORT).show();
+                loadGroupMembers(); // טוען מחדש את נתוני הקבוצה מהשרת ומעדכן את הרשימה
+            }
+
+            @Override
+            public void onFailed(Exception e) {
+                progressBar.setVisibility(View.GONE);
+                Toast.makeText(MembersListActivity.this, "Failed to update manager status", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void loadGroupMembers() {
@@ -122,9 +145,16 @@ public class MembersListActivity extends BaseActivity {
             public void onCompleted(Group updatedGroup) {
                 if (updatedGroup != null) {
                     currentGroup = updatedGroup; // מעדכנים את האובייקט המקומי לגרסה הטרייה
+
+                    // מעדכנים מחדש את ההרשאות למקרה שהן השתנו
+                    isGroupCreator = currentGroup.getCreatorId() != null && currentGroup.getCreatorId().equals(currentUserId);
+                    isGroupManager = currentGroup.getManagers() != null && currentGroup.getManagers().containsKey(currentUserId);
+
+                    // מעדכנים מחדש את ה-Adapter
+                    userAdapter.setGroupMode(true, isGroupCreator, isGroupManager, currentGroup.getCreatorId(), currentGroup.getManagers());
                 }
 
-                // 2. רק עכשיו שולפים את רשימת המשתמשים ומסננים לפי המילון המעודכן
+                // 2. שולפים את רשימת המשתמשים ומסננים לפי המילון המעודכן
                 databaseService.getUserList(new DatabaseService.DatabaseCallback<List<User>>() {
                     @Override
                     public void onCompleted(List<User> allUsers) {
@@ -166,19 +196,28 @@ public class MembersListActivity extends BaseActivity {
     }
 
     private void handleRemoveMember(User user) {
-        // המנהל לא יכול להסיר את עצמו דרך הכפתור הזה
-        if (currentGroup.getAdminId().equals(user.getId())) {
+        // אף אחד לא יכול להסיר את יוצר הקבוצה
+        if (currentGroup.getCreatorId() != null && currentGroup.getCreatorId().equals(user.getId())) {
             Toast.makeText(this, "Cannot remove the group creator", Toast.LENGTH_SHORT).show();
             return;
         }
 
+        // מנהל (שאינו היוצר) לא יכול להסיר מנהל אחר
+        if (isGroupManager && !isGroupCreator && currentGroup.getManagers() != null && currentGroup.getManagers().containsKey(user.getId())) {
+            Toast.makeText(this, "Managers cannot remove other managers", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         progressBar.setVisibility(View.VISIBLE);
-        // שימוש בפונקציה leaveGroup כדי להסיר משתמש מהקבוצה
+        // שימוש בפונקציה leaveGroup כדי להסיר משתמש מהקבוצה במסד הנתונים
         databaseService.leaveGroup(currentGroup.getId(), user.getId(), new DatabaseService.DatabaseCallback<Void>() {
             @Override
             public void onCompleted(Void object) {
                 Toast.makeText(MembersListActivity.this, "Member removed", Toast.LENGTH_SHORT).show();
                 currentGroup.getMembers().remove(user.getId());
+                if (currentGroup.getManagers() != null) {
+                    currentGroup.getManagers().remove(user.getId());
+                }
                 loadGroupMembers(); // רענון הרשימה לאחר מחיקה מוצלחת
             }
 

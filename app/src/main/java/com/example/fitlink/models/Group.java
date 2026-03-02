@@ -15,26 +15,33 @@ public class Group implements Serializable {
     private SportType sportType;    // Restricted to RUNNING, CYCLING, SWIMMING
     private DifficultyLevel level;  // Difficulty Level using the new Enum
     private Location location;      // Meeting point or city
-    private String adminId;         // The UID of the user who created the group
+    private String creatorId;       // The UID of the user who created the group (formerly adminId)
 
     private Map<String, Boolean> members;
+    private Map<String, Boolean> managers;
+    private Map<String, Boolean> pendingRequests;
 
     // Required empty constructor for Firebase
     public Group() {
         this.members = new HashMap<>();
+        this.managers = new HashMap<>();
+        this.pendingRequests = new HashMap<>();
     }
 
-    public Group(String id, String name, String description, SportType sportType, DifficultyLevel level, Location location, String adminId) {
+    public Group(String id, String name, String description, SportType sportType, DifficultyLevel level, Location location, String creatorId) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.sportType = sportType;
         this.level = level;
         this.location = location;
-        this.adminId = adminId;
+        this.creatorId = creatorId;
+
         this.members = new HashMap<>();
         // The creator is the first member
-        this.members.put(adminId, true);
+        this.members.put(creatorId, true);
+
+        this.managers = new HashMap<>();
     }
 
     // --- Getters and Setters ---
@@ -87,12 +94,12 @@ public class Group implements Serializable {
         this.location = location;
     }
 
-    public String getAdminId() {
-        return adminId;
+    public String getCreatorId() {
+        return creatorId;
     }
 
-    public void setAdminId(String adminId) {
-        this.adminId = adminId;
+    public void setCreatorId(String creatorId) {
+        this.creatorId = creatorId;
     }
 
     public Map<String, Boolean> getMembers() {
@@ -108,5 +115,24 @@ public class Group implements Serializable {
             this.members = new HashMap<>();
         }
         this.members.put(userId, true);
+    }
+
+    // --- Managers Getters and Setters ---
+
+    public Map<String, Boolean> getManagers() {
+        return managers;
+    }
+
+    public void setManagers(Map<String, Boolean> managers) {
+        this.managers = managers;
+    }
+
+    public Map<String, Boolean> getPendingRequests()
+    {
+        return pendingRequests;
+    }
+    public void setPendingRequests(Map<String, Boolean> pendingRequests)
+    {
+        this.pendingRequests = pendingRequests;
     }
 }

@@ -245,7 +245,7 @@ public class UsersListActivity extends BaseActivity {
                     List<Group> userGroups = new ArrayList<>();
                     if (allGroups != null) {
                         for (Group g : allGroups) {
-                            if (g.getAdminId() != null && g.getAdminId().equals(user.getId())) {
+                            if (g.getCreatorId() != null && g.getCreatorId().equals(user.getId())) {
                                 userGroups.add(g);
                             }
                         }

@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -73,10 +74,16 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
         int memberCount = (group.getMembers() != null) ? group.getMembers().size() : 0;
         holder.tvMembers.setText(memberCount + (memberCount == 1 ? " Member" : " Members"));
 
-        // --- הלוגיקה החדשה לתגית היוצר (Creator) ---
-        String creatorId = group.getAdminId(); // שנה ל-getCreatorId() אם עדכנת את מודל Group
+        // --- הלוגיקה לתגית הניהול והיצירה ---
+        String creatorId = group.getCreatorId();
+        boolean isCreator = creatorId != null && creatorId.equals(currentUserId);
+        boolean isManager = group.getManagers() != null && group.getManagers().containsKey(currentUserId);
 
-        if (creatorId != null && creatorId.equals(currentUserId)) {
+        if (isCreator) {
+            holder.chipCreator.setText("Created by you");
+            holder.chipCreator.setVisibility(View.VISIBLE);
+        } else if (isManager) {
+            holder.chipCreator.setText("Managed by you");
             holder.chipCreator.setVisibility(View.VISIBLE);
         } else {
             holder.chipCreator.setVisibility(View.GONE);
@@ -104,12 +111,13 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
             holder.tvCreator.setText("By Unknown");
         }
 
-        // הלוגיקה שמחליטה איך נראה הכפתור: JOIN או LEAVE
+        // הלוגיקה שמחליטה איך נראה הכפתור: JOIN, PENDING או LEAVE
         if (showJoinButton && currentUserId != null) {
             holder.btnJoin.setVisibility(View.VISIBLE);
             Context context = holder.itemView.getContext();
 
             boolean isMember = group.getMembers() != null && group.getMembers().containsKey(currentUserId);
+            boolean isPending = group.getPendingRequests() != null && group.getPendingRequests().containsKey(currentUserId);
 
             if (isMember) {
                 // המשתמש כבר בקבוצה - הכפתור הופך לכפתור עזיבה אפור
@@ -117,6 +125,13 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
                 holder.btnJoin.setTextColor(ContextCompat.getColor(context, R.color.fitlinkTextSecondary));
                 holder.btnJoin.setOnClickListener(v -> {
                     if (listener != null) listener.onLeaveClick(group);
+                });
+            } else if (isPending) {
+                // המשתמש שלח בקשה וממתין לאישור
+                holder.btnJoin.setText("PENDING");
+                holder.btnJoin.setTextColor(ContextCompat.getColor(context, R.color.fitlinkTextSecondary));
+                holder.btnJoin.setOnClickListener(v -> {
+                    Toast.makeText(context, "Your request is pending approval", Toast.LENGTH_SHORT).show();
                 });
             } else {
                 // המשתמש לא בקבוצה - כפתור הצטרפות רגיל

@@ -32,7 +32,7 @@ import com.example.fitlink.models.Group;
 import com.example.fitlink.models.SportType;
 import com.example.fitlink.screens.dialogs.AddGroupDialog;
 import com.example.fitlink.screens.dialogs.GroupDescriptionDialog;
-import com.example.fitlink.screens.dialogs.LeaveGroupDialog; // הייבוא של הדיאלוג החדש
+import com.example.fitlink.screens.dialogs.LeaveGroupDialog;
 import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.google.android.material.button.MaterialButton;
@@ -264,37 +264,45 @@ public class GroupsListActivity extends BaseActivity {
 
     private void handleJoinGroup(Group group) {
         String currentUserId = SharedPreferencesUtil.getUserId(this);
+
         if (group.getMembers() != null && group.getMembers().containsKey(currentUserId)) {
             Toast.makeText(this, "You are already a member of this group", Toast.LENGTH_SHORT).show();
             return;
         }
+        if (group.getPendingRequests() != null && group.getPendingRequests().containsKey(currentUserId)) {
+            Toast.makeText(this, "Your request is already pending", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         progressBar.setVisibility(View.VISIBLE);
-        databaseService.joinGroup(group.getId(), Objects.requireNonNull(currentUserId), new DatabaseService.DatabaseCallback<>() {
+        // שימוש בפונקציה החדשה שיוצרת סטטוס pending
+        databaseService.requestToJoinGroup(group.getId(), Objects.requireNonNull(currentUserId), new DatabaseService.DatabaseCallback<Void>() {
             @Override
             public void onCompleted(Void object) {
                 progressBar.setVisibility(View.GONE);
-                Toast.makeText(GroupsListActivity.this, "Joined successfully!", Toast.LENGTH_SHORT).show();
-                loadGroups(); // מרענן את הרשימה ומחליף את הכפתור ל-LEAVE
+                Toast.makeText(GroupsListActivity.this, "Join request sent!", Toast.LENGTH_SHORT).show();
+                loadGroups(); // מרענן את הרשימה ומחליף את הכפתור ל-PENDING
             }
             @Override
             public void onFailed(Exception e) {
                 progressBar.setVisibility(View.GONE);
-                Toast.makeText(GroupsListActivity.this, "Failed to join group", Toast.LENGTH_SHORT).show();
+                Toast.makeText(GroupsListActivity.this, "Failed to send request", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
     private void handleLeaveGroup(Group group) {
         String currentUserId = SharedPreferencesUtil.getUserId(this);
+        boolean isCreator = group.getCreatorId() != null && group.getCreatorId().equals(currentUserId);
 
-        // מונע מיוצר הקבוצה לעזוב אותה
-        if (group.getAdminId() != null && group.getAdminId().equals(currentUserId)) {
-            Toast.makeText(this, "As the creator of the group, you cannot leave it.", Toast.LENGTH_SHORT).show();
+        // מונע מיוצר הקבוצה לעזוב ללא מנהל מחליף
+        if (isCreator && (group.getManagers() == null || group.getManagers().isEmpty())) {
+            Toast.makeText(this, "You must appoint at least one Manager before leaving the group.", Toast.LENGTH_LONG).show();
             return;
         }
 
-        // קריאה לדיאלוג המעוצב שיצרנו!
-        new LeaveGroupDialog(this, group, () -> {
+        // קריאה לדיאלוג והעברת המזהה של המשתמש הנוכחי
+        new LeaveGroupDialog(this, group, currentUserId, () -> {
             progressBar.setVisibility(View.VISIBLE);
             databaseService.leaveGroup(group.getId(), Objects.requireNonNull(currentUserId), new DatabaseService.DatabaseCallback<Void>() {
                 @Override

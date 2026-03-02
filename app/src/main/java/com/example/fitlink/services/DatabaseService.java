@@ -5,6 +5,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.example.fitlink.models.ChatMessage;
 import com.example.fitlink.models.Group;
 import com.example.fitlink.models.User;
 import com.example.fitlink.models.Event;
@@ -44,6 +45,7 @@ public class DatabaseService {
     private static final String USERS_PATH = "users";
     private static final String GROUPS_PATH = "groups";
     private static final String EVENTS_PATH = "events";
+    private static final String GROUP_CHATS_PATH = "group_chats";
     /// the instance of this class
     ///
     /// @see #getInstance()
@@ -369,7 +371,7 @@ public class DatabaseService {
 
         Map<String, Object> updates = new HashMap<>();
         updates.put(GROUPS_PATH + "/" + groupId, group);
-        updates.put(USERS_PATH + "/" + group.getAdminId() + "/groupIds/" + groupId, true);
+        updates.put(USERS_PATH + "/" + group.getCreatorId() + "/groupIds/" + groupId, true);
 
         databaseReference.updateChildren(updates).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
@@ -429,6 +431,7 @@ public class DatabaseService {
     public void leaveGroup(@NotNull final String groupId, @NotNull final String userId, @Nullable final DatabaseCallback<Void> callback) {
         Map<String, Object> updates = new HashMap<>();
         updates.put(GROUPS_PATH + "/" + groupId + "/members/" + userId, null);
+        updates.put(GROUPS_PATH + "/" + groupId + "/managers/" + userId, null); // חדש: מסיר את המשתמש גם מרשימת המנהלים במידה והיה כזה
         updates.put(USERS_PATH + "/" + userId + "/groupIds/" + groupId, null);
 
         databaseReference.updateChildren(updates).addOnCompleteListener(task -> {
@@ -444,6 +447,77 @@ public class DatabaseService {
      */
     public void updateGroup(@NotNull final Group group, @Nullable final DatabaseCallback<Void> callback) {
         databaseReference.child(GROUPS_PATH).child(group.getId()).setValue(group)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        if (callback != null) callback.onCompleted(null);
+                    } else {
+                        if (callback != null) callback.onFailed(task.getException());
+                    }
+                });
+    }
+    /**
+     * Updates a user's manager status in a group.
+     */
+    public void updateGroupManager(@NotNull final String groupId, @NotNull final String userId, boolean isManager, @Nullable final DatabaseCallback<Void> callback) {
+        if (isManager) {
+            // הוספת מנהל (שמים true תחת מזהה המשתמש)
+            databaseReference.child(GROUPS_PATH).child(groupId).child("managers").child(userId).setValue(true)
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            if (callback != null) callback.onCompleted(null);
+                        } else {
+                            if (callback != null) callback.onFailed(task.getException());
+                        }
+                    });
+        } else {
+            // הסרת מנהל (מוחקים את מזהה המשתמש מרשימת המנהלים)
+            databaseReference.child(GROUPS_PATH).child(groupId).child("managers").child(userId).removeValue()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            if (callback != null) callback.onCompleted(null);
+                        } else {
+                            if (callback != null) callback.onFailed(task.getException());
+                        }
+                    });
+        }
+    }
+    /**
+     * User requests to join a group (adds to pendingRequests).
+     */
+    public void requestToJoinGroup(@NotNull final String groupId, @NotNull final String userId, @Nullable final DatabaseCallback<Void> callback) {
+        databaseReference.child(GROUPS_PATH).child(groupId).child("pendingRequests").child(userId).setValue(true)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        if (callback != null) callback.onCompleted(null);
+                    } else {
+                        if (callback != null) callback.onFailed(task.getException());
+                    }
+                });
+    }
+
+    /**
+     * Manager approves a join request (moves from pending to members).
+     */
+    public void approveJoinRequest(@NotNull final String groupId, @NotNull final String userId, @Nullable final DatabaseCallback<Void> callback) {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put(GROUPS_PATH + "/" + groupId + "/pendingRequests/" + userId, null);
+        updates.put(GROUPS_PATH + "/" + groupId + "/members/" + userId, true);
+        updates.put(USERS_PATH + "/" + userId + "/groupIds/" + groupId, true);
+
+        databaseReference.updateChildren(updates).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                if (callback != null) callback.onCompleted(null);
+            } else {
+                if (callback != null) callback.onFailed(task.getException());
+            }
+        });
+    }
+
+    /**
+     * Manager declines a join request (removes from pending).
+     */
+    public void declineJoinRequest(@NotNull final String groupId, @NotNull final String userId, @Nullable final DatabaseCallback<Void> callback) {
+        databaseReference.child(GROUPS_PATH).child(groupId).child("pendingRequests").child(userId).removeValue()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         if (callback != null) callback.onCompleted(null);
@@ -512,6 +586,8 @@ public class DatabaseService {
 
                 // שלב 2: מוחקים את הקבוצה עצמה מנתיב הקבוצות
                 updates.put(GROUPS_PATH + "/" + groupId, null);
+                //מחיקת צאט הקבוצה
+                updates.put(GROUP_CHATS_PATH + "/" + groupId, null);
 
                 // שלב 3: עוברים על כל החברים ומוחקים את הקבוצה מרשימת הקבוצות האישית שלהם
                 if (group.getMembers() != null) {
@@ -566,19 +642,6 @@ public class DatabaseService {
                     }
                 });
     }
-    /// callback interface for database operations
-    ///
-    /// @param <T> the type of the object to return
-    /// @see DatabaseCallback#onCompleted(Object)
-    /// @see DatabaseCallback#onFailed(Exception)
-    public interface DatabaseCallback<T> {
-        /// called when the operation is completed successfully
-        void onCompleted(T object);
-
-        /// called when the operation fails with an exception
-        void onFailed(Exception e);
-    }
-
     public void sendContactMessage(String name, String email, String message, @Nullable final DatabaseCallback<Void> callback) {
         String messageId = generateNewId("contact_messages");
 
@@ -603,5 +666,61 @@ public class DatabaseService {
                         callback.onFailed(error.toException());
                     }
                 });
+    }
+    // --- אזור הפונקציות החדשות של הצ'אט ---
+    public void sendGroupMessage(@NotNull String groupId, @NotNull ChatMessage message, @Nullable DatabaseCallback<Void> callback) {
+        String msgId = databaseReference.child(GROUP_CHATS_PATH).child(groupId).push().getKey();
+        if (msgId != null) {
+            message.setMessageId(msgId);
+            databaseReference.child(GROUP_CHATS_PATH).child(groupId).child(msgId).setValue(message)
+                    .addOnCompleteListener(task -> {
+                        if (callback != null) {
+                            if (task.isSuccessful()) callback.onCompleted(null);
+                            else callback.onFailed(task.getException());
+                        }
+                    });
+        }
+    }
+
+    public void listenForGroupMessages(@NotNull String groupId, @NotNull DatabaseCallback<List<ChatMessage>> callback) {
+        databaseReference.child(GROUP_CHATS_PATH).child(groupId).orderByChild("timestamp")
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        List<ChatMessage> messages = new ArrayList<>();
+                        for (DataSnapshot msgSnapshot : snapshot.getChildren()) {
+                            ChatMessage msg = msgSnapshot.getValue(ChatMessage.class);
+                            if (msg != null) messages.add(msg);
+                        }
+                        callback.onCompleted(messages);
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        callback.onFailed(error.toException());
+                    }
+                });
+    }
+
+    public void deleteGroupMessage(@NotNull String groupId, @NotNull String messageId, @Nullable DatabaseCallback<Void> callback) {
+        databaseReference.child(GROUP_CHATS_PATH).child(groupId).child(messageId).removeValue()
+                .addOnCompleteListener(task -> {
+                    if (callback != null) {
+                        if (task.isSuccessful()) callback.onCompleted(null);
+                        else callback.onFailed(task.getException());
+                    }
+                });
+    }
+    /// callback interface for database operations
+    ///
+    /// @param <T> the type of the object to return
+    /// @see DatabaseCallback#onCompleted(Object)
+    /// @see DatabaseCallback#onFailed(Exception)
+    public interface DatabaseCallback<T> {
+        /// called when the operation is completed successfully
+        void onCompleted(T object);
+
+        /// called when the operation fails with an exception
+        void onFailed(Exception e);
     }
 }

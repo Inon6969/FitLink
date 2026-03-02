@@ -27,6 +27,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.FitLink">
         <activity
+            android:name=".screens.JoinRequestsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".screens.GroupChatActivity"
+            android:exported="false" />
+        <activity
             android:name=".screens.MembersListActivity"
             android:exported="false" />
         <activity

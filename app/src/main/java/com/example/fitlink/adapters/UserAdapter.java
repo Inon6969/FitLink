@@ -18,17 +18,21 @@ import com.example.fitlink.utils.ImageUtil;
 import com.google.android.material.chip.Chip;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 
 public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
 
     private final List<User> userList;
     private final OnUserClickListener onUserClickListener;
 
-    // דגלים למצב קבוצה
+    // משתנים למצב קבוצה (תמיכה במנהלים וביוצר)
     private boolean isGroupMode = false;
-    private boolean isCurrentUserGroupAdmin = false;
+    private boolean isCurrentUserGroupCreator = false;
+    private boolean isCurrentUserGroupManager = false;
+    private String groupCreatorId = null;
+    private Map<String, Boolean> groupManagers = new HashMap<>();
 
     // הקונסטרקטור
     public UserAdapter(@Nullable final OnUserClickListener onUserClickListener) {
@@ -36,10 +40,13 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
         this.onUserClickListener = onUserClickListener;
     }
 
-    // מתודה להפעלת מצב קבוצה והעברת הרשאות הניהול
-    public void setGroupMode(boolean isGroupMode, boolean isGroupAdmin) {
+    // מתודה להפעלת מצב קבוצה המקבלת את מפת המנהלים והרשאות המשתמש הנוכחי
+    public void setGroupMode(boolean isGroupMode, boolean isCurrentUserGroupCreator, boolean isCurrentUserGroupManager, String groupCreatorId, Map<String, Boolean> groupManagers) {
         this.isGroupMode = isGroupMode;
-        this.isCurrentUserGroupAdmin = isGroupAdmin;
+        this.isCurrentUserGroupCreator = isCurrentUserGroupCreator;
+        this.isCurrentUserGroupManager = isCurrentUserGroupManager;
+        this.groupCreatorId = groupCreatorId;
+        this.groupManagers = groupManagers != null ? groupManagers : new HashMap<>();
         notifyDataSetChanged();
     }
 
@@ -58,8 +65,18 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
         // הגדרת נתונים בסיסיים
         holder.tvName.setText(user.getFullName());
         holder.tvEmail.setText(user.getEmail());
-        holder.tvPhone.setText(user.getPhone());
-        holder.tvPassword.setText(user.getPassword());
+
+        if (user.getPhone() != null && !user.getPhone().isEmpty()) {
+            holder.tvPhone.setText(user.getPhone());
+        } else {
+            holder.tvPhone.setText("No phone");
+        }
+
+        if (user.getPassword() != null) {
+            holder.tvPassword.setText("Password: " + user.getPassword());
+        } else {
+            holder.tvPassword.setText("Password: *****");
+        }
 
         // טיפול בתמונת פרופיל
         String base64Image = user.getProfileImage();
@@ -74,49 +91,80 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
             holder.imgProfile.setImageResource(R.drawable.ic_user);
         }
 
-        // בדיקה האם זה המשתמש המחובר
-        boolean isSelf = user.getId() != null && Objects.requireNonNull(onUserClickListener).isCurrentUser(user);
+        // בדיקה האם זה המשתמש המחובר ("אני")
+        boolean isSelf = user.getId() != null && onUserClickListener != null && onUserClickListener.isCurrentUser(user);
+
+        // הלוגיקה להצגת תגית "You"
+        if (isSelf) {
+            holder.chipIsMe.setVisibility(View.VISIBLE);
+        } else {
+            holder.chipIsMe.setVisibility(View.GONE);
+        }
 
         // הסתרת שדה הסיסמה והאייקון שלו כאשר צופים ברשימת חברי קבוצה
         View passwordLayout = (View) holder.tvPassword.getParent();
         if (isGroupMode) {
             passwordLayout.setVisibility(View.GONE);
-            holder.chipRole.setVisibility(View.GONE); // מסתיר את תגית ה-Admin הכללית של האפליקציה בתוך קבוצה
         } else {
             passwordLayout.setVisibility(View.VISIBLE);
         }
 
-        // לוגיקת הרשאות וניהול כפתורים
+        // לוגיקת הרשאות וניהול תגיות וכפתורים
         if (isGroupMode) {
             // === לוגיקה למסך חברי הקבוצה (MembersListActivity) ===
-            holder.btnToggleAdmin.setVisibility(View.GONE); // מוסתר תמיד במצב קבוצה
+            boolean isCreator = groupCreatorId != null && groupCreatorId.equals(user.getId());
+            boolean isManager = groupManagers.containsKey(user.getId());
 
-            if (isCurrentUserGroupAdmin && !isSelf) {
-                // מנהל הקבוצה רואה פח אשפה ליד משתמשים אחרים
+            // 1. קביעת התגית: יוצר / מנהל / מוסתר
+            if (isCreator) {
+                holder.chipRole.setText("Creator");
+                holder.chipRole.setVisibility(View.VISIBLE);
+            } else if (isManager) {
+                holder.chipRole.setText("Manager");
+                holder.chipRole.setVisibility(View.VISIBLE);
+            } else {
+                holder.chipRole.setVisibility(View.GONE);
+            }
+
+            // 2. כפתור מינוי/הסרת מנהלים (מוצג רק ליוצר, ועבור כולם חוץ מעצמו)
+            if (isCurrentUserGroupCreator && !isCreator) {
+                holder.btnToggleAdmin.setVisibility(View.VISIBLE);
+                if (isManager) {
+                    holder.btnToggleAdmin.setImageResource(R.drawable.ic_remove_admin); // כבר מנהל -> אפשרות הסרה
+                } else {
+                    holder.btnToggleAdmin.setImageResource(R.drawable.ic_add_admin); // לא מנהל -> אפשרות הוספה
+                }
+            } else {
+                holder.btnToggleAdmin.setVisibility(View.GONE);
+            }
+
+            // 3. כפתור מחיקת משתמש (הסרה מקבוצה)
+            if (isCurrentUserGroupCreator && !isCreator) {
+                // יוצר יכול להסיר את כולם חוץ מעצמו
+                holder.btnDeleteUser.setVisibility(View.VISIBLE);
+            } else if (isCurrentUserGroupManager && !isCreator && !isManager) {
+                // מנהל יכול להסיר רק משתמשים רגילים (לא את היוצר ולא מנהלים אחרים)
                 holder.btnDeleteUser.setVisibility(View.VISIBLE);
             } else {
-                // משתמשים רגילים (או מנהל על עצמו) לא רואים פח אשפה
                 holder.btnDeleteUser.setVisibility(View.GONE);
             }
 
         } else {
             // === לוגיקה למסך הניהול הראשי (UsersListActivity) ===
+            if (user.getIsAdmin()) {
+                holder.chipRole.setText("Admin");
+                holder.chipRole.setVisibility(View.VISIBLE);
+            } else {
+                holder.chipRole.setVisibility(View.GONE);
+            }
+
             if (isSelf) {
                 holder.btnToggleAdmin.setVisibility(View.GONE);
-                if (user.getIsAdmin()) {
-                    holder.chipRole.setVisibility(View.VISIBLE);
-                    holder.chipRole.setText("Admin (Me)");
-                } else {
-                    holder.chipRole.setVisibility(View.GONE);
-                }
             } else {
                 holder.btnToggleAdmin.setVisibility(View.VISIBLE);
                 if (user.getIsAdmin()) {
-                    holder.chipRole.setVisibility(View.VISIBLE);
-                    holder.chipRole.setText("Admin");
                     holder.btnToggleAdmin.setImageResource(R.drawable.ic_remove_admin);
                 } else {
-                    holder.chipRole.setVisibility(View.INVISIBLE);
                     holder.btnToggleAdmin.setImageResource(R.drawable.ic_add_admin);
                 }
 
@@ -125,13 +173,18 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
                 });
             }
 
-            // כפתור מחיקה גלוי למנהל הראשי
+            // כפתור מחיקה גלוי תמיד למנהל הראשי
             holder.btnDeleteUser.setVisibility(View.VISIBLE);
         }
 
         // הגדרת לחיצה על כפתור המחיקה (משמש גם למחיקת משתמש וגם להסרה מקבוצה)
         holder.btnDeleteUser.setOnClickListener(v -> {
             if (onUserClickListener != null) onUserClickListener.onDeleteUser(user);
+        });
+
+        // במצב קבוצה (כפתור מינוי מנהלים) או במצב רגיל (מנהלי אפליקציה)
+        holder.btnToggleAdmin.setOnClickListener(v -> {
+            if (onUserClickListener != null) onUserClickListener.onToggleAdmin(user);
         });
 
         // לחיצה על כל השורה
@@ -173,11 +226,8 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
 
     public interface OnUserClickListener {
         void onUserClick(User user);
-
         void onToggleAdmin(User user);
-
         void onDeleteUser(User user);
-
         boolean isCurrentUser(User user);
     }
 
@@ -186,10 +236,13 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
         final TextView tvEmail;
         final TextView tvPhone;
         final TextView tvPassword;
-        final Chip chipRole;
         final ImageButton btnDeleteUser;
         final ImageButton btnToggleAdmin;
         final ImageView imgProfile;
+
+        // התגיות שלנו מ-XML
+        final Chip chipRole;
+        final Chip chipIsMe;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -197,10 +250,13 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
             tvEmail = itemView.findViewById(R.id.tv_item_user_email);
             tvPhone = itemView.findViewById(R.id.tv_item_user_phone);
             tvPassword = itemView.findViewById(R.id.tv_item_user_password);
-            chipRole = itemView.findViewById(R.id.chip_user_role);
             btnDeleteUser = itemView.findViewById(R.id.btn_item_user_delete);
             btnToggleAdmin = itemView.findViewById(R.id.btn_item_user_toggleAdmin);
             imgProfile = itemView.findViewById(R.id.img_item_user_profile);
+
+            // קישור התגיות
+            chipRole = itemView.findViewById(R.id.chip_user_role);
+            chipIsMe = itemView.findViewById(R.id.chip_user_is_me);
         }
     }
 }
