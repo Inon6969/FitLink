@@ -67,6 +67,7 @@ public class JoinRequestsActivity extends BaseActivity {
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setTitle(currentGroup.getName() + " Join Requests");
             toolbar.setNavigationOnClickListener(v -> onBackPressed());
         }
     }

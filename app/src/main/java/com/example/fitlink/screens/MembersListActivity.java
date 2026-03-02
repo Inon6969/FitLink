@@ -78,7 +78,7 @@ public class MembersListActivity extends BaseActivity {
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("Members (" + currentGroup.getName() + ")");
+            getSupportActionBar().setTitle(currentGroup.getName() + " Members");
             toolbar.setNavigationOnClickListener(v -> onBackPressed());
         }
     }

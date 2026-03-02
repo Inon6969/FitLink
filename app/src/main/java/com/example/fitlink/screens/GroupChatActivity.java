@@ -84,7 +84,7 @@ public class GroupChatActivity extends BaseActivity {
         boolean isCreator = currentGroup.getCreatorId() != null && currentGroup.getCreatorId().equals(currentUserId);
         boolean isManager = currentGroup.getManagers() != null && currentGroup.getManagers().containsKey(currentUserId);
 
-        adapter = new ChatAdapter(messageList, currentUserId, currentGroup.getCreatorId(), message -> {
+        adapter = new ChatAdapter(messageList, currentUserId, currentGroup.getCreatorId(), currentGroup.getManagers(), message -> {
             // לחיצה ארוכה - בדיקת הרשאות מחיקה ליוצר הקבוצה ולמנהלים
             if (isCreator || isManager) {
                 new AlertDialog.Builder(this)

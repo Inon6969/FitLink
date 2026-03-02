@@ -17,6 +17,7 @@ import com.example.fitlink.models.ChatMessage;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
@@ -25,17 +26,20 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private final List<ChatMessage> messages;
     private final String currentUserId;
-    private final String adminId;
+    private final String creatorId; // שונה מ-adminId ל-creatorId
+    private final Map<String, Boolean> managers; // הוספנו את רשימת המנהלים
     private final OnMessageLongClickListener longClickListener;
 
     public interface OnMessageLongClickListener {
         void onMessageLongClick(ChatMessage message);
     }
 
-    public ChatAdapter(List<ChatMessage> messages, String currentUserId, String adminId, OnMessageLongClickListener longClickListener) {
+    // הקונסטרקטור המעודכן שמקבל גם את המנהלים
+    public ChatAdapter(List<ChatMessage> messages, String currentUserId, String creatorId, Map<String, Boolean> managers, OnMessageLongClickListener longClickListener) {
         this.messages = messages;
         this.currentUserId = currentUserId;
-        this.adminId = adminId;
+        this.creatorId = creatorId;
+        this.managers = managers;
         this.longClickListener = longClickListener;
     }
 
@@ -81,14 +85,21 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             receivedHolder.tvMessage.setText(message.getText());
             receivedHolder.tvTime.setText(timeText);
 
-            // הדגשת האדמין (מנהל הקבוצה)
-            if (message.getSenderId().equals(adminId)) {
-                receivedHolder.tvName.setText(message.getSenderName() + " (Admin)");
-                receivedHolder.tvName.setTextColor(Color.parseColor("#D32F2F")); // אדום עדין למנהל
+            // --- לוגיקת ההדגשה לפי תפקיד (Creator או Manager) ---
+            if (creatorId != null && message.getSenderId().equals(creatorId)) {
+                // יוצר הקבוצה
+                receivedHolder.tvName.setText(message.getSenderName() + " (Creator)");
+                receivedHolder.tvName.setTextColor(Color.parseColor("#D32F2F")); // כתום בולט
+                receivedHolder.tvName.setTypeface(null, Typeface.BOLD);
+            } else if (managers != null && managers.containsKey(message.getSenderId())) {
+                // מנהל משנה
+                receivedHolder.tvName.setText(message.getSenderName() + " (Manager)");
+                receivedHolder.tvName.setTextColor(Color.parseColor("#FF9800")); // ירוק בולט
                 receivedHolder.tvName.setTypeface(null, Typeface.BOLD);
             } else {
+                // חבר רגיל
                 receivedHolder.tvName.setText(message.getSenderName());
-                receivedHolder.tvName.setTextColor(Color.parseColor("#424242")); // צבע אפור רגיל
+                receivedHolder.tvName.setTextColor(Color.parseColor("#424242")); // אפור רגיל
                 receivedHolder.tvName.setTypeface(null, Typeface.NORMAL);
             }
 
