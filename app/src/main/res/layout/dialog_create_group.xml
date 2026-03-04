@@ -106,28 +106,51 @@
             android:id="@+id/chipGroupAddGroupLevel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
+            android:layout_marginBottom="16dp"
+            app:chipSpacingHorizontal="12dp"
+            app:chipSpacingVertical="8dp"
             app:selectionRequired="true"
             app:singleSelection="true">
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/chipEventBeginner"
                 style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checked="true"
-                android:text="Beginner" />
+                android:fontFamily="@font/poppins_medium"
+                android:text="Beginner"
+                android:textColor="@color/chip_text_state_list"
+                app:chipBackgroundColor="@color/chip_background_state_list"
+                app:chipCornerRadius="12dp"
+                app:chipStrokeColor="@color/fitlinkPrimary"
+                app:chipStrokeWidth="1dp" />
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/chipEventIntermediate"
                 style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Intermediate" />
+                android:fontFamily="@font/poppins_medium"
+                android:text="Intermediate"
+                android:textColor="@color/chip_text_state_list"
+                app:chipBackgroundColor="@color/chip_background_state_list"
+                app:chipCornerRadius="12dp"
+                app:chipStrokeColor="@color/fitlinkPrimary"
+                app:chipStrokeWidth="1dp" />
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/chipEventAdvanced"
                 style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Advanced" />
+                android:fontFamily="@font/poppins_medium"
+                android:text="Advanced"
+                android:textColor="@color/chip_text_state_list"
+                app:chipBackgroundColor="@color/chip_background_state_list"
+                app:chipCornerRadius="12dp"
+                app:chipStrokeColor="@color/fitlinkPrimary"
+                app:chipStrokeWidth="1dp" />
         </com.google.android.material.chip.ChipGroup>
 
         <LinearLayout

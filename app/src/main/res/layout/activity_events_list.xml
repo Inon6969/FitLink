@@ -2,11 +2,11 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main_groups_layout"
+    android:id="@+id/main_events_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/fitlinkBackground"
-    tools:context=".screens.GroupsListActivity">
+    tools:context=".screens.EventsListActivity">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
@@ -14,13 +14,13 @@
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
         <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar_groups"
+            android:id="@+id/toolbar_events"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="@color/fitlinkPrimary"
             app:navigationIcon="?attr/homeAsUpIndicator"
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-            app:title="Join or Create Group"
+            app:title="Join or Create Event"
             app:titleTextColor="@color/fitlinkBackground" />
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -42,28 +42,28 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
                 android:fontFamily="@font/poppins_bold"
-                android:text="Explore Groups"
+                android:text="Explore Events"
                 android:textColor="@color/fitlinkPrimary"
                 android:textSize="32sp" />
 
             <TextView
-                android:id="@+id/tv_group_count"
+                android:id="@+id/tv_event_count"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
                 android:fontFamily="@font/poppins_regular"
-                android:text="Showing 0 groups"
+                android:text="Showing 0 events"
                 android:textColor="@color/fitlinkTextSecondary"
                 android:textSize="16sp" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_GroupsList_create_group"
+                android:id="@+id/btn_EventsList_create_event"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
                 android:backgroundTint="@color/fitlinkPrimary"
                 android:fontFamily="@font/poppins_bold"
-                android:text="Create Group"
+                android:text="Create Event"
                 android:textColor="@color/fitlinkBackground"
                 android:textSize="18sp"
                 app:cornerRadius="24dp"
@@ -90,12 +90,12 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="12dp"
                         android:fontFamily="@font/poppins_medium"
-                        android:text="Search Groups"
+                        android:text="Search Events"
                         android:textColor="@color/fitlinkPrimary"
                         android:textSize="20sp" />
 
                     <Spinner
-                        android:id="@+id/spinner_groups_search_type"
+                        android:id="@+id/spinner_events_search_type"
                         android:layout_width="match_parent"
                         android:layout_height="55dp"
                         android:layout_marginBottom="12dp" />
@@ -117,7 +117,7 @@
                             app:startIconDrawable="@android:drawable/ic_menu_search">
 
                             <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/edit_GroupsList_search"
+                                android:id="@+id/edit_EventsList_search"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:fontFamily="@font/poppins_regular"
@@ -125,10 +125,97 @@
                         </com.google.android.material.textfield.TextInputLayout>
 
                         <Spinner
-                            android:id="@+id/spinner_search_options"
+                            android:id="@+id/spinner_events_search_options"
                             android:layout_width="match_parent"
                             android:layout_height="55dp"
                             android:visibility="gone" />
+
+                        <LinearLayout
+                            android:id="@+id/layout_range_picker"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:visibility="gone">
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btn_range_start"
+                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="0dp"
+                                android:layout_height="55dp"
+                                android:layout_marginEnd="4dp"
+                                android:layout_weight="1"
+                                android:fontFamily="@font/poppins_medium"
+                                android:text="Start"
+                                android:textAllCaps="false"
+                                android:textColor="@color/fitlinkPrimary"
+                                app:cornerRadius="12dp"
+                                app:strokeColor="@color/fitlinkPrimary" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btn_range_end"
+                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="0dp"
+                                android:layout_height="55dp"
+                                android:layout_marginStart="4dp"
+                                android:layout_weight="1"
+                                android:fontFamily="@font/poppins_medium"
+                                android:text="End"
+                                android:textAllCaps="false"
+                                android:textColor="@color/fitlinkPrimary"
+                                app:cornerRadius="12dp"
+                                app:strokeColor="@color/fitlinkPrimary" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/layout_duration_picker"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:baselineAligned="false"
+                            android:orientation="horizontal"
+                            android:visibility="gone">
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="4dp"
+                                android:layout_weight="1"
+                                android:hint="Min Mins"
+                                app:boxBackgroundMode="outline"
+                                app:boxCornerRadiusBottomEnd="16dp"
+                                app:boxCornerRadiusBottomStart="16dp"
+                                app:boxCornerRadiusTopEnd="16dp"
+                                app:boxCornerRadiusTopStart="16dp">
+
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/et_duration_min"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:fontFamily="@font/poppins_regular"
+                                    android:inputType="number"
+                                    android:textSize="16sp" />
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="4dp"
+                                android:layout_weight="1"
+                                android:hint="Max Mins"
+                                app:boxBackgroundMode="outline"
+                                app:boxCornerRadiusBottomEnd="16dp"
+                                app:boxCornerRadiusBottomStart="16dp"
+                                app:boxCornerRadiusTopEnd="16dp"
+                                app:boxCornerRadiusTopStart="16dp">
+
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/et_duration_max"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:fontFamily="@font/poppins_regular"
+                                    android:inputType="number"
+                                    android:textSize="16sp" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                        </LinearLayout>
                     </FrameLayout>
 
                 </LinearLayout>
@@ -146,14 +233,13 @@
                     android:padding="5dp">
 
                     <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/rv_groups_list"
+                        android:id="@+id/rv_events_list"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:clipToPadding="false"
-                        tools:listitem="@layout/item_group" />
+                        android:clipToPadding="false" />
 
                     <LinearLayout
-                        android:id="@+id/groups_empty_state"
+                        android:id="@+id/events_empty_state"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center"
@@ -172,7 +258,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/poppins_medium"
-                            android:text="No Groups Found"
+                            android:text="No Events Found"
                             android:textColor="@color/fitlinkTextSecondary"
                             android:textSize="18sp" />
 
@@ -186,7 +272,7 @@
                     </LinearLayout>
 
                     <ProgressBar
-                        android:id="@+id/groups_progress_bar"
+                        android:id="@+id/events_progress_bar"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"

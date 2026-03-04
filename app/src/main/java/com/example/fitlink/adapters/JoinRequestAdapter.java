@@ -46,6 +46,13 @@ public class JoinRequestAdapter extends RecyclerView.Adapter<JoinRequestAdapter.
         holder.tvName.setText(user.getFullName());
         holder.tvEmail.setText(user.getEmail());
 
+        // הוספת הצגת מספר הטלפון
+        if (user.getPhone() != null && !user.getPhone().isEmpty()) {
+            holder.tvPhone.setText(user.getPhone());
+        } else {
+            holder.tvPhone.setText("No phone");
+        }
+
         String base64Image = user.getProfileImage();
         if (base64Image != null && !base64Image.isEmpty()) {
             Bitmap bmp = ImageUtil.convertFrom64base(base64Image);
@@ -71,7 +78,7 @@ public class JoinRequestAdapter extends RecyclerView.Adapter<JoinRequestAdapter.
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        final TextView tvName, tvEmail;
+        final TextView tvName, tvEmail, tvPhone; // הוספנו את tvPhone
         final ImageView imgProfile;
         final MaterialButton btnApprove, btnDecline;
 
@@ -79,6 +86,7 @@ public class JoinRequestAdapter extends RecyclerView.Adapter<JoinRequestAdapter.
             super(itemView);
             tvName = itemView.findViewById(R.id.tv_request_name);
             tvEmail = itemView.findViewById(R.id.tv_request_email);
+            tvPhone = itemView.findViewById(R.id.tv_request_phone); // קישור לשדה הטלפון ב-XML
             imgProfile = itemView.findViewById(R.id.img_request_profile);
             btnApprove = itemView.findViewById(R.id.btn_request_approve);
             btnDecline = itemView.findViewById(R.id.btn_request_decline);

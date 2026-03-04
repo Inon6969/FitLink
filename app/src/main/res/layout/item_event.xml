@@ -16,109 +16,169 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         android:padding="16dp">
 
-        <com.google.android.material.imageview.ShapeableImageView
-            android:id="@+id/img_item_event_icon"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:background="#126200EE"
-            android:padding="14dp"
-            android:scaleType="centerInside"
-            android:src="@drawable/ic_calendar"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.SmallComponent"
-            app:strokeColor="@color/fitlinkPrimary"
-            app:strokeWidth="2dp" />
-
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="8dp"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/tv_item_event_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="4dp"
-                android:fontFamily="@font/poppins_medium"
-                android:textColor="@color/fitlinkPrimary"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                tools:text="Morning 5K Run" />
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="2dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/tv_item_event_datetime"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="@font/poppins_regular"
-                    android:textColor="@color/fitlinkTextSecondary"
-                    android:textSize="14sp"
-                    tools:text="12/10/2026 - 08:00" />
-            </LinearLayout>
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/img_item_event_icon"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:background="#126200EE"
+                android:padding="14dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_calendar"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.SmallComponent"
+                app:strokeColor="@color/fitlinkPrimary"
+                app:strokeWidth="2dp" />
 
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="2dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
 
                 <TextView
-                    android:id="@+id/tv_item_event_location"
+                    android:id="@+id/tv_item_event_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:fontFamily="@font/poppins_regular"
-                    android:textColor="@color/fitlinkTextSecondary"
-                    android:textSize="14sp"
-                    tools:text="Park HaYarkon" />
-            </LinearLayout>
+                    android:layout_marginBottom="8dp"
+                    android:fontFamily="@font/poppins_bold"
+                    android:textColor="@color/fitlinkPrimary"
+                    android:textSize="18sp"
+                    tools:text="Morning 5K Run" />
 
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/tv_item_event_details"
+                <LinearLayout
+                    android:id="@+id/layout_item_event_sport"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:fontFamily="@font/poppins_regular"
-                    android:textColor="@color/fitlinkTextSecondary"
-                    android:textSize="12sp"
-                    tools:text="45 mins • 5/10 Participants" />
+                    android:layout_marginBottom="4dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+
+                    <ImageView
+                        android:id="@+id/img_item_event_sport"
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:layout_marginEnd="6dp"
+                        android:src="@drawable/ic_sport"
+                        app:tint="@color/fitlinkTextSecondary" />
+
+                    <TextView
+                        android:id="@+id/tv_item_event_sport"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/poppins_regular"
+                        android:textColor="@color/fitlinkTextSecondary"
+                        android:textSize="13sp"
+                        tools:text="Running" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="4dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:layout_marginEnd="6dp"
+                        android:src="@android:drawable/ic_menu_today"
+                        app:tint="@color/fitlinkTextSecondary" />
+
+                    <TextView
+                        android:id="@+id/tv_item_event_datetime"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/poppins_regular"
+                        android:textColor="@color/fitlinkTextSecondary"
+                        android:textSize="13sp"
+                        tools:text="12/10/2026 - 08:00" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="4dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:layout_marginEnd="6dp"
+                        android:src="@drawable/ic_location"
+                        app:tint="@color/fitlinkTextSecondary" />
+
+                    <TextView
+                        android:id="@+id/tv_item_event_location"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/poppins_regular"
+                        android:textColor="@color/fitlinkTextSecondary"
+                        android:textSize="13sp"
+                        tools:text="Park HaYarkon" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="4dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:layout_marginEnd="6dp"
+                        android:src="@android:drawable/ic_menu_recent_history"
+                        app:tint="@color/fitlinkTextSecondary" />
+
+                    <TextView
+                        android:id="@+id/tv_item_event_duration"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/poppins_regular"
+                        android:textColor="@color/fitlinkTextSecondary"
+                        android:textSize="13sp"
+                        tools:text="45 mins" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:layout_marginEnd="6dp"
+                        android:src="@drawable/ic_user"
+                        app:tint="@color/fitlinkTextSecondary" />
+
+                    <TextView
+                        android:id="@+id/tv_item_event_participants"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/poppins_regular"
+                        android:textColor="@color/fitlinkTextSecondary"
+                        android:textSize="13sp"
+                        tools:text="5/10 Participants" />
+                </LinearLayout>
+
             </LinearLayout>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chip_event_status"
-                android:layout_width="wrap_content"
-                android:layout_height="32dp"
-                android:fontFamily="@font/poppins_medium"
-                android:text="JOINED"
-                android:textColor="@color/fitlinkBackground"
-                android:textSize="10sp"
-                android:visibility="invisible"
-                app:chipBackgroundColor="@color/fitlinkPrimary"
-                app:chipStrokeWidth="0dp" />
 
             <Button
                 android:id="@+id/btn_item_event_action"
@@ -133,6 +193,26 @@
                 android:textSize="14sp" />
         </LinearLayout>
 
-    </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_event_status"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_marginEnd="8dp"
+                android:fontFamily="@font/poppins_medium"
+                android:text="JOINED"
+                android:textColor="@color/fitlinkBackground"
+                android:textSize="11sp"
+                android:visibility="invisible"
+                app:chipBackgroundColor="@color/fitlinkPrimary"
+                app:chipStrokeWidth="0dp" />
+
+        </LinearLayout>
+    </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

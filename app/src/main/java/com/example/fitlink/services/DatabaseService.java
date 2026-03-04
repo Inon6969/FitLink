@@ -570,6 +570,30 @@ public class DatabaseService {
                 });
     }
     /**
+     * Retrieves all independent events (events not linked to any group).
+     */
+    public void getAllIndependentEvents(@NotNull final DatabaseCallback<List<com.example.fitlink.models.Event>> callback) {
+        databaseReference.child(EVENTS_PATH).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                List<com.example.fitlink.models.Event> events = new ArrayList<>();
+                for (DataSnapshot eventSnapshot : snapshot.getChildren()) {
+                    com.example.fitlink.models.Event event = eventSnapshot.getValue(com.example.fitlink.models.Event.class);
+                    // מוסיף לרשימה רק אם האירוע עצמאי
+                    if (event != null && event.isIndependent()) {
+                        events.add(event);
+                    }
+                }
+                callback.onCompleted(events);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                callback.onFailed(error.toException());
+            }
+        });
+    }
+    /**
      * Deletes a group entirely from the database and removes its reference from all members.
      */
     public void deleteGroup(@NotNull final String groupId, @Nullable final DatabaseCallback<Void> callback) {

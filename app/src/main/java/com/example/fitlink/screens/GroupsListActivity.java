@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -30,7 +29,7 @@ import com.example.fitlink.adapters.GroupAdapter;
 import com.example.fitlink.models.DifficultyLevel;
 import com.example.fitlink.models.Group;
 import com.example.fitlink.models.SportType;
-import com.example.fitlink.screens.dialogs.AddGroupDialog;
+import com.example.fitlink.screens.dialogs.CreateGroupDialog;
 import com.example.fitlink.screens.dialogs.GroupDescriptionDialog;
 import com.example.fitlink.screens.dialogs.LeaveGroupDialog;
 import com.example.fitlink.services.DatabaseService;
@@ -58,7 +57,7 @@ public class GroupsListActivity extends BaseActivity {
     private MaterialButton btnCreateGroup;
 
     private List<Group> allGroups = new ArrayList<>();
-    private AddGroupDialog currentAddGroupDialog;
+    private CreateGroupDialog currentCreateGroupDialog;
 
     private final ActivityResultLauncher<Intent> mapPickerLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -67,8 +66,8 @@ public class GroupsListActivity extends BaseActivity {
                     String address = result.getData().getStringExtra("address");
                     double lat = result.getData().getDoubleExtra("lat", 0);
                     double lng = result.getData().getDoubleExtra("lng", 0);
-                    if (currentAddGroupDialog != null && currentAddGroupDialog.isShowing()) {
-                        currentAddGroupDialog.updateLocationDetails(address, lat, lng);
+                    if (currentCreateGroupDialog != null && currentCreateGroupDialog.isShowing()) {
+                        currentCreateGroupDialog.updateLocationDetails(address, lat, lng);
                     }
                 }
             }
@@ -224,12 +223,12 @@ public class GroupsListActivity extends BaseActivity {
 
     private void setupCreateGroupButton() {
         btnCreateGroup.setOnClickListener(v -> {
-            currentAddGroupDialog = new AddGroupDialog(this);
-            currentAddGroupDialog.setOnDismissListener(d -> {
+            currentCreateGroupDialog = new CreateGroupDialog(this);
+            currentCreateGroupDialog.setOnDismissListener(d -> {
                 loadGroups();
-                currentAddGroupDialog = null;
+                currentCreateGroupDialog = null;
             });
-            currentAddGroupDialog.show();
+            currentCreateGroupDialog.show();
         });
     }
 

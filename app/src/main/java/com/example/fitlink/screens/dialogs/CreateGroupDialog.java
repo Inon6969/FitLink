@@ -26,7 +26,7 @@ import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.Objects;
 
-public class AddGroupDialog extends Dialog {
+public class CreateGroupDialog extends Dialog {
 
     private final Context context;
     private final DatabaseService databaseService;
@@ -43,7 +43,7 @@ public class AddGroupDialog extends Dialog {
     private double selectedLat = 0;
     private double selectedLng = 0;
 
-    public AddGroupDialog(@NonNull Context context) {
+    public CreateGroupDialog(@NonNull Context context) {
         super(context);
         this.context = context;
         this.databaseService = DatabaseService.getInstance();
@@ -52,7 +52,7 @@ public class AddGroupDialog extends Dialog {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.dialog_add_group);
+        setContentView(R.layout.dialog_create_group);
 
         // Initialize components
         inputName = findViewById(R.id.inputAddGroupName);

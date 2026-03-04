@@ -105,7 +105,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:fontFamily="@font/poppins_regular"
-                            android:text="View all trainers &amp; clients"
+                            android:text="View all users &amp; admins"
                             android:textColor="@color/fitlinkTextSecondary"
                             android:textSize="12sp" />
 

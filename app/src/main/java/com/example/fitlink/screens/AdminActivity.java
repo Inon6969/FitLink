@@ -14,7 +14,7 @@ import com.example.fitlink.R;
 
 public class AdminActivity extends BaseActivity {
 
-    LinearLayout cardUsers, cardFoods, cardCarts;
+    LinearLayout cardUsers;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,8 +35,6 @@ public class AdminActivity extends BaseActivity {
         });
 
         cardUsers = findViewById(R.id.card_users);
-        cardFoods = findViewById(R.id.card_foods);
-        cardCarts = findViewById(R.id.card_carts);
     }
 
     private void setupToolbar() {

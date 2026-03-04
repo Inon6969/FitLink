@@ -21,8 +21,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private static final String TAG = "MainActivity";
 
     private MaterialButton btnJoinorCreateGroup;
+    private MaterialButton btnJoinorCreateEvent;
     private MaterialButton btnMyGroups;
-    private MaterialButton btnMyActivities;
+    private MaterialButton btnMyCalendar;
     private MaterialButton btnAdminPanel;
     private MaterialButton btnToDetailsAboutUser;
     private MaterialButton btnToContact;
@@ -46,8 +47,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
         // Find views
         btnJoinorCreateGroup = findViewById(R.id.btn_join_or_create_group);
+        btnJoinorCreateEvent = findViewById(R.id.btn_join_or_create_event);
         btnMyGroups = findViewById(R.id.btn_my_groups);
-        btnMyActivities = findViewById(R.id.btn_my_activities);
+        btnMyCalendar = findViewById(R.id.btn_my_calendar);
         btnAdminPanel = findViewById(R.id.btn_admin_panel);
         btnToDetailsAboutUser = findViewById(R.id.btn_main_to_DetailsAboutUser);
         btnToContact = findViewById(R.id.btn_main_to_contact);
@@ -55,8 +57,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
         // Set click listeners
         btnJoinorCreateGroup.setOnClickListener(this);
+        btnJoinorCreateEvent.setOnClickListener(this);
         btnMyGroups.setOnClickListener(this);
-        btnMyActivities.setOnClickListener(this);
+        btnMyCalendar.setOnClickListener(this);
         btnAdminPanel.setOnClickListener(this);
         btnToDetailsAboutUser.setOnClickListener(this);
         btnToContact.setOnClickListener(this);
@@ -75,8 +78,13 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         int id = v.getId();
 
         if (id == btnJoinorCreateGroup.getId()) {
-            Log.d(TAG, "Join Group clicked");
+            Log.d(TAG, "Join or Create Group clicked");
             startActivity(new Intent(this, GroupsListActivity.class));
+            return;
+        }
+        if (id == btnJoinorCreateEvent.getId()) {
+            Log.d(TAG, "Join or Create Event clicked");
+            startActivity(new Intent(this, EventsListActivity.class));
             return;
         }
 
@@ -86,8 +94,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             return;
         }
 
-        if (id == btnMyActivities.getId()) {
-            Log.d(TAG, "My Activities clicked");
+        if (id == btnMyCalendar.getId()) {
+            Log.d(TAG, "My Calendar clicked");
             // startActivity(new Intent(this, MyActivitiesActivity.class)); // במידה ויש לך מסך כזה
             return;
         }

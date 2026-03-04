@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -14,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.fitlink.R;
 import com.example.fitlink.models.Event;
+import com.example.fitlink.models.SportType;
 import com.google.android.material.chip.Chip;
 
 import java.text.SimpleDateFormat;
@@ -55,6 +57,20 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
 
         holder.tvTitle.setText(event.getTitle());
 
+        // --- סוג הספורט (מוצג רק באירוע עצמאי) ---
+        if (event.isIndependent()) {
+            holder.layoutSport.setVisibility(View.VISIBLE);
+            if (event.getSportType() != null) {
+                holder.tvSport.setText(event.getSportType().getDisplayName());
+                holder.imgSport.setImageResource(getSportIconResource(event.getSportType()));
+            } else {
+                holder.tvSport.setText("General");
+                holder.imgSport.setImageResource(R.drawable.ic_sport);
+            }
+        } else {
+            holder.layoutSport.setVisibility(View.GONE);
+        }
+
         // המרת הזמן ממילישניות לטקסט קריא
         if (event.getStartTimestamp() > 0) {
             String formattedDate = dateFormat.format(new Date(event.getStartTimestamp()));
@@ -70,11 +86,13 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
             holder.tvLocation.setText("No location");
         }
 
-        // --- התיקון כאן: שימוש ב-getFormattedDuration() במקום getDurationMinutes() ---
+        // משך זמן
+        holder.tvDuration.setText(event.getFormattedDuration());
+
+        // משתתפים
         int participants = event.getParticipantsCount();
         String limit = event.getMaxParticipants() > 0 ? String.valueOf(event.getMaxParticipants()) : "Unlimited";
-        String details = event.getFormattedDuration() + " • " + participants + "/" + limit + " Participants";
-        holder.tvDetails.setText(details);
+        holder.tvParticipants.setText(participants + "/" + limit + " Participants");
 
         // בדיקה האם המשתמש כבר משתתף באירוע
         boolean isJoined = event.getParticipants() != null && event.getParticipants().containsKey(currentUserId);
@@ -106,6 +124,14 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         });
     }
 
+    // פונקציית עזר להחזרת האייקון המתאים
+    private int getSportIconResource(SportType type) {
+        if (type == SportType.RUNNING) return R.drawable.ic_running;
+        else if (type == SportType.SWIMMING) return R.drawable.ic_swimming;
+        else if (type == SportType.CYCLING) return R.drawable.ic_cycling;
+        return R.drawable.ic_sport;
+    }
+
     @Override
     public int getItemCount() {
         return eventList.size();
@@ -119,8 +145,9 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
 
     // מחלקת ViewHolder לחיבור רכיבי ה-UI
     public static class EventViewHolder extends RecyclerView.ViewHolder {
-        final TextView tvTitle, tvDateTime, tvLocation, tvDetails;
-        final ImageView imgIcon;
+        final TextView tvTitle, tvDateTime, tvLocation, tvDuration, tvParticipants, tvSport;
+        final ImageView imgIcon, imgSport;
+        final LinearLayout layoutSport;
         final Chip chipStatus;
         final Button btnAction;
 
@@ -129,7 +156,14 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
             tvTitle = itemView.findViewById(R.id.tv_item_event_title);
             tvDateTime = itemView.findViewById(R.id.tv_item_event_datetime);
             tvLocation = itemView.findViewById(R.id.tv_item_event_location);
-            tvDetails = itemView.findViewById(R.id.tv_item_event_details);
+            tvDuration = itemView.findViewById(R.id.tv_item_event_duration);
+            tvParticipants = itemView.findViewById(R.id.tv_item_event_participants);
+
+            // השדות החדשים שהוספנו:
+            layoutSport = itemView.findViewById(R.id.layout_item_event_sport);
+            tvSport = itemView.findViewById(R.id.tv_item_event_sport);
+            imgSport = itemView.findViewById(R.id.img_item_event_sport);
+
             imgIcon = itemView.findViewById(R.id.img_item_event_icon);
             chipStatus = itemView.findViewById(R.id.chip_event_status);
             btnAction = itemView.findViewById(R.id.btn_item_event_action);

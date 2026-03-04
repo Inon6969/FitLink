@@ -112,7 +112,7 @@
                 app:cardElevation="6dp">
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_my_activities"
+                    android:id="@+id/btn_my_calendar"
                     android:layout_width="match_parent"
                     android:layout_height="80dp"
                     android:backgroundTint="@color/fitlinkPrimary"
@@ -172,7 +172,7 @@
                 app:cardElevation="6dp">
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_join_or_create_Event"
+                    android:id="@+id/btn_join_or_create_event"
                     android:layout_width="match_parent"
                     android:layout_height="80dp"
                     android:backgroundTint="@color/fitlinkPrimary"
