@@ -96,7 +96,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
         if (id == btnMyCalendar.getId()) {
             Log.d(TAG, "My Calendar clicked");
-            // startActivity(new Intent(this, MyActivitiesActivity.class)); // במידה ויש לך מסך כזה
+            startActivity(new Intent(this, MyCalendarActivity.class));
             return;
         }
 

@@ -73,10 +73,28 @@
             android:fontFamily="@font/poppins_bold"
             android:paddingVertical="12dp"
             android:text="Close"
+            android:textAllCaps="false"
             android:textColor="@color/fitlinkBackground"
             android:textSize="16sp"
             app:backgroundTint="@color/fitlinkPrimary"
             app:cornerRadius="24dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_dialog_edit_event"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:fontFamily="@font/poppins_bold"
+            android:paddingVertical="12dp"
+            android:text="Edit Event"
+            android:textAllCaps="false"
+            android:textColor="@color/fitlinkPrimary"
+            android:visibility="gone"
+            app:cornerRadius="24dp"
+            app:strokeColor="@color/fitlinkPrimary"
+            app:strokeWidth="1.5dp"
+            tools:visibility="visible" />
 
     </LinearLayout>
 

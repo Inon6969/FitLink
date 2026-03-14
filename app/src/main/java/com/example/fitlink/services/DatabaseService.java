@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.example.fitlink.models.ChatMessage;
+import com.example.fitlink.models.Comment;
 import com.example.fitlink.models.Group;
 import com.example.fitlink.models.User;
 import com.example.fitlink.models.Event;
@@ -546,6 +547,12 @@ public class DatabaseService {
         writeData(EVENTS_PATH + "/" + eventId, event, callback);
     }
     /**
+     * Retrieves a specific event by its ID.
+     */
+    public void getEvent(@NotNull final String eventId, @NotNull final DatabaseCallback<Event> callback) {
+        getData(EVENTS_PATH + "/" + eventId, Event.class, callback);
+    }
+    /**
      * Retrieves all events associated with a specific group ID.
      */
     public void getEventsByGroupId(@NotNull final String groupId, @NotNull final DatabaseCallback<List<com.example.fitlink.models.Event>> callback) {
@@ -568,6 +575,29 @@ public class DatabaseService {
                         callback.onFailed(error.toException());
                     }
                 });
+    }
+    /**
+     * Retrieves all events (both group and independent) from the database.
+     */
+    public void getAllEvents(@NotNull final DatabaseCallback<List<com.example.fitlink.models.Event>> callback) {
+        databaseReference.child(EVENTS_PATH).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                List<com.example.fitlink.models.Event> events = new ArrayList<>();
+                for (DataSnapshot eventSnapshot : snapshot.getChildren()) {
+                    com.example.fitlink.models.Event event = eventSnapshot.getValue(com.example.fitlink.models.Event.class);
+                    if (event != null) {
+                        events.add(event);
+                    }
+                }
+                callback.onCompleted(events);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                callback.onFailed(error.toException());
+            }
+        });
     }
     /**
      * Retrieves all independent events (events not linked to any group).
@@ -735,6 +765,56 @@ public class DatabaseService {
                     }
                 });
     }
+
+    // הוספת תגובה חדשה לאירוע
+    public void addEventComment(Comment comment, DatabaseCallback<Void> callback) {
+        String commentId = databaseReference.child("event_comments").child(comment.getEventId()).push().getKey();
+        if (commentId != null) {
+            comment.setId(commentId);
+            databaseReference.child("event_comments").child(comment.getEventId()).child(commentId).setValue(comment)
+                    .addOnCompleteListener(task -> {
+                        if (callback != null) {
+                            if (task.isSuccessful()) {
+                                callback.onCompleted(null);
+                            } else {
+                                callback.onFailed(task.getException());
+                            }
+                        }
+                    });
+        } else {
+            if (callback != null) {
+                callback.onFailed(new Exception("Failed to generate comment ID"));
+            }
+        }
+    }
+
+    // שליפת כל התגובות של אירוע מסוים
+    public void getEventComments(String eventId, DatabaseCallback<List<Comment>> callback) {
+        databaseReference.child("event_comments").child(eventId)
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        List<Comment> comments = new ArrayList<>();
+                        for (DataSnapshot data : snapshot.getChildren()) {
+                            Comment comment = data.getValue(Comment.class);
+                            if (comment != null) {
+                                comments.add(comment);
+                            }
+                        }
+                        if (callback != null) {
+                            callback.onCompleted(comments);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        if (callback != null) {
+                            callback.onFailed(error.toException());
+                        }
+                    }
+                });
+    }
+
     /// callback interface for database operations
     ///
     /// @param <T> the type of the object to return

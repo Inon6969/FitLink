@@ -35,7 +35,7 @@ public class GroupChatActivity extends BaseActivity {
     private ChatAdapter adapter;
     private List<ChatMessage> messageList;
     private String currentUserId;
-    private String currentUserName = "Unknown"; // ישלוף ממסד הנתונים
+    private String currentUserName = "Unknown";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,13 +43,34 @@ public class GroupChatActivity extends BaseActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_group_chat);
 
-        currentGroup = (Group) getIntent().getSerializableExtra("GROUP_EXTRA");
-        if (currentGroup == null) {
-            Toast.makeText(this, "Group not found", Toast.LENGTH_SHORT).show();
+        String groupId = getIntent().getStringExtra("GROUP_ID");
+        if (groupId == null || groupId.isEmpty()) {
+            Toast.makeText(this, "Group ID missing", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
+        DatabaseService.getInstance().getGroup(groupId, new DatabaseService.DatabaseCallback<Group>() {
+            @Override
+            public void onCompleted(Group group) {
+                if (group == null) {
+                    Toast.makeText(GroupChatActivity.this, "Group not found", Toast.LENGTH_SHORT).show();
+                    finish();
+                    return;
+                }
+                currentGroup = group;
+                continueInitialization();
+            }
+
+            @Override
+            public void onFailed(Exception e) {
+                Toast.makeText(GroupChatActivity.this, "Failed to load group details", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+        });
+    }
+
+    private void continueInitialization() {
         currentUserId = SharedPreferencesUtil.getUserId(this);
         messageList = new ArrayList<>();
 
@@ -59,8 +80,8 @@ public class GroupChatActivity extends BaseActivity {
 
     private void initViews() {
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_group_chat), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            Insets systemAndImeBars = insets.getInsets(WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.ime());
+            v.setPadding(systemAndImeBars.left, systemAndImeBars.top, systemAndImeBars.right, systemAndImeBars.bottom);
             return insets;
         });
 
@@ -77,15 +98,13 @@ public class GroupChatActivity extends BaseActivity {
         btnSend = findViewById(R.id.fab_send_message);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        layoutManager.setStackFromEnd(true); // גורם להודעות להתחיל מלמטה
+        layoutManager.setStackFromEnd(true);
         rvChat.setLayoutManager(layoutManager);
 
-        // בדיקה האם המשתמש הנוכחי הוא יוצר הקבוצה או מנהל
         boolean isCreator = currentGroup.getCreatorId() != null && currentGroup.getCreatorId().equals(currentUserId);
         boolean isManager = currentGroup.getManagers() != null && currentGroup.getManagers().containsKey(currentUserId);
 
         adapter = new ChatAdapter(messageList, currentUserId, currentGroup.getCreatorId(), currentGroup.getManagers(), message -> {
-            // לחיצה ארוכה - בדיקת הרשאות מחיקה ליוצר הקבוצה ולמנהלים
             if (isCreator || isManager) {
                 new AlertDialog.Builder(this)
                         .setTitle("Delete Message")
@@ -143,16 +162,11 @@ public class GroupChatActivity extends BaseActivity {
         if (TextUtils.isEmpty(text)) return;
 
         ChatMessage message = new ChatMessage(currentUserId, currentUserName, text, System.currentTimeMillis());
-
-        // מנקים את שורת הטקסט ישר
         etMessage.setText("");
 
         DatabaseService.getInstance().sendGroupMessage(currentGroup.getId(), message, new DatabaseService.DatabaseCallback<Void>() {
             @Override
-            public void onCompleted(Void object) {
-                // נשלח בהצלחה, המאזין כבר יעדכן את הרשימה
-            }
-
+            public void onCompleted(Void object) { }
             @Override
             public void onFailed(Exception e) {
                 Toast.makeText(GroupChatActivity.this, "Failed to send", Toast.LENGTH_SHORT).show();

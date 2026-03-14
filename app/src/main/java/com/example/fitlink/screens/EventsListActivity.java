@@ -1,6 +1,5 @@
 package com.example.fitlink.screens;
 
-import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
@@ -115,7 +114,6 @@ public class EventsListActivity extends BaseActivity {
         btnRangeStart = findViewById(R.id.btn_range_start);
         btnRangeEnd = findViewById(R.id.btn_range_end);
 
-        // הוספת החיבורים לפריסת ה-Duration
         layoutDurationPicker = findViewById(R.id.layout_duration_picker);
         etDurationMin = findViewById(R.id.et_duration_min);
         etDurationMax = findViewById(R.id.et_duration_max);
@@ -141,20 +139,10 @@ public class EventsListActivity extends BaseActivity {
         eventAdapter = new EventAdapter(new ArrayList<>(), currentUserId, new EventAdapter.OnEventClickListener() {
             @Override
             public void onEventClick(Event event) {
-                new AlertDialog.Builder(EventsListActivity.this)
-                        .setTitle(event.getTitle())
-                        .setMessage(event.getDescription())
-                        .setPositiveButton("Close", null)
-                        .show();
-            }
-
-            @Override
-            public void onActionClick(Event event, boolean isCurrentlyJoined) {
-                if (isCurrentlyJoined) {
-                    handleLeaveEvent(event);
-                } else {
-                    handleJoinEvent(event);
-                }
+                Intent intent = new Intent(EventsListActivity.this, EventDetailsActivity.class);
+                // התיקון הקריטי: שולחים רק את ה-ID!
+                intent.putExtra("EVENT_ID", event.getId());
+                startActivity(intent);
             }
         });
         rvEvents.setAdapter(eventAdapter);
@@ -179,7 +167,6 @@ public class EventsListActivity extends BaseActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String selectedType = searchOptions[position];
 
-                // איפוס פילטרים של טווח במעבר בין סוגים
                 filterStartDate = null; filterEndDate = null;
                 filterStartTimeMins = null; filterEndTimeMins = null;
                 btnRangeStart.setText("Start " + selectedType);
@@ -201,7 +188,7 @@ public class EventsListActivity extends BaseActivity {
                     layoutSearchText.setVisibility(View.GONE);
                     layoutRangePicker.setVisibility(View.GONE);
                     spinnerSearchOptions.setVisibility(View.GONE);
-                    layoutDurationPicker.setVisibility(View.VISIBLE); // מציג את שדות ההקלדה החדשים
+                    layoutDurationPicker.setVisibility(View.VISIBLE);
                 } else if (selectedType.equals("Date") || selectedType.equals("Time")) {
                     layoutSearchText.setVisibility(View.GONE);
                     spinnerSearchOptions.setVisibility(View.GONE);
@@ -236,12 +223,10 @@ public class EventsListActivity extends BaseActivity {
             public void afterTextChanged(Editable s) {}
         };
 
-        // האזנה להקלדה בכל שדות הטקסט
         etSearch.addTextChangedListener(textWatcher);
         etDurationMin.addTextChangedListener(textWatcher);
         etDurationMax.addTextChangedListener(textWatcher);
 
-        // חיבור לחיצות על כפתורי הטווח של התאריך/שעה
         btnRangeStart.setOnClickListener(v -> showPickerForStart(spinnerSearchType.getSelectedItem().toString()));
         btnRangeEnd.setOnClickListener(v -> showPickerForEnd(spinnerSearchType.getSelectedItem().toString()));
     }
@@ -308,11 +293,9 @@ public class EventsListActivity extends BaseActivity {
                     .filter(e -> e.getSportType() != null && e.getSportType().getDisplayName().equals(selectedSport))
                     .collect(Collectors.toList());
         } else if (searchType.equals("Duration")) {
-            // שאיבת הטקסטים שהמשתמש הקליד
             String minStr = etDurationMin.getText().toString().trim();
             String maxStr = etDurationMax.getText().toString().trim();
 
-            // אם ריק, מתייחס אליו כגבול קצה (0 למינימום, ואינסוף למקסימום)
             long minMins = minStr.isEmpty() ? 0 : Long.parseLong(minStr);
             long maxMins = maxStr.isEmpty() ? Long.MAX_VALUE : Long.parseLong(maxStr);
 
@@ -395,51 +378,5 @@ public class EventsListActivity extends BaseActivity {
         if (eventAdapter != null) eventAdapter.updateList(listToDisplay);
         tvEventCount.setText(MessageFormat.format("Showing {0} events", listToDisplay.size()));
         emptyState.setVisibility(listToDisplay.isEmpty() ? View.VISIBLE : View.GONE);
-    }
-
-    private void handleJoinEvent(Event event) {
-        if (event.getMaxParticipants() > 0 && event.getParticipantsCount() >= event.getMaxParticipants()) {
-            Toast.makeText(this, "Event is full", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        progressBar.setVisibility(View.VISIBLE);
-        databaseService.joinEvent(event.getId(), currentUserId, new DatabaseService.DatabaseCallback<Void>() {
-            @Override
-            public void onCompleted(Void object) {
-                progressBar.setVisibility(View.GONE);
-                Toast.makeText(EventsListActivity.this, "Joined successfully", Toast.LENGTH_SHORT).show();
-                loadIndependentEvents();
-            }
-
-            @Override
-            public void onFailed(Exception e) {
-                progressBar.setVisibility(View.GONE);
-                Toast.makeText(EventsListActivity.this, "Failed to join event", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private void handleLeaveEvent(Event event) {
-        if (event.getCreatorId() != null && event.getCreatorId().equals(currentUserId)) {
-            Toast.makeText(this, "You are the creator. Delete the event instead.", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        progressBar.setVisibility(View.VISIBLE);
-        databaseService.leaveEvent(event.getId(), currentUserId, new DatabaseService.DatabaseCallback<Void>() {
-            @Override
-            public void onCompleted(Void object) {
-                progressBar.setVisibility(View.GONE);
-                Toast.makeText(EventsListActivity.this, "Left event", Toast.LENGTH_SHORT).show();
-                loadIndependentEvents();
-            }
-
-            @Override
-            public void onFailed(Exception e) {
-                progressBar.setVisibility(View.GONE);
-                Toast.makeText(EventsListActivity.this, "Failed to leave", Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 }

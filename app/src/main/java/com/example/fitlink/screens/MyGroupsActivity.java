@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -41,8 +40,6 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class MyGroupsActivity extends BaseActivity {
-
-    private static final String TAG = "MyGroupsActivity";
 
     private GroupAdapter adapter;
     private TextView tvGroupCount;
@@ -161,8 +158,9 @@ public class MyGroupsActivity extends BaseActivity {
 
             @Override
             public void onGroupClick(Group group) {
+                // התיקון: במקום לשמור את כל הקבוצה, אנחנו שולחים רק את ה-ID שלה!
                 Intent intent = new Intent(MyGroupsActivity.this, GroupDashboardActivity.class);
-                intent.putExtra("GROUP_EXTRA", group);
+                intent.putExtra("GROUP_ID", group.getId());
                 startActivity(intent);
             }
         });

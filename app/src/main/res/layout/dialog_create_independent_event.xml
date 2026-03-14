@@ -66,8 +66,7 @@
             android:id="@+id/spinner_event_sport"
             android:layout_width="match_parent"
             android:layout_height="55dp"
-            android:layout_marginBottom="16dp"
-            android:background="@drawable/bg_chat_input" />
+            android:layout_marginBottom="16dp" />
 
         <TextView
             android:layout_width="match_parent"

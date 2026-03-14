@@ -11,153 +11,165 @@
     android:focusable="true"
     android:foreground="?attr/selectableItemBackground"
     app:cardCornerRadius="20dp"
-    app:cardElevation="6dp">
+    app:cardElevation="2dp"
+    app:strokeWidth="0dp">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
         android:padding="16dp">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_item_group_icon"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            app:cardCornerRadius="32dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@android:color/transparent"
+            app:strokeWidth="1dp"
+            app:strokeColor="#E0E0E0"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
 
-            <com.google.android.material.imageview.ShapeableImageView
+            <ImageView
                 android:id="@+id/img_item_group_icon"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:background="#126200EE"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
                 android:padding="12dp"
-                android:scaleType="centerInside"
-                android:src="@drawable/ic_running"
-                app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.SmallComponent"
-                app:strokeColor="@color/fitlinkPrimary"
-                app:strokeWidth="2dp" />
+                app:tint="@color/fitlinkPrimary"
+                tools:src="@drawable/ic_running" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            android:id="@+id/tv_item_group_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:gravity="left"
+            android:fontFamily="@font/poppins_bold"
+            android:textColor="@color/fitlinkPrimary"
+            android:textSize="18sp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/card_item_group_icon"
+            tools:text="Morning Runners" />
+
+        <TextView
+            android:id="@+id/tv_item_group_creator"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:alpha="0.8"
+            android:fontFamily="@font/poppins_regular"
+            android:textColor="@color/fitlinkTextSecondary"
+            android:textSize="12sp"
+            app:layout_constraintTop_toBottomOf="@id/tv_item_group_name"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/card_item_group_icon"
+            tools:text="By Inon" />
+
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/barrier_top"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:barrierDirection="bottom"
+            app:constraint_referenced_ids="card_item_group_icon,tv_item_group_creator" />
+
+        <LinearLayout
+            android:id="@+id/layout_group_details"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="vertical"
+            app:layout_constraintTop_toBottomOf="@id/barrier_top"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
 
             <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginEnd="8dp"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/tv_item_group_name"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="@font/poppins_bold"
-                    android:text="Morning Runners"
-                    android:textColor="@color/fitlinkPrimary"
-                    android:textSize="18sp"
-                    tools:text="Morning Runners" />
-
-                <TextView
-                    android:id="@+id/tv_item_group_creator"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:alpha="0.8"
-                    android:fontFamily="@font/poppins_regular"
-                    android:text="By Yinon"
-                    android:textColor="@color/fitlinkTextSecondary"
-                    android:textSize="12sp" />
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="4dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:id="@+id/img_item_group_sport_mini"
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:layout_marginEnd="6dp"
-                        android:src="@drawable/ic_sport"
-                        app:tint="@color/fitlinkTextSecondary" />
-
-                    <TextView
-                        android:id="@+id/tv_item_group_sport"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="@font/poppins_regular"
-                        android:text="Running"
-                        android:textColor="@color/fitlinkTextSecondary"
-                        android:textSize="13sp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="4dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:layout_marginEnd="6dp"
-                        android:src="@drawable/ic_location"
-                        app:tint="@color/fitlinkTextSecondary" />
-
-                    <TextView
-                        android:id="@+id/tv_item_group_location"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="@font/poppins_regular"
-                        android:text="Rishon LeZion"
-                        android:textColor="@color/fitlinkTextSecondary"
-                        android:textSize="13sp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:layout_marginEnd="6dp"
-                        android:src="@drawable/ic_user"
-                        app:tint="@color/fitlinkTextSecondary" />
-
-                    <TextView
-                        android:id="@+id/tv_item_group_members"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="@font/poppins_regular"
-                        android:text="12 Members"
-                        android:textColor="@color/fitlinkTextSecondary"
-                        android:textSize="13sp" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <Button
-                android:id="@+id/btn_item_group_join"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/poppins_bold"
-                android:minWidth="0dp"
-                android:paddingHorizontal="8dp"
-                android:text="JOIN"
-                android:textColor="@color/fitlinkPrimary"
-                android:textSize="14sp" />
+                android:layout_marginBottom="4dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/img_item_group_sport_mini"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:layout_marginEnd="6dp"
+                    android:src="@drawable/ic_sport"
+                    app:tint="@color/fitlinkTextSecondary" />
+
+                <TextView
+                    android:id="@+id/tv_item_group_sport"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/poppins_regular"
+                    android:textColor="@color/fitlinkTextSecondary"
+                    android:textSize="13sp"
+                    tools:text="Running" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:layout_marginEnd="6dp"
+                    android:src="@drawable/ic_location"
+                    app:tint="@color/fitlinkTextSecondary" />
+
+                <TextView
+                    android:id="@+id/tv_item_group_location"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/poppins_regular"
+                    android:textColor="@color/fitlinkTextSecondary"
+                    android:textSize="13sp"
+                    tools:text="Rishon LeZion" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:layout_marginEnd="6dp"
+                    android:src="@drawable/ic_user"
+                    app:tint="@color/fitlinkTextSecondary" />
+
+                <TextView
+                    android:id="@+id/tv_item_group_members"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/poppins_regular"
+                    android:textColor="@color/fitlinkTextSecondary"
+                    android:textSize="13sp"
+                    tools:text="12 Members" />
+            </LinearLayout>
         </LinearLayout>
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:id="@+id/layout_group_chips"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            app:layout_constraintTop_toBottomOf="@id/layout_group_details"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btn_item_group_join"
+            app:layout_constraintBottom_toBottomOf="parent">
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chip_group_level"
@@ -184,9 +196,21 @@
                 app:chipStrokeColor="@color/fitlinkPrimary"
                 app:chipStrokeWidth="1dp"
                 tools:visibility="visible" />
-
         </LinearLayout>
 
-    </LinearLayout>
+        <Button
+            android:id="@+id/btn_item_group_join"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/poppins_bold"
+            android:minWidth="0dp"
+            android:paddingHorizontal="8dp"
+            android:text="JOIN"
+            android:textColor="@color/fitlinkPrimary"
+            android:textSize="14sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>

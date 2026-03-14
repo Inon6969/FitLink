@@ -17,6 +17,8 @@ public class Group implements Serializable {
     private Location location;      // Meeting point or city
     private String creatorId;       // The UID of the user who created the group (formerly adminId)
 
+    private String groupImage;      // תמונת הקבוצה בפורמט Base64
+
     private Map<String, Boolean> members;
     private Map<String, Boolean> managers;
     private Map<String, Boolean> pendingRequests;
@@ -102,6 +104,14 @@ public class Group implements Serializable {
         this.creatorId = creatorId;
     }
 
+    public String getGroupImage() {
+        return groupImage;
+    }
+
+    public void setGroupImage(String groupImage) {
+        this.groupImage = groupImage;
+    }
+
     public Map<String, Boolean> getMembers() {
         return members;
     }
@@ -127,12 +137,11 @@ public class Group implements Serializable {
         this.managers = managers;
     }
 
-    public Map<String, Boolean> getPendingRequests()
-    {
+    public Map<String, Boolean> getPendingRequests() {
         return pendingRequests;
     }
-    public void setPendingRequests(Map<String, Boolean> pendingRequests)
-    {
+
+    public void setPendingRequests(Map<String, Boolean> pendingRequests) {
         this.pendingRequests = pendingRequests;
     }
 }

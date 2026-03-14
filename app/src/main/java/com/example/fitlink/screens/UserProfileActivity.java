@@ -1,6 +1,5 @@
 package com.example.fitlink.screens;
 
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -10,7 +9,6 @@ import android.text.method.HideReturnsTransformationMethod;
 import android.text.method.PasswordTransformationMethod;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,11 +31,14 @@ import java.util.Objects;
 public class UserProfileActivity extends BaseActivity {
     private static final int REQ_CAMERA = 100;
     private static final int REQ_GALLERY = 200;
+
     private TextView txtTitle, txtFirstName, txtLastName, txtEmail, txtPhone, txtPassword;
     private ImageView imgUserProfile, imgTogglePassword;
-    private User user;
+    private Button btnEditUser, btnChangePhoto, btnToExit, btnToMain, btnToContact;
 
-    // Track password visibility state
+    private User user;
+    private String viewedUserId;
+    private boolean isCurrentUser;
     private boolean isPasswordVisible = false;
 
     @Override
@@ -45,41 +46,35 @@ public class UserProfileActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_user_profile);
+
+        String currentUserId = SharedPreferencesUtil.getUserId(this);
+
+        // מנסים לשלוף ID מהאינטנט (במידה ולחצו על משתמש מרשימת החברים)
+        viewedUserId = getIntent().getStringExtra("USER_ID");
+
+        // אם לא הועבר ID, סימן שהמשתמש נכנס לפרופיל של עצמו דרך התפריט הראשי
+        if (viewedUserId == null || viewedUserId.isEmpty()) {
+            viewedUserId = currentUserId;
+        }
+
+        isCurrentUser = viewedUserId.equals(currentUserId);
+
+        initViews();
+        loadUserData();
+    }
+
+    private void initViews() {
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.detailsAboutUserPage), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-        user = SharedPreferencesUtil.getUser(this);
-
-        Button btnToMain = findViewById(R.id.btn_DetailsAboutUser_to_main);
-        Button btnToContact = findViewById(R.id.btn_DetailsAboutUser_to_contact);
-        Button btnToExit = findViewById(R.id.btn_DetailsAboutUser_to_exit);
-
-        btnToMain.setOnClickListener(v -> {
-            Intent intent = new Intent(this, MainActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            startActivity(intent);
-        });
-
-        btnToContact.setOnClickListener(v -> {
-            Intent intent = new Intent(this, ContactActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            startActivity(intent);
-        });
-
-        btnToExit.setOnClickListener(v -> logout());
-
-        Button btnEditUser = findViewById(R.id.btn_DetailsAboutUser_edit_user);
-        btnEditUser.setOnClickListener(v -> openEditDialog());
-
-        imgUserProfile = findViewById(R.id.img_DetailsAboutUser_user_profile);
-        Button btnChangePhoto = findViewById(R.id.btn_DetailsAboutUser_change_photo);
-        btnChangePhoto.setOnClickListener(v -> openImagePicker());
-        imgUserProfile.setOnClickListener(v -> {
-            if (user.getProfileImage() != null) showFullImageDialog();
-        });
+        btnToMain = findViewById(R.id.btn_DetailsAboutUser_to_main);
+        btnToContact = findViewById(R.id.btn_DetailsAboutUser_to_contact);
+        btnToExit = findViewById(R.id.btn_DetailsAboutUser_to_exit);
+        btnEditUser = findViewById(R.id.btn_DetailsAboutUser_edit_user);
+        btnChangePhoto = findViewById(R.id.btn_DetailsAboutUser_change_photo);
 
         txtTitle = findViewById(R.id.txt_DetailsAboutUser_title);
         txtFirstName = findViewById(R.id.txt_DetailsAboutUser_first_name);
@@ -87,61 +82,144 @@ public class UserProfileActivity extends BaseActivity {
         txtEmail = findViewById(R.id.txt_DetailsAboutUser_email);
         txtPhone = findViewById(R.id.txt_DetailsAboutUser_phone);
         txtPassword = findViewById(R.id.txt_DetailsAboutUser_password);
+
+        imgUserProfile = findViewById(R.id.img_DetailsAboutUser_user_profile);
         imgTogglePassword = findViewById(R.id.img_DetailsAboutUser_toggle_password);
 
-        // Set password to be hidden by default
-        txtPassword.setTransformationMethod(PasswordTransformationMethod.getInstance());
+        if (!isCurrentUser) {
+            // צפייה במשתמש אחר: מסתירים פעולות פרטיות וסיסמה
+            btnToExit.setVisibility(View.GONE);
+            btnEditUser.setVisibility(View.GONE);
+            btnChangePhoto.setVisibility(View.GONE);
+            txtPassword.setVisibility(View.GONE);
+            imgTogglePassword.setVisibility(View.GONE);
 
-        // Handle password visibility toggle
-        imgTogglePassword.setOnClickListener(v -> {
-            isPasswordVisible = !isPasswordVisible;
-            if (isPasswordVisible) {
-                // Show Password
-                txtPassword.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
-                imgTogglePassword.setImageResource(R.drawable.ic_visibility); // Ensure you have this icon
-            } else {
-                // Hide Password
-                txtPassword.setTransformationMethod(PasswordTransformationMethod.getInstance());
-                imgTogglePassword.setImageResource(R.drawable.ic_visibility_off); // Ensure you have this icon
+            // הופכים את הכפתור הראשי לכפתור "חזור"
+            btnToMain.setText("Back");
+            btnToMain.setOnClickListener(v -> onBackPressed());
+
+            btnToContact.setOnClickListener(v -> {
+                Intent intent = new Intent(this, ContactActivity.class);
+                startActivity(intent);
+            });
+        } else {
+            // פרופיל אישי - כל הפעולות זמינות
+            btnToExit.setOnClickListener(v -> logout());
+            btnEditUser.setOnClickListener(v -> openEditDialog());
+            btnChangePhoto.setOnClickListener(v -> openImagePicker());
+
+            btnToMain.setOnClickListener(v -> {
+                Intent intent = new Intent(this, MainActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+            });
+
+            btnToContact.setOnClickListener(v -> {
+                Intent intent = new Intent(this, ContactActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+            });
+
+            txtPassword.setTransformationMethod(PasswordTransformationMethod.getInstance());
+            imgTogglePassword.setOnClickListener(v -> {
+                isPasswordVisible = !isPasswordVisible;
+                if (isPasswordVisible) {
+                    txtPassword.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+                    imgTogglePassword.setImageResource(R.drawable.ic_visibility);
+                } else {
+                    txtPassword.setTransformationMethod(PasswordTransformationMethod.getInstance());
+                    imgTogglePassword.setImageResource(R.drawable.ic_visibility_off);
+                }
+            });
+        }
+
+        imgUserProfile.setOnClickListener(v -> {
+            if (user != null && user.getProfileImage() != null && !user.getProfileImage().isEmpty()) {
+                showFullImageDialog();
             }
         });
-
-        loadUserDetailsFromSharedPref();
     }
 
-    private void loadUserDetailsFromSharedPref() {
+    private void loadUserData() {
+        if (isCurrentUser) {
+            // טעינה מיידית מזיכרון המכשיר למהירות מקסימלית
+            user = SharedPreferencesUtil.getUser(this);
+            updateUI();
+
+            // משיכה חרישית ברקע כדי לוודא שהנתונים מעודכנים ב-100%
+            DatabaseService.getInstance().getUser(viewedUserId, new DatabaseService.DatabaseCallback<User>() {
+                @Override
+                public void onCompleted(User freshUser) {
+                    if (freshUser != null) {
+                        user = freshUser;
+                        SharedPreferencesUtil.saveUser(UserProfileActivity.this, user);
+                        updateUI();
+                    }
+                }
+                @Override
+                public void onFailed(Exception e) {}
+            });
+        } else {
+            // משיכת פרטי המשתמש האחר מהדאטהבייס
+            DatabaseService.getInstance().getUser(viewedUserId, new DatabaseService.DatabaseCallback<User>() {
+                @Override
+                public void onCompleted(User fetchedUser) {
+                    if (fetchedUser != null) {
+                        user = fetchedUser;
+                        updateUI();
+                    } else {
+                        Toast.makeText(UserProfileActivity.this, "User not found", Toast.LENGTH_SHORT).show();
+                        finish();
+                    }
+                }
+
+                @Override
+                public void onFailed(Exception e) {
+                    Toast.makeText(UserProfileActivity.this, "Failed to load user", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+            });
+        }
+    }
+
+    private void updateUI() {
+        if (user == null) return;
+
         txtTitle.setText(user.getFullName());
         txtFirstName.setText(user.getFirstName());
         txtLastName.setText(user.getLastName());
         txtEmail.setText(user.getEmail());
         txtPhone.setText(user.getPhone());
-        txtPassword.setText(user.getPassword());
+
+        if (isCurrentUser) {
+            txtPassword.setText(user.getPassword());
+        }
 
         if (user.getProfileImage() != null && !user.getProfileImage().isEmpty()) {
             Bitmap bmp = ImageUtil.convertFrom64base(user.getProfileImage());
-            if (bmp != null) imgUserProfile.setImageBitmap(bmp);
+            if (bmp != null) {
+                imgUserProfile.setImageBitmap(bmp);
+            } else {
+                imgUserProfile.setImageResource(R.drawable.ic_user);
+            }
+        } else {
+            imgUserProfile.setImageResource(R.drawable.ic_user);
         }
     }
 
     private void openEditDialog() {
         EditUserDialog editDialog = new EditUserDialog(this, user, () -> {
-            loadUserDetailsFromSharedPref();
+            updateUI(); // מרענן את המסך אחרי עריכה
         });
         editDialog.show();
     }
 
     private void updateUserInDatabaseAndSharedPreference() {
-        DatabaseService.getInstance().updateUser(user, new DatabaseService.DatabaseCallback<>() {
+        DatabaseService.getInstance().updateUser(user, new DatabaseService.DatabaseCallback<Void>() {
             @Override
             public void onCompleted(Void object) {
-                txtFirstName.setText(user.getFirstName());
-                txtLastName.setText(user.getLastName());
-                txtPhone.setText(user.getPhone());
-                txtPassword.setText(user.getPassword());
-                txtTitle.setText(user.getFullName());
-
+                updateUI();
                 SharedPreferencesUtil.saveUser(UserProfileActivity.this, user);
-
                 Toast.makeText(UserProfileActivity.this, "הפרטים עודכנו בהצלחה!", Toast.LENGTH_SHORT).show();
             }
 
@@ -155,7 +233,7 @@ public class UserProfileActivity extends BaseActivity {
     private void openImagePicker() {
         boolean hasImage = user.getProfileImage() != null && !user.getProfileImage().isEmpty();
 
-        new ProfileImageDialog(this, hasImage, new ProfileImageDialog.ImagePickerListener() {
+        new ProfileImageDialog(this, hasImage, false, new ProfileImageDialog.ImagePickerListener() {
             @Override
             public void onCamera() {
                 Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
@@ -178,10 +256,9 @@ public class UserProfileActivity extends BaseActivity {
 
     private void deleteProfileImage() {
         user.setProfileImage(null);
-
         imgUserProfile.setImageResource(R.drawable.ic_user);
 
-        databaseService.updateUser(user, new DatabaseService.DatabaseCallback<>() {
+        DatabaseService.getInstance().updateUser(user, new DatabaseService.DatabaseCallback<Void>() {
             @Override
             public void onCompleted(Void object) {
                 SharedPreferencesUtil.saveUser(UserProfileActivity.this, user);
@@ -226,11 +303,10 @@ public class UserProfileActivity extends BaseActivity {
     }
 
     private void saveProfileImage() {
-        DatabaseService.getInstance().updateUser(user, new DatabaseService.DatabaseCallback<>() {
+        DatabaseService.getInstance().updateUser(user, new DatabaseService.DatabaseCallback<Void>() {
             @Override
             public void onCompleted(Void object) {
                 SharedPreferencesUtil.saveUser(UserProfileActivity.this, user);
-
                 Toast.makeText(UserProfileActivity.this, "תמונת הפרופיל עודכנה!", Toast.LENGTH_SHORT).show();
             }
 
@@ -242,14 +318,19 @@ public class UserProfileActivity extends BaseActivity {
     }
 
     private void showFullImageDialog() {
-        Dialog dialog = new Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+        Dialog dialog = new Dialog(this);
         dialog.setContentView(R.layout.dialog_full_image);
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
 
         ImageView dialogImage = dialog.findViewById(R.id.dialogImage);
-
         dialogImage.setImageDrawable(imgUserProfile.getDrawable());
 
-        dialogImage.setOnClickListener(v -> dialog.dismiss());
+        View btnClose = dialog.findViewById(R.id.card_close_full_image);
+        if (btnClose != null) {
+            btnClose.setOnClickListener(v -> dialog.dismiss());
+        }
 
         dialog.show();
     }

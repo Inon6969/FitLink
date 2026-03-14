@@ -9,7 +9,7 @@
     tools:context=".screens.ContactActivity">
 
     <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/appbar_contact"
+        android:id="@+id/appbar_user_profile"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/fitlinkPrimary"
@@ -22,7 +22,9 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:gravity="center"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_contact_to_main"
@@ -51,10 +53,10 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:fontFamily="@font/poppins_semibold"
+                android:fontFamily="@font/poppins_bold"
                 android:text="Contact"
                 android:textColor="@color/white"
-                android:textSize="11sp" />
+                android:textSize="12sp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_contact_to_exit"
@@ -64,10 +66,9 @@
                 android:layout_weight="1"
                 android:fontFamily="@font/poppins_semibold"
                 android:text="Log out"
-                android:textColor="@color/white"
+                android:textColor="#FFCCCC"
                 android:textSize="11sp" />
         </LinearLayout>
-
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView

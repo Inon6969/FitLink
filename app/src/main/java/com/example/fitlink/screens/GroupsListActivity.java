@@ -30,6 +30,7 @@ import com.example.fitlink.models.DifficultyLevel;
 import com.example.fitlink.models.Group;
 import com.example.fitlink.models.SportType;
 import com.example.fitlink.screens.dialogs.CreateGroupDialog;
+import com.example.fitlink.screens.dialogs.EditGroupDialog; // <-- הייבוא החדש לדיאלוג העריכה
 import com.example.fitlink.screens.dialogs.GroupDescriptionDialog;
 import com.example.fitlink.screens.dialogs.LeaveGroupDialog;
 import com.example.fitlink.services.DatabaseService;
@@ -58,6 +59,7 @@ public class GroupsListActivity extends BaseActivity {
 
     private List<Group> allGroups = new ArrayList<>();
     private CreateGroupDialog currentCreateGroupDialog;
+    private EditGroupDialog currentEditGroupDialog; // <-- הוספנו משתנה לשמירת דיאלוג העריכה
 
     private final ActivityResultLauncher<Intent> mapPickerLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -66,8 +68,12 @@ public class GroupsListActivity extends BaseActivity {
                     String address = result.getData().getStringExtra("address");
                     double lat = result.getData().getDoubleExtra("lat", 0);
                     double lng = result.getData().getDoubleExtra("lng", 0);
+
+                    // <-- העדכון: תמיכה בהחזרת מיקום גם לדיאלוג היצירה וגם לדיאלוג העריכה
                     if (currentCreateGroupDialog != null && currentCreateGroupDialog.isShowing()) {
                         currentCreateGroupDialog.updateLocationDetails(address, lat, lng);
+                    } else if (currentEditGroupDialog != null && currentEditGroupDialog.isShowing()) {
+                        currentEditGroupDialog.updateLocationDetails(address, lat, lng);
                     }
                 }
             }
@@ -129,7 +135,18 @@ public class GroupsListActivity extends BaseActivity {
 
             @Override
             public void onGroupClick(Group group) {
-                new GroupDescriptionDialog(GroupsListActivity.this, group).show();
+                // פתיחת דיאלוג התיאור עם האזנה לכפתור העריכה
+                GroupDescriptionDialog dialog = new GroupDescriptionDialog(GroupsListActivity.this, group);
+
+                dialog.setOnEditListener(g -> {
+                    // פתיחת דיאלוג העריכה הקיים שלנו
+                    currentEditGroupDialog = new EditGroupDialog(GroupsListActivity.this, g, updatedGroup -> {
+                        loadGroups(); // רענון הרשימה מיד אחרי שהעריכה מסתיימת ונשמרת
+                    });
+                    currentEditGroupDialog.show();
+                });
+
+                dialog.show();
             }
         });
         rvGroups.setAdapter(groupAdapter);

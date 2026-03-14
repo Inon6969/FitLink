@@ -37,13 +37,34 @@ public class JoinRequestsActivity extends BaseActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_join_requests);
 
-        currentGroup = (Group) getIntent().getSerializableExtra("GROUP_EXTRA");
-        if (currentGroup == null) {
-            Toast.makeText(this, "Group details missing", Toast.LENGTH_SHORT).show();
+        String groupId = getIntent().getStringExtra("GROUP_ID");
+        if (groupId == null || groupId.isEmpty()) {
+            Toast.makeText(this, "Group ID missing", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
+        DatabaseService.getInstance().getGroup(groupId, new DatabaseService.DatabaseCallback<Group>() {
+            @Override
+            public void onCompleted(Group group) {
+                if (group == null) {
+                    Toast.makeText(JoinRequestsActivity.this, "Group not found", Toast.LENGTH_SHORT).show();
+                    finish();
+                    return;
+                }
+                currentGroup = group;
+                continueInitialization();
+            }
+
+            @Override
+            public void onFailed(Exception e) {
+                Toast.makeText(JoinRequestsActivity.this, "Failed to load group details", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+        });
+    }
+
+    private void continueInitialization() {
         initViews();
         setupToolbar();
         setupRecyclerView();
@@ -92,7 +113,6 @@ public class JoinRequestsActivity extends BaseActivity {
         progressBar.setVisibility(View.VISIBLE);
         layoutNoRequests.setVisibility(View.GONE);
 
-        // מושכים גרסה מעודכנת של הקבוצה
         databaseService.getGroup(currentGroup.getId(), new DatabaseService.DatabaseCallback<Group>() {
             @Override
             public void onCompleted(Group updatedGroup) {
@@ -107,7 +127,6 @@ public class JoinRequestsActivity extends BaseActivity {
                     return;
                 }
 
-                // מושכים את כל המשתמשים ומסננים את מי שממתין
                 databaseService.getUserList(new DatabaseService.DatabaseCallback<List<User>>() {
                     @Override
                     public void onCompleted(List<User> allUsers) {
@@ -154,7 +173,7 @@ public class JoinRequestsActivity extends BaseActivity {
             @Override
             public void onCompleted(Void object) {
                 Toast.makeText(JoinRequestsActivity.this, "Request approved", Toast.LENGTH_SHORT).show();
-                loadPendingRequests(); // טוען מחדש
+                loadPendingRequests();
             }
 
             @Override
@@ -171,7 +190,7 @@ public class JoinRequestsActivity extends BaseActivity {
             @Override
             public void onCompleted(Void object) {
                 Toast.makeText(JoinRequestsActivity.this, "Request declined", Toast.LENGTH_SHORT).show();
-                loadPendingRequests(); // טוען מחדש
+                loadPendingRequests();
             }
 
             @Override

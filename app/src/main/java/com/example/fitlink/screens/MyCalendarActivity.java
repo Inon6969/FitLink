@@ -20,10 +20,10 @@ import com.applandeo.materialcalendarview.EventDay;
 import com.example.fitlink.R;
 import com.example.fitlink.adapters.EventAdapter;
 import com.example.fitlink.models.Event;
-import com.example.fitlink.models.Group;
 import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.chip.ChipGroup;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -31,98 +31,77 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
-public class GroupCalendarActivity extends BaseActivity {
+public class MyCalendarActivity extends BaseActivity {
 
-    private Group currentGroup;
     private CalendarView calendarView;
     private RecyclerView rvEvents;
     private MaterialCardView layoutEmpty;
     private ProgressBar progressBar;
     private TextView tvSelectedDateTitle;
+    private ChipGroup chipGroupFilter;
 
     private EventAdapter eventAdapter;
-    private List<Event> allGroupEvents = new ArrayList<>();
+    private List<Event> allMyEvents = new ArrayList<>();
     private final Calendar selectedCalendar = Calendar.getInstance();
+    private String currentUserId;
+
+    // Filter states
+    private static final int FILTER_ALL = 0;
+    private static final int FILTER_GROUPS = 1;
+    private static final int FILTER_INDEPENDENT = 2;
+    private int currentFilter = FILTER_ALL;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_group_calendar);
+        setContentView(R.layout.activity_my_calendar);
 
-        String groupId = getIntent().getStringExtra("GROUP_ID");
-        if (groupId == null || groupId.isEmpty()) {
-            Toast.makeText(this, "Group ID missing", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }
+        currentUserId = SharedPreferencesUtil.getUserId(this);
 
-        DatabaseService.getInstance().getGroup(groupId, new DatabaseService.DatabaseCallback<Group>() {
-            @Override
-            public void onCompleted(Group group) {
-                if (group == null) {
-                    Toast.makeText(GroupCalendarActivity.this, "Group not found", Toast.LENGTH_SHORT).show();
-                    finish();
-                    return;
-                }
-                currentGroup = group;
-                continueInitialization();
-            }
-
-            @Override
-            public void onFailed(Exception e) {
-                Toast.makeText(GroupCalendarActivity.this, "Failed to load group details", Toast.LENGTH_SHORT).show();
-                finish();
-            }
-        });
-    }
-
-    private void continueInitialization() {
         initViews();
         setupToolbar();
         setupRecyclerView();
         setupCalendar();
-        loadGroupEvents();
+        setupFilters();
+
+        loadMyEvents();
     }
 
     private void initViews() {
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_group_calendar), (v, insets) -> {
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_my_calendar), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-        calendarView = findViewById(R.id.calendarView_events);
-        rvEvents = findViewById(R.id.rv_calendar_events);
-        layoutEmpty = findViewById(R.id.layout_calendar_empty);
-        progressBar = findViewById(R.id.progressBar_calendar);
-        tvSelectedDateTitle = findViewById(R.id.tv_selected_date_title);
+        calendarView = findViewById(R.id.calendarView_my_events);
+        rvEvents = findViewById(R.id.rv_my_calendar_events);
+        layoutEmpty = findViewById(R.id.layout_my_calendar_empty);
+        progressBar = findViewById(R.id.progressBar_my_calendar);
+        tvSelectedDateTitle = findViewById(R.id.tv_my_selected_date_title);
+        chipGroupFilter = findViewById(R.id.chipGroup_calendar_filter);
     }
 
     private void setupToolbar() {
-        Toolbar toolbar = findViewById(R.id.toolbar_group_calendar);
+        Toolbar toolbar = findViewById(R.id.toolbar_my_calendar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle(currentGroup.getName() + " Calendar");
             toolbar.setNavigationOnClickListener(v -> onBackPressed());
         }
     }
 
     private void setupRecyclerView() {
         rvEvents.setLayoutManager(new LinearLayoutManager(this));
-        String currentUserId = SharedPreferencesUtil.getUserId(this);
 
-        eventAdapter = new EventAdapter(new ArrayList<>(), currentUserId, new EventAdapter.OnEventClickListener() {
-            @Override
-            public void onEventClick(Event event) {
-                Intent intent = new Intent(GroupCalendarActivity.this, EventDetailsActivity.class);
-                // השינוי הקריטי: מעבירים רק את ה-ID של האירוע!
-                intent.putExtra("EVENT_ID", event.getId());
-                startActivity(intent);
-            }
+        eventAdapter = new EventAdapter(new ArrayList<>(), currentUserId, event -> {
+            Intent intent = new Intent(MyCalendarActivity.this, EventDetailsActivity.class);
+            // התיקון הקריטי: שולחים רק את ה-ID!
+            intent.putExtra("EVENT_ID", event.getId());
+            startActivity(intent);
         });
-
+        eventAdapter.setShowGroupContext(true);
         rvEvents.setAdapter(eventAdapter);
     }
 
@@ -134,30 +113,57 @@ public class GroupCalendarActivity extends BaseActivity {
             selectedCalendar.setTimeInMillis(eventDay.getCalendar().getTimeInMillis());
             resetTime(selectedCalendar);
             updateDateTitle();
-            filterEventsBySelectedDate();
+            filterEvents();
+        });
+    }
+
+    private void setupFilters() {
+        chipGroupFilter.setOnCheckedStateChangeListener((group, checkedIds) -> {
+            if (checkedIds.isEmpty()) return;
+            int id = checkedIds.get(0);
+
+            if (id == R.id.chip_filter_groups) {
+                currentFilter = FILTER_GROUPS;
+            } else if (id == R.id.chip_filter_independent) {
+                currentFilter = FILTER_INDEPENDENT;
+            } else {
+                currentFilter = FILTER_ALL;
+            }
+
+            filterEvents();
         });
     }
 
     private void updateDateTitle() {
         SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
-        tvSelectedDateTitle.setText("Events on " + sdf.format(selectedCalendar.getTime()) + ":");
+        tvSelectedDateTitle.setText("My Schedule - " + sdf.format(selectedCalendar.getTime()));
     }
 
-    private void loadGroupEvents() {
+    private void loadMyEvents() {
         progressBar.setVisibility(View.VISIBLE);
-        databaseService.getEventsByGroupId(currentGroup.getId(), new DatabaseService.DatabaseCallback<List<Event>>() {
+
+        databaseService.getAllEvents(new DatabaseService.DatabaseCallback<List<Event>>() {
             @Override
             public void onCompleted(List<Event> events) {
                 progressBar.setVisibility(View.GONE);
-                allGroupEvents = events != null ? events : new ArrayList<>();
+                allMyEvents.clear();
+
+                if (events != null) {
+                    for (Event event : events) {
+                        if (event.getParticipants() != null && event.getParticipants().containsKey(currentUserId)) {
+                            allMyEvents.add(event);
+                        }
+                    }
+                }
+
                 updateCalendarEventMarkers();
-                filterEventsBySelectedDate();
+                filterEvents();
             }
 
             @Override
             public void onFailed(Exception e) {
                 progressBar.setVisibility(View.GONE);
-                Toast.makeText(GroupCalendarActivity.this, "Failed to load events", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MyCalendarActivity.this, "Failed to load your events", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -165,7 +171,7 @@ public class GroupCalendarActivity extends BaseActivity {
     private void updateCalendarEventMarkers() {
         List<EventDay> eventsForCalendar = new ArrayList<>();
 
-        for (Event event : allGroupEvents) {
+        for (Event event : allMyEvents) {
             Calendar calendar = Calendar.getInstance();
             calendar.setTimeInMillis(event.getStartTimestamp());
             eventsForCalendar.add(new EventDay(calendar, R.drawable.ic_event_marker));
@@ -174,16 +180,28 @@ public class GroupCalendarActivity extends BaseActivity {
         calendarView.setEvents(eventsForCalendar);
     }
 
-    private void filterEventsBySelectedDate() {
+    private void filterEvents() {
         List<Event> filteredEvents = new ArrayList<>();
         Calendar eventCal = Calendar.getInstance();
 
-        for (Event event : allGroupEvents) {
+        for (Event event : allMyEvents) {
             eventCal.setTimeInMillis(event.getStartTimestamp());
             resetTime(eventCal);
 
             if (eventCal.getTimeInMillis() == selectedCalendar.getTimeInMillis()) {
-                filteredEvents.add(event);
+
+                boolean matchesFilter = false;
+                if (currentFilter == FILTER_ALL) {
+                    matchesFilter = true;
+                } else if (currentFilter == FILTER_GROUPS && !event.isIndependent()) {
+                    matchesFilter = true;
+                } else if (currentFilter == FILTER_INDEPENDENT && event.isIndependent()) {
+                    matchesFilter = true;
+                }
+
+                if (matchesFilter) {
+                    filteredEvents.add(event);
+                }
             }
         }
 

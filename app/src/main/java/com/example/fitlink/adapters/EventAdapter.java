@@ -4,24 +4,27 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.fitlink.R;
 import com.example.fitlink.models.Event;
+import com.example.fitlink.models.Group;
 import com.example.fitlink.models.SportType;
+import com.example.fitlink.models.User;
+import com.example.fitlink.services.DatabaseService;
 import com.google.android.material.chip.Chip;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHolder> {
 
@@ -29,7 +32,12 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
     private final String currentUserId;
     private final OnEventClickListener listener;
 
-    // אובייקט לעיצוב תאריך ושעה מתוך מספר (Timestamp)
+    // מילון שמות הקבוצות לטעינה מהירה ושמירה במטמון
+    private Map<String, String> groupNamesMap = new HashMap<>();
+
+    // דגל שקובע האם להציג את ההקשר (קבוצה/עצמאי) - דלוק רק ב-My Calendar
+    private boolean showGroupContext = false;
+
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy - HH:mm", Locale.getDefault());
 
     public EventAdapter(List<Event> eventList, String currentUserId, OnEventClickListener listener) {
@@ -43,6 +51,17 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         notifyDataSetChanged();
     }
 
+    public void setGroupNamesMap(Map<String, String> groupNamesMap) {
+        this.groupNamesMap = groupNamesMap;
+        notifyDataSetChanged();
+    }
+
+    // מתודה להדלקת התצוגה המורחבת של היוצר
+    public void setShowGroupContext(boolean showGroupContext) {
+        this.showGroupContext = showGroupContext;
+        notifyDataSetChanged();
+    }
+
     @NonNull
     @Override
     public EventViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -53,11 +72,17 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
     @Override
     public void onBindViewHolder(@NonNull EventViewHolder holder, int position) {
         Event event = eventList.get(position);
-        Context context = holder.itemView.getContext();
 
         holder.tvTitle.setText(event.getTitle());
 
-        // --- סוג הספורט (מוצג רק באירוע עצמאי) ---
+        // עדכון התמונה
+        if (event.getSportType() != null) {
+            holder.imgIcon.setImageResource(getSportIconResource(event.getSportType()));
+        } else {
+            holder.imgIcon.setImageResource(R.drawable.ic_calendar);
+        }
+
+        // ניהול תצוגת הספורט (תמיד מופיע לאירוע עצמאי)
         if (event.isIndependent()) {
             holder.layoutSport.setVisibility(View.VISIBLE);
             if (event.getSportType() != null) {
@@ -71,7 +96,65 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
             holder.layoutSport.setVisibility(View.GONE);
         }
 
-        // המרת הזמן ממילישניות לטקסט קריא
+        holder.tvCreator.setText("Loading...");
+
+        // --- פיצול תצוגת שם היוצר לפי הדגל שלנו ---
+        if (showGroupContext) {
+            // תצוגה מורחבת (עבור My Calendar) - מציג "קבוצה • יוצר"
+            if (event.isIndependent()) {
+                loadCreatorNameAndSetSubtitle(holder, event.getCreatorId(), "Independent");
+            } else {
+                String groupId = event.getGroupId();
+                String cachedGroupName = groupNamesMap.get(groupId);
+
+                if (cachedGroupName != null) {
+                    loadCreatorNameAndSetSubtitle(holder, event.getCreatorId(), cachedGroupName);
+                } else {
+                    if (groupId != null && !groupId.isEmpty()) {
+                        DatabaseService.getInstance().getGroup(groupId, new DatabaseService.DatabaseCallback<Group>() {
+                            @Override
+                            public void onCompleted(Group group) {
+                                String fetchedName = (group != null) ? group.getName() : "Group Event";
+                                groupNamesMap.put(groupId, fetchedName);
+                                loadCreatorNameAndSetSubtitle(holder, event.getCreatorId(), fetchedName);
+                            }
+
+                            @Override
+                            public void onFailed(Exception e) {
+                                loadCreatorNameAndSetSubtitle(holder, event.getCreatorId(), "Group Event");
+                            }
+                        });
+                    } else {
+                        loadCreatorNameAndSetSubtitle(holder, event.getCreatorId(), "Group Event");
+                    }
+                }
+            }
+        } else {
+            // תצוגה רגילה (לשאר האפליקציה) - מציג רק "By Creator"
+            String creatorId = event.getCreatorId();
+            if (creatorId != null && !creatorId.isEmpty()) {
+                DatabaseService.getInstance().getUser(creatorId, new DatabaseService.DatabaseCallback<User>() {
+                    @Override
+                    public void onCompleted(User user) {
+                        String creatorName = (user != null) ? (user.getFirstName() + " " + user.getLastName()) : "Unknown";
+                        holder.tvCreator.setText("By " + creatorName);
+                    }
+
+                    @Override
+                    public void onFailed(Exception e) {
+                        holder.tvCreator.setText("By Unknown");
+                    }
+                });
+            } else {
+                holder.tvCreator.setText("By Unknown");
+            }
+        }
+
+        // תגית יוצר (Created by you)
+        boolean isCreator = event.getCreatorId() != null && event.getCreatorId().equals(currentUserId);
+        holder.chipCreator.setVisibility(isCreator ? View.VISIBLE : View.GONE);
+
+        // שאר הפרטים (תאריך, מיקום, משך, משתתפים)
         if (event.getStartTimestamp() > 0) {
             String formattedDate = dateFormat.format(new Date(event.getStartTimestamp()));
             holder.tvDateTime.setText(formattedDate);
@@ -79,44 +162,26 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
             holder.tvDateTime.setText("Time not set");
         }
 
-        // הצגת מיקום
         if (event.getLocation() != null && event.getLocation().getAddress() != null) {
             holder.tvLocation.setText(event.getLocation().getAddress());
         } else {
             holder.tvLocation.setText("No location");
         }
 
-        // משך זמן
         holder.tvDuration.setText(event.getFormattedDuration());
 
-        // משתתפים
         int participants = event.getParticipantsCount();
         String limit = event.getMaxParticipants() > 0 ? String.valueOf(event.getMaxParticipants()) : "Unlimited";
         holder.tvParticipants.setText(participants + "/" + limit + " Participants");
 
-        // בדיקה האם המשתמש כבר משתתף באירוע
         boolean isJoined = event.getParticipants() != null && event.getParticipants().containsKey(currentUserId);
-
         if (isJoined) {
             holder.chipStatus.setVisibility(View.VISIBLE);
             holder.chipStatus.setText("JOINED");
-            holder.btnAction.setText("LEAVE");
-            holder.btnAction.setTextColor(ContextCompat.getColor(context, R.color.fitlinkTextSecondary)); // אפור
         } else {
-            // שימוש ב-INVISIBLE כדי לשמור על העיצוב יציב ללא קפיצות
             holder.chipStatus.setVisibility(View.INVISIBLE);
-            holder.btnAction.setText("JOIN");
-            holder.btnAction.setTextColor(ContextCompat.getColor(context, R.color.fitlinkPrimary)); // צבע ראשי
         }
 
-        // לחיצה על כפתור הפעולה (Join / Leave)
-        holder.btnAction.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onActionClick(event, isJoined);
-            }
-        });
-
-        // לחיצה על כל השורה (לצפייה בפרטים המלאים)
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onEventClick(event);
@@ -124,7 +189,28 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         });
     }
 
-    // פונקציית עזר להחזרת האייקון המתאים
+    /**
+     * פונקציית עזר ששולפת את שם היוצר ומרכיבה את הכותרת המשולבת (Subtitle)
+     */
+    private void loadCreatorNameAndSetSubtitle(EventViewHolder holder, String creatorId, String contextPrefix) {
+        if (creatorId != null && !creatorId.isEmpty()) {
+            DatabaseService.getInstance().getUser(creatorId, new DatabaseService.DatabaseCallback<User>() {
+                @Override
+                public void onCompleted(User user) {
+                    String creatorName = (user != null) ? (user.getFirstName() + " " + user.getLastName()) : "Unknown";
+                    holder.tvCreator.setText(contextPrefix + " • By " + creatorName);
+                }
+
+                @Override
+                public void onFailed(Exception e) {
+                    holder.tvCreator.setText(contextPrefix + " • By Unknown");
+                }
+            });
+        } else {
+            holder.tvCreator.setText(contextPrefix + " • By Unknown");
+        }
+    }
+
     private int getSportIconResource(SportType type) {
         if (type == SportType.RUNNING) return R.drawable.ic_running;
         else if (type == SportType.SWIMMING) return R.drawable.ic_swimming;
@@ -137,36 +223,32 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         return eventList.size();
     }
 
-    // ממשק להאזנה ללחיצות
     public interface OnEventClickListener {
         void onEventClick(Event event);
-        void onActionClick(Event event, boolean isCurrentlyJoined);
     }
 
-    // מחלקת ViewHolder לחיבור רכיבי ה-UI
     public static class EventViewHolder extends RecyclerView.ViewHolder {
-        final TextView tvTitle, tvDateTime, tvLocation, tvDuration, tvParticipants, tvSport;
+        final TextView tvTitle, tvCreator, tvDateTime, tvLocation, tvDuration, tvParticipants, tvSport;
         final ImageView imgIcon, imgSport;
         final LinearLayout layoutSport;
-        final Chip chipStatus;
-        final Button btnAction;
+        final Chip chipStatus, chipCreator;
 
         public EventViewHolder(@NonNull View itemView) {
             super(itemView);
             tvTitle = itemView.findViewById(R.id.tv_item_event_title);
+            tvCreator = itemView.findViewById(R.id.tv_item_event_creator);
             tvDateTime = itemView.findViewById(R.id.tv_item_event_datetime);
             tvLocation = itemView.findViewById(R.id.tv_item_event_location);
             tvDuration = itemView.findViewById(R.id.tv_item_event_duration);
             tvParticipants = itemView.findViewById(R.id.tv_item_event_participants);
 
-            // השדות החדשים שהוספנו:
             layoutSport = itemView.findViewById(R.id.layout_item_event_sport);
             tvSport = itemView.findViewById(R.id.tv_item_event_sport);
             imgSport = itemView.findViewById(R.id.img_item_event_sport);
 
             imgIcon = itemView.findViewById(R.id.img_item_event_icon);
             chipStatus = itemView.findViewById(R.id.chip_event_status);
-            btnAction = itemView.findViewById(R.id.btn_item_event_action);
+            chipCreator = itemView.findViewById(R.id.chip_event_creator);
         }
     }
 }
