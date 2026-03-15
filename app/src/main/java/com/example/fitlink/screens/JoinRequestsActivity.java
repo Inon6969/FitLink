@@ -19,6 +19,7 @@ import com.example.fitlink.adapters.JoinRequestAdapter;
 import com.example.fitlink.models.Group;
 import com.example.fitlink.models.User;
 import com.example.fitlink.services.DatabaseService;
+import com.google.android.material.appbar.AppBarLayout; // <-- הוספנו את הייבוא הזה
 
 import java.util.ArrayList;
 import java.util.List;
@@ -72,11 +73,27 @@ public class JoinRequestsActivity extends BaseActivity {
     }
 
     private void initViews() {
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_join_requests), (v, insets) -> {
+        View root = findViewById(R.id.main_join_requests);
+        AppBarLayout appBarLayout = findViewById(R.id.toolbar_join_requests).getParent() instanceof AppBarLayout
+                ? (AppBarLayout) findViewById(R.id.toolbar_join_requests).getParent()
+                : null;
+
+        ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+
+            // מרווח צדדים ותחתון למסך הראשי
+            v.setPadding(systemBars.left, 0, systemBars.right, systemBars.bottom);
+
+            // מרווח עליון ל-AppBarLayout כדי להרחיק את סרגל הכלים מהסוללה והשעון
+            if (appBarLayout != null) {
+                appBarLayout.setPadding(0, systemBars.top, 0, 0);
+            }
+
             return insets;
         });
+
+        // מכריח חישוב מיידי של הריווחים
+        root.post(() -> ViewCompat.requestApplyInsets(root));
 
         rvRequests = findViewById(R.id.rv_join_requests);
         progressBar = findViewById(R.id.progressBar_requests);

@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -24,6 +25,7 @@ import com.example.fitlink.models.Comment;
 import com.example.fitlink.models.Event;
 import com.example.fitlink.models.SportType;
 import com.example.fitlink.models.User;
+import com.example.fitlink.screens.dialogs.DeleteEventDialog;
 import com.example.fitlink.screens.dialogs.EditEventDialog;
 import com.example.fitlink.screens.dialogs.EditIndependentEventDialog;
 import com.example.fitlink.services.DatabaseService;
@@ -43,20 +45,18 @@ public class EventDetailsActivity extends BaseActivity {
 
     private ImageView imgIcon;
     private TextView tvTitle, tvCreator, tvDateTime, tvLocation, tvParticipants, tvDescription;
-    private MaterialButton btnMainAction, btnSecondaryAction;
+    private MaterialButton btnMainAction, btnSecondaryAction, btnTertiaryAction;
 
     private RecyclerView rvComments;
     private CommentAdapter commentAdapter;
     private EditText etNewComment;
     private MaterialButton btnSendComment;
 
-    // שני המשתנים לדיאלוגים השונים
     private EditIndependentEventDialog currentEditIndependentDialog;
     private EditEventDialog currentEditGroupEventDialog;
 
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy - HH:mm", Locale.getDefault());
 
-    // העדכון החדש: נותב את בחירת המיקום לדיאלוג שפתוח כרגע
     private final ActivityResultLauncher<Intent> mapPickerLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
@@ -144,10 +144,74 @@ public class EventDetailsActivity extends BaseActivity {
 
         btnMainAction = findViewById(R.id.btn_event_action_main);
         btnSecondaryAction = findViewById(R.id.btn_event_action_secondary);
+        btnTertiaryAction = findViewById(R.id.btn_event_action_tertiary);
 
         rvComments = findViewById(R.id.rv_event_comments);
         etNewComment = findViewById(R.id.et_new_comment);
         btnSendComment = findViewById(R.id.btn_send_comment);
+
+        // --- אתחול האזורים הלחיצים והוספת פעולות ---
+        LinearLayout layoutDatetime = findViewById(R.id.layout_datetime_click_area);
+        LinearLayout layoutLocation = findViewById(R.id.layout_location_click_area);
+        LinearLayout layoutParticipants = findViewById(R.id.layout_participants_click_area);
+
+        // הוספת קו תחתון לטקסטים כדי שייראו כלחיצים
+        tvDateTime.setPaintFlags(tvDateTime.getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
+        tvLocation.setPaintFlags(tvLocation.getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
+        tvParticipants.setPaintFlags(tvParticipants.getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
+
+        // 1. לחיצה על המשתתפים -> עובר לרשימת המשתתפים
+        layoutParticipants.setOnClickListener(v -> {
+            if (currentEvent != null) {
+                Intent intent = new Intent(EventDetailsActivity.this, EventParticipantsActivity.class);
+                intent.putExtra("EVENT_ID", currentEvent.getId());
+                startActivity(intent);
+            }
+        });
+
+        // 2. לחיצה על מיקום -> פותח את מסך בחירת אפליקציית הניווט (Waze, Google Maps וכו')
+        layoutLocation.setOnClickListener(v -> {
+            if (currentEvent != null && currentEvent.getLocation() != null) {
+                String address = currentEvent.getLocation().getAddress();
+                double lat = currentEvent.getLocation().getLatitude();
+                double lng = currentEvent.getLocation().getLongitude();
+
+                // יצירת URI אוניברסלי לאפליקציות מפות וניווט
+                android.net.Uri locationUri = android.net.Uri.parse("geo:0,0?q=" + lat + "," + lng + "(" + android.net.Uri.encode(address) + ")");
+                Intent mapIntent = new Intent(Intent.ACTION_VIEW, locationUri);
+
+                // יצירת תפריט בחירה של אנדרואיד
+                Intent chooser = Intent.createChooser(mapIntent, "Navigate with...");
+
+                try {
+                    startActivity(chooser);
+                } catch (Exception e) {
+                    Toast.makeText(EventDetailsActivity.this, "No navigation app found", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        // 3. לחיצה על זמן -> פותח את לוח השנה של המכשיר
+        layoutDatetime.setOnClickListener(v -> {
+            if (currentEvent != null && currentEvent.getStartTimestamp() > 0) {
+                Intent calendarIntent = new Intent(Intent.ACTION_INSERT);
+                calendarIntent.setType("vnd.android.cursor.item/event");
+                calendarIntent.putExtra(android.provider.CalendarContract.Events.TITLE, currentEvent.getTitle());
+                calendarIntent.putExtra(android.provider.CalendarContract.Events.DESCRIPTION, currentEvent.getDescription());
+                calendarIntent.putExtra(android.provider.CalendarContract.EXTRA_EVENT_BEGIN_TIME, currentEvent.getStartTimestamp());
+                calendarIntent.putExtra(android.provider.CalendarContract.EXTRA_EVENT_END_TIME, currentEvent.getStartTimestamp() + currentEvent.getDurationMillis());
+
+                if (currentEvent.getLocation() != null && currentEvent.getLocation().getAddress() != null) {
+                    calendarIntent.putExtra(android.provider.CalendarContract.Events.EVENT_LOCATION, currentEvent.getLocation().getAddress());
+                }
+
+                try {
+                    startActivity(calendarIntent);
+                } catch (Exception e) {
+                    Toast.makeText(this, "No calendar app found", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     private void setupToolbar() {
@@ -209,20 +273,45 @@ public class EventDetailsActivity extends BaseActivity {
     private void setupActionButtons() {
         boolean isCreator = currentEvent.getCreatorId() != null && currentEvent.getCreatorId().equals(currentUserId);
         boolean isJoined = currentEvent.getParticipants() != null && currentEvent.getParticipants().containsKey(currentUserId);
+        boolean isIndependent = currentEvent.isIndependent();
+
+        // אתחול כפתורים בסיסי
+        btnMainAction.setVisibility(View.VISIBLE);
+        btnSecondaryAction.setVisibility(View.GONE);
+        btnTertiaryAction.setVisibility(View.GONE);
 
         if (isCreator) {
-            btnMainAction.setText("Delete Event");
-            btnMainAction.setBackgroundColor(getResources().getColor(android.R.color.holo_red_dark));
+            if (isIndependent) {
+                // אירוע עצמאי: עריכה או מחיקה (ללא עזיבה)
+                btnMainAction.setText("Edit Event");
+                btnMainAction.setBackgroundColor(getResources().getColor(R.color.fitlinkPrimary));
+                btnMainAction.setOnClickListener(v -> editEvent());
 
-            btnSecondaryAction.setVisibility(View.VISIBLE);
-            btnSecondaryAction.setText("Edit Event");
+                btnTertiaryAction.setVisibility(View.VISIBLE);
+                btnTertiaryAction.setText("Delete Event");
+                btnTertiaryAction.setOnClickListener(v -> deleteEvent());
+            } else {
+                // אירוע קבוצתי: הצטרפות/עזיבה, עריכה, מחיקה
+                if (isJoined) {
+                    btnMainAction.setText("Leave Event");
+                    btnMainAction.setBackgroundColor(getResources().getColor(android.R.color.darker_gray));
+                    btnMainAction.setOnClickListener(v -> leaveEvent());
+                } else {
+                    btnMainAction.setText("Join Event");
+                    btnMainAction.setBackgroundColor(getResources().getColor(R.color.fitlinkPrimary));
+                    btnMainAction.setOnClickListener(v -> joinEvent());
+                }
 
-            btnMainAction.setOnClickListener(v -> deleteEvent());
-            btnSecondaryAction.setOnClickListener(v -> editEvent());
+                btnSecondaryAction.setVisibility(View.VISIBLE);
+                btnSecondaryAction.setText("Edit Event");
+                btnSecondaryAction.setOnClickListener(v -> editEvent());
 
+                btnTertiaryAction.setVisibility(View.VISIBLE);
+                btnTertiaryAction.setText("Delete Event");
+                btnTertiaryAction.setOnClickListener(v -> deleteEvent());
+            }
         } else {
-            btnSecondaryAction.setVisibility(View.GONE);
-
+            // משתמש רגיל (לא היוצר): רק להצטרף או לעזוב
             if (isJoined) {
                 btnMainAction.setText("Leave Event");
                 btnMainAction.setBackgroundColor(getResources().getColor(android.R.color.darker_gray));
@@ -282,7 +371,6 @@ public class EventDetailsActivity extends BaseActivity {
         });
     }
 
-    // הפונקציה המעודכנת שמחליטה איזה דיאלוג עריכה לפתוח
     private void editEvent() {
         if (currentEvent.isIndependent()) {
             currentEditIndependentDialog = new EditIndependentEventDialog(this, currentEvent, updatedEvent -> {
@@ -300,7 +388,25 @@ public class EventDetailsActivity extends BaseActivity {
     }
 
     private void deleteEvent() {
-        Toast.makeText(this, "Delete event functionality coming soon", Toast.LENGTH_SHORT).show();
+        new DeleteEventDialog(this, () -> {
+            if (btnMainAction != null) btnMainAction.setEnabled(false);
+            if (btnTertiaryAction != null) btnTertiaryAction.setEnabled(false);
+
+            databaseService.deleteEvent(currentEvent.getId(), new DatabaseService.DatabaseCallback<Void>() {
+                @Override
+                public void onCompleted(Void object) {
+                    Toast.makeText(EventDetailsActivity.this, "Event deleted successfully", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+
+                @Override
+                public void onFailed(Exception e) {
+                    if (btnMainAction != null) btnMainAction.setEnabled(true);
+                    if (btnTertiaryAction != null) btnTertiaryAction.setEnabled(true);
+                    Toast.makeText(EventDetailsActivity.this, "Failed to delete event", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }).show();
     }
 
     private int getSportIconResource(SportType type) {

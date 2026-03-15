@@ -1,5 +1,6 @@
 package com.example.fitlink.screens;
 
+import android.app.Dialog; // <-- הוספנו את הייבוא הזה לדיאלוג
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -27,6 +28,7 @@ import com.example.fitlink.screens.dialogs.ProfileImageDialog;
 import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.ImageUtil;
 import com.example.fitlink.utils.SharedPreferencesUtil;
+import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.chip.Chip;
@@ -40,7 +42,7 @@ public class GroupDashboardActivity extends BaseActivity {
 
     private Group currentGroup;
     private ImageView imgGroupPhoto;
-    private Chip chipGroupLevel; // הוספת המשתנה של ה-Chip
+    private Chip chipGroupLevel;
     private CreateEventDialog currentCreateEventDialog;
     private EditGroupDialog currentEditGroupDialog;
 
@@ -71,7 +73,6 @@ public class GroupDashboardActivity extends BaseActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_group_dashboard);
 
-        // שולפים את ה-ID מהאינטנט במקום מ-Holder!
         String groupId = getIntent().getStringExtra("GROUP_ID");
 
         if (groupId == null || groupId.isEmpty()) {
@@ -80,7 +81,6 @@ public class GroupDashboardActivity extends BaseActivity {
             return;
         }
 
-        // מושכים את הקבוצה הטרייה מהדאטהבייס לפני שבונים את הממשק
         DatabaseService.getInstance().getGroup(groupId, new DatabaseService.DatabaseCallback<Group>() {
             @Override
             public void onCompleted(Group group) {
@@ -90,7 +90,7 @@ public class GroupDashboardActivity extends BaseActivity {
                     return;
                 }
                 currentGroup = group;
-                initViews(); // רק אחרי שיש לנו את המידע, אנחנו מרנדרים את המסך
+                initViews();
             }
 
             @Override
@@ -102,11 +102,27 @@ public class GroupDashboardActivity extends BaseActivity {
     }
 
     private void initViews() {
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_group_dashboard), (v, insets) -> {
+        View root = findViewById(R.id.main_group_dashboard);
+        AppBarLayout appBarLayout = findViewById(R.id.toolbar_group_dashboard).getParent() instanceof AppBarLayout
+                ? (AppBarLayout) findViewById(R.id.toolbar_group_dashboard).getParent()
+                : null;
+
+        ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+
+            // מרווח תחתון וצדדים למסך הראשי
+            v.setPadding(systemBars.left, 0, systemBars.right, systemBars.bottom);
+
+            // התיקון: מרווח עליון ל-AppBarLayout כדי שסרגל הכלים לא יעלה על שורת הסטטוס
+            if (appBarLayout != null) {
+                appBarLayout.setPadding(0, systemBars.top, 0, 0);
+            }
+
             return insets;
         });
+
+        // מכריח חישוב מיידי של הריווחים
+        root.post(() -> ViewCompat.requestApplyInsets(root));
 
         Toolbar toolbar = findViewById(R.id.toolbar_group_dashboard);
         setSupportActionBar(toolbar);
@@ -121,7 +137,6 @@ public class GroupDashboardActivity extends BaseActivity {
 
         chipGroupLevel = findViewById(R.id.chip_dashboard_level);
 
-        // עדכון הרמה ההתחלתית
         if (currentGroup.getLevel() != null) {
             chipGroupLevel.setText(currentGroup.getLevel().getDisplayName());
             chipGroupLevel.setVisibility(View.VISIBLE);
@@ -164,6 +179,14 @@ public class GroupDashboardActivity extends BaseActivity {
             if (bmp != null) imgGroupPhoto.setImageBitmap(bmp);
         }
 
+        // --- הוספת מאזין לחיצה על תמונת הקבוצה לפתיחת הדיאלוג ---
+        imgGroupPhoto.setOnClickListener(v -> {
+            if (currentGroup != null && currentGroup.getGroupImage() != null && !currentGroup.getGroupImage().isEmpty()) {
+                showFullImageDialog();
+            }
+        });
+        // --------------------------------------------------------
+
         if (isCreator) {
             btnChangePhoto.setVisibility(View.VISIBLE);
             btnChangePhoto.setOnClickListener(v -> openImagePicker());
@@ -189,8 +212,6 @@ public class GroupDashboardActivity extends BaseActivity {
             btnLeave.setVisibility(View.VISIBLE);
         }
 
-        // --- כאן אנחנו מעבירים את ה-ID הלאה לשאר המסכים ---
-
         btnRequests.setOnClickListener(v -> {
             Intent intent = new Intent(GroupDashboardActivity.this, JoinRequestsActivity.class);
             intent.putExtra("GROUP_ID", currentGroup.getId());
@@ -208,7 +229,6 @@ public class GroupDashboardActivity extends BaseActivity {
                 if (getSupportActionBar() != null) getSupportActionBar().setTitle(currentGroup.getName());
                 tvTitle.setText(currentGroup.getName());
 
-                // עדכון הרמה בזמן אמת אם השתנתה
                 if (currentGroup.getLevel() != null) {
                     chipGroupLevel.setText(currentGroup.getLevel().getDisplayName());
                     chipGroupLevel.setVisibility(View.VISIBLE);
@@ -283,6 +303,26 @@ public class GroupDashboardActivity extends BaseActivity {
             startActivity(intent);
         });
     }
+
+    // --- הפונקציה להצגת התמונה בגודל מלא ---
+    private void showFullImageDialog() {
+        Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.dialog_full_image);
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        ImageView dialogImage = dialog.findViewById(R.id.dialogImage);
+        dialogImage.setImageDrawable(imgGroupPhoto.getDrawable());
+
+        View btnClose = dialog.findViewById(R.id.card_close_full_image);
+        if (btnClose != null) {
+            btnClose.setOnClickListener(v -> dialog.dismiss());
+        }
+
+        dialog.show();
+    }
+    // ---------------------------------------
 
     private void openImagePicker() {
         boolean hasImage = currentGroup.getGroupImage() != null && !currentGroup.getGroupImage().isEmpty();

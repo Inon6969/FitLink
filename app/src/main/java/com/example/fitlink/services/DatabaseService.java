@@ -536,7 +536,7 @@ public class DatabaseService {
     }
 
     /**
-     * Creates a new event in the database.
+     * Creates a new event in the database and adds it to the creator's event list.
      */
     public void createNewEvent(@NotNull final com.example.fitlink.models.Event event, @Nullable final DatabaseCallback<Void> callback) {
         String eventId = event.getId();
@@ -544,7 +544,22 @@ public class DatabaseService {
             eventId = generateNewId(EVENTS_PATH);
             event.setId(eventId);
         }
-        writeData(EVENTS_PATH + "/" + eventId, event, callback);
+
+        Map<String, Object> updates = new HashMap<>();
+
+        // 1. כתיבת נתוני האירוע
+        updates.put(EVENTS_PATH + "/" + eventId, event);
+
+        // 2. הוספת האירוע לרשימת האירועים של היוצר
+        updates.put(USERS_PATH + "/" + event.getCreatorId() + "/eventIds/" + eventId, true);
+
+        databaseReference.updateChildren(updates).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                if (callback != null) callback.onCompleted(null);
+            } else {
+                if (callback != null) callback.onFailed(task.getException());
+            }
+        });
     }
     /**
      * Updates an existing event in the database.
@@ -641,7 +656,6 @@ public class DatabaseService {
      * the events' comments, and removes its reference from all members.
      */
     public void deleteGroup(@NotNull final String groupId, @Nullable final DatabaseCallback<Void> callback) {
-        // שלב 1: שולפים את הקבוצה כדי לדעת מי החברים בה
         getGroup(groupId, new DatabaseCallback<Group>() {
             @Override
             public void onCompleted(Group group) {
@@ -650,32 +664,37 @@ public class DatabaseService {
                     return;
                 }
 
-                // שלב 2: שולפים את כל האירועים ששייכים לקבוצה הזו
                 getEventsByGroupId(groupId, new DatabaseCallback<List<Event>>() {
                     @Override
                     public void onCompleted(List<Event> groupEvents) {
                         Map<String, Object> updates = new HashMap<>();
 
-                        // שלב 3: מוחקים את הקבוצה עצמה ואת הצ'אט שלה
                         updates.put(GROUPS_PATH + "/" + groupId, null);
                         updates.put(GROUP_CHATS_PATH + "/" + groupId, null);
 
-                        // שלב 4: מוחקים את הקבוצה מרשימת הקבוצות האישית של כל חבר
                         if (group.getMembers() != null) {
                             for (String userId : group.getMembers().keySet()) {
                                 updates.put(USERS_PATH + "/" + userId + "/groupIds/" + groupId, null);
                             }
                         }
 
-                        // שלב 5: מוחקים את כל האירועים של הקבוצה ואת התגובות של כל אירוע
                         if (groupEvents != null) {
                             for (Event event : groupEvents) {
                                 updates.put(EVENTS_PATH + "/" + event.getId(), null);
                                 updates.put("event_comments/" + event.getId(), null);
+
+                                // ניקוי האירוע אצל כל המשתתפים שנרשמו אליו
+                                if (event.getParticipants() != null) {
+                                    for (String participantId : event.getParticipants().keySet()) {
+                                        updates.put(USERS_PATH + "/" + participantId + "/eventIds/" + event.getId(), null);
+                                    }
+                                }
+                                if (event.getCreatorId() != null) {
+                                    updates.put(USERS_PATH + "/" + event.getCreatorId() + "/eventIds/" + event.getId(), null);
+                                }
                             }
                         }
 
-                        // שלב 6: מבצעים את כל המחיקות בבת אחת (Atomic update)
                         databaseReference.updateChildren(updates).addOnCompleteListener(task -> {
                             if (task.isSuccessful()) {
                                 if (callback != null) callback.onCompleted(null);
@@ -699,31 +718,95 @@ public class DatabaseService {
         });
     }
     /**
-     * User joins an event.
+     * User joins an event. Updates both the event's participants and the user's event list.
      */
     public void joinEvent(@NotNull final String eventId, @NotNull final String userId, @Nullable final DatabaseCallback<Void> callback) {
-        databaseReference.child(EVENTS_PATH).child(eventId).child("participants").child(userId).setValue(true)
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        if (callback != null) callback.onCompleted(null);
-                    } else {
-                        if (callback != null) callback.onFailed(task.getException());
-                    }
-                });
+        Map<String, Object> updates = new HashMap<>();
+
+        // 1. מוסיף את המשתמש לרשימת המשתתפים באירוע
+        updates.put(EVENTS_PATH + "/" + eventId + "/participants/" + userId, true);
+
+        // 2. מוסיף את האירוע לרשימת האירועים של המשתמש
+        updates.put(USERS_PATH + "/" + userId + "/eventIds/" + eventId, true);
+
+        databaseReference.updateChildren(updates).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                if (callback != null) callback.onCompleted(null);
+            } else {
+                if (callback != null) callback.onFailed(task.getException());
+            }
+        });
     }
 
     /**
-     * User leaves an event.
+     * User leaves an event. Updates both the event's participants and the user's event list.
      */
     public void leaveEvent(@NotNull final String eventId, @NotNull final String userId, @Nullable final DatabaseCallback<Void> callback) {
-        databaseReference.child(EVENTS_PATH).child(eventId).child("participants").child(userId).removeValue()
-                .addOnCompleteListener(task -> {
+        Map<String, Object> updates = new HashMap<>();
+
+        // 1. מסיר את המשתמש מרשימת המשתתפים באירוע
+        updates.put(EVENTS_PATH + "/" + eventId + "/participants/" + userId, null);
+
+        // 2. מסיר את האירוע מרשימת האירועים של המשתמש
+        updates.put(USERS_PATH + "/" + userId + "/eventIds/" + eventId, null);
+
+        databaseReference.updateChildren(updates).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                if (callback != null) callback.onCompleted(null);
+            } else {
+                if (callback != null) callback.onFailed(task.getException());
+            }
+        });
+    }
+    /**
+     * Deletes an event entirely from the database, including its comments,
+     * and removes its reference from all participants.
+     */
+    public void deleteEvent(@NotNull final String eventId, @Nullable final DatabaseCallback<Void> callback) {
+        // שלב 1: שולפים את האירוע כדי לדעת מי המשתתפים בו
+        getEvent(eventId, new DatabaseCallback<Event>() {
+            @Override
+            public void onCompleted(Event event) {
+                if (event == null) {
+                    if (callback != null) callback.onFailed(new Exception("Event not found"));
+                    return;
+                }
+
+                Map<String, Object> updates = new HashMap<>();
+
+                // שלב 2: מחיקת האירוע עצמו
+                updates.put(EVENTS_PATH + "/" + eventId, null);
+
+                // שלב 3: מחיקת כל התגובות ששייכות לאירוע
+                updates.put("event_comments/" + eventId, null);
+
+                // שלב 4: מחיקת האירוע מהפרופיל של כל המשתתפים בו
+                if (event.getParticipants() != null) {
+                    for (String userId : event.getParticipants().keySet()) {
+                        updates.put(USERS_PATH + "/" + userId + "/eventIds/" + eventId, null);
+                    }
+                }
+
+                // נוודא שזה נמחק גם מהיוצר (למקרה שהוא לא היה ברשימת המשתתפים מסיבה כלשהי)
+                if (event.getCreatorId() != null) {
+                    updates.put(USERS_PATH + "/" + event.getCreatorId() + "/eventIds/" + eventId, null);
+                }
+
+                // שלב 5: ביצוע כל המחיקות בבת אחת (Atomic update)
+                databaseReference.updateChildren(updates).addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         if (callback != null) callback.onCompleted(null);
                     } else {
                         if (callback != null) callback.onFailed(task.getException());
                     }
                 });
+            }
+
+            @Override
+            public void onFailed(Exception e) {
+                if (callback != null) callback.onFailed(e);
+            }
+        });
     }
     public void sendContactMessage(String name, String email, String message, @Nullable final DatabaseCallback<Void> callback) {
         String messageId = generateNewId("contact_messages");

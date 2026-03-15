@@ -122,11 +122,16 @@
                     android:padding="24dp">
 
                     <LinearLayout
+                        android:id="@+id/layout_datetime_click_area"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="16dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
                         android:gravity="center_vertical"
-                        android:orientation="horizontal">
+                        android:orientation="horizontal"
+                        android:paddingVertical="4dp">
 
                         <com.google.android.material.card.MaterialCardView
                             android:layout_width="36dp"
@@ -146,8 +151,9 @@
 
                         <TextView
                             android:id="@+id/tv_details_event_datetime"
-                            android:layout_width="wrap_content"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
+                            android:layout_weight="1"
                             android:fontFamily="@font/poppins_medium"
                             android:textColor="@color/fitlinkPrimary"
                             android:textSize="15sp"
@@ -155,11 +161,16 @@
                     </LinearLayout>
 
                     <LinearLayout
+                        android:id="@+id/layout_location_click_area"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="16dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
                         android:gravity="center_vertical"
-                        android:orientation="horizontal">
+                        android:orientation="horizontal"
+                        android:paddingVertical="4dp">
 
                         <com.google.android.material.card.MaterialCardView
                             android:layout_width="36dp"
@@ -179,8 +190,9 @@
 
                         <TextView
                             android:id="@+id/tv_details_event_location"
-                            android:layout_width="wrap_content"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
+                            android:layout_weight="1"
                             android:fontFamily="@font/poppins_medium"
                             android:textColor="@color/fitlinkPrimary"
                             android:textSize="15sp"
@@ -188,11 +200,16 @@
                     </LinearLayout>
 
                     <LinearLayout
+                        android:id="@+id/layout_participants_click_area"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="20dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
                         android:gravity="center_vertical"
-                        android:orientation="horizontal">
+                        android:orientation="horizontal"
+                        android:paddingVertical="4dp">
 
                         <com.google.android.material.card.MaterialCardView
                             android:layout_width="36dp"
@@ -212,8 +229,9 @@
 
                         <TextView
                             android:id="@+id/tv_details_event_participants"
-                            android:layout_width="wrap_content"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
+                            android:layout_weight="1"
                             android:fontFamily="@font/poppins_medium"
                             android:textColor="@color/fitlinkPrimary"
                             android:textSize="15sp"
@@ -267,6 +285,7 @@
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
+                android:layout_marginBottom="12dp"
                 android:fontFamily="@font/poppins_bold"
                 android:text="Edit Event"
                 android:textColor="@color/fitlinkPrimary"
@@ -274,6 +293,22 @@
                 app:cornerRadius="30dp"
                 app:strokeColor="@color/fitlinkPrimary"
                 app:strokeWidth="1dp"
+                tools:visibility="visible"
+                android:textAllCaps="false"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_event_action_tertiary"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginBottom="12dp"
+                android:fontFamily="@font/poppins_bold"
+                android:text="Delete Event"
+                android:textColor="#D32F2F"
+                android:visibility="gone"
+                app:cornerRadius="30dp"
+                app:strokeColor="#D32F2F"
+                app:strokeWidth="2dp"
                 tools:visibility="visible"
                 android:textAllCaps="false"/>
 

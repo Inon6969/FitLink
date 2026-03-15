@@ -27,8 +27,12 @@ public class User implements Serializable {
     // מפה של מזהי קבוצות (Key = groupId, Value = true)
     private Map<String, Boolean> groupIds;
 
+    // מפה של מזהי אירועים (Key = eventId, Value = true)
+    private Map<String, Boolean> eventIds;
+
     public User() {
         this.groupIds = new HashMap<>();
+        this.eventIds = new HashMap<>();
     }
 
     public User(String id, String email, String password, String firstName, String lastName, String phone, boolean isAdmin, String profileImage) {
@@ -41,6 +45,7 @@ public class User implements Serializable {
         this.isAdmin = isAdmin;
         this.profileImage = profileImage;
         this.groupIds = new HashMap<>();
+        this.eventIds = new HashMap<>();
     }
 
     public String getId() {
@@ -126,6 +131,25 @@ public class User implements Serializable {
         this.groupIds.put(groupId, true);
     }
 
+    // Getters and Setters עבור האירועים
+    public Map<String, Boolean> getEventIds() {
+        return eventIds;
+    }
+
+    public void setEventIds(Map<String, Boolean> eventIds) {
+        this.eventIds = eventIds;
+    }
+
+    /**
+     * פונקציית עזר להוספת אירוע למשתמש
+     */
+    public void addEvent(String eventId) {
+        if (this.eventIds == null) {
+            this.eventIds = new HashMap<>();
+        }
+        this.eventIds.put(eventId, true);
+    }
+
     @NonNull
     @Override
     public String toString() {
@@ -136,6 +160,7 @@ public class User implements Serializable {
                 ", lastName='" + lastName + '\'' +
                 ", isAdmin=" + isAdmin +
                 ", groupsCount=" + (groupIds != null ? groupIds.size() : 0) +
+                ", eventsCount=" + (eventIds != null ? eventIds.size() : 0) +
                 '}';
     }
 

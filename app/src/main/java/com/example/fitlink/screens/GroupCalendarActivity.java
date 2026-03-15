@@ -23,6 +23,7 @@ import com.example.fitlink.models.Event;
 import com.example.fitlink.models.Group;
 import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.SharedPreferencesUtil;
+import com.google.android.material.appbar.AppBarLayout; // <-- הוספנו את הייבוא הזה
 import com.google.android.material.card.MaterialCardView;
 
 import java.text.SimpleDateFormat;
@@ -86,11 +87,27 @@ public class GroupCalendarActivity extends BaseActivity {
     }
 
     private void initViews() {
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_group_calendar), (v, insets) -> {
+        View root = findViewById(R.id.main_group_calendar);
+        AppBarLayout appBarLayout = findViewById(R.id.toolbar_group_calendar).getParent() instanceof AppBarLayout
+                ? (AppBarLayout) findViewById(R.id.toolbar_group_calendar).getParent()
+                : null;
+
+        ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+
+            // מרווח צדדים ותחתון למסך הראשי
+            v.setPadding(systemBars.left, 0, systemBars.right, systemBars.bottom);
+
+            // מרווח עליון ל-AppBarLayout כדי להרחיק את סרגל הכלים מהסוללה והשעון
+            if (appBarLayout != null) {
+                appBarLayout.setPadding(0, systemBars.top, 0, 0);
+            }
+
             return insets;
         });
+
+        // מכריח חישוב מיידי של הריווחים
+        root.post(() -> ViewCompat.requestApplyInsets(root));
 
         calendarView = findViewById(R.id.calendarView_events);
         rvEvents = findViewById(R.id.rv_calendar_events);
@@ -117,7 +134,6 @@ public class GroupCalendarActivity extends BaseActivity {
             @Override
             public void onEventClick(Event event) {
                 Intent intent = new Intent(GroupCalendarActivity.this, EventDetailsActivity.class);
-                // השינוי הקריטי: מעבירים רק את ה-ID של האירוע!
                 intent.putExtra("EVENT_ID", event.getId());
                 startActivity(intent);
             }
