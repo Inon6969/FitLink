@@ -29,6 +29,7 @@ import com.example.fitlink.utils.ImageUtil;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.chip.Chip;
 
 import java.util.Objects;
 
@@ -39,6 +40,7 @@ public class GroupDashboardActivity extends BaseActivity {
 
     private Group currentGroup;
     private ImageView imgGroupPhoto;
+    private Chip chipGroupLevel; // הוספת המשתנה של ה-Chip
     private CreateEventDialog currentCreateEventDialog;
     private EditGroupDialog currentEditGroupDialog;
 
@@ -116,6 +118,16 @@ public class GroupDashboardActivity extends BaseActivity {
 
         TextView tvTitle = findViewById(R.id.tv_dashboard_title);
         tvTitle.setText(currentGroup.getName());
+
+        chipGroupLevel = findViewById(R.id.chip_dashboard_level);
+
+        // עדכון הרמה ההתחלתית
+        if (currentGroup.getLevel() != null) {
+            chipGroupLevel.setText(currentGroup.getLevel().getDisplayName());
+            chipGroupLevel.setVisibility(View.VISIBLE);
+        } else {
+            chipGroupLevel.setVisibility(View.GONE);
+        }
 
         TextView tvDescription = findViewById(R.id.tv_dashboard_description);
         if (currentGroup.getDescription() != null && !currentGroup.getDescription().trim().isEmpty()) {
@@ -195,6 +207,14 @@ public class GroupDashboardActivity extends BaseActivity {
                 currentGroup = updatedGroup;
                 if (getSupportActionBar() != null) getSupportActionBar().setTitle(currentGroup.getName());
                 tvTitle.setText(currentGroup.getName());
+
+                // עדכון הרמה בזמן אמת אם השתנתה
+                if (currentGroup.getLevel() != null) {
+                    chipGroupLevel.setText(currentGroup.getLevel().getDisplayName());
+                    chipGroupLevel.setVisibility(View.VISIBLE);
+                } else {
+                    chipGroupLevel.setVisibility(View.GONE);
+                }
 
                 if (currentGroup.getDescription() != null && !currentGroup.getDescription().trim().isEmpty()) {
                     tvDescription.setText(currentGroup.getDescription());

@@ -77,12 +77,23 @@
                 android:id="@+id/tv_dashboard_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="8dp"
                 android:fontFamily="@font/poppins_bold"
                 android:text="Group Dashboard"
                 android:textAlignment="center"
                 android:textColor="@color/fitlinkPrimary"
                 android:textSize="26sp" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_dashboard_level"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:fontFamily="@font/poppins_medium"
+                android:textColor="@color/fitlinkBackground"
+                app:chipBackgroundColor="@color/fitlinkPrimary"
+                app:chipStrokeWidth="0dp"
+                tools:text="Intermediate" />
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"

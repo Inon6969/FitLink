@@ -1,6 +1,8 @@
 package com.example.fitlink.adapters;
 
 import android.content.Context;
+import android.content.res.ColorStateList; // הייבוא החדש לטיפול בצבע
+import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +20,7 @@ import com.example.fitlink.models.Group;
 import com.example.fitlink.models.SportType;
 import com.example.fitlink.models.User;
 import com.example.fitlink.services.DatabaseService;
+import com.example.fitlink.utils.ImageUtil;
 import com.google.android.material.chip.Chip;
 
 import java.util.List;
@@ -68,13 +71,29 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
         holder.tvSport.setText(group.getSportType().getDisplayName());
 
         int sportIconRes = getSportIconResource(group.getSportType());
-        holder.imgIcon.setImageResource(sportIconRes);
         holder.imgSportMini.setImageResource(sportIconRes);
+
+        // --- הלוגיקה המתוקנת של התמונה (כולל ביטול ה-Tint) ---
+        String base64Image = group.getGroupImage();
+        Context context = holder.itemView.getContext();
+
+        if (base64Image != null && !base64Image.isEmpty()) {
+            Bitmap bitmap = ImageUtil.convertFrom64base(base64Image);
+            if (bitmap != null) {
+                holder.imgIcon.setImageBitmap(bitmap);
+                holder.imgIcon.setPadding(0, 0, 0, 0);
+                // ביטול ה-Tint כדי שהתמונה תוצג בצבעים המקוריים שלה!
+                holder.imgIcon.setImageTintList(null);
+            } else {
+                setFallbackIcon(holder, sportIconRes, context);
+            }
+        } else {
+            setFallbackIcon(holder, sportIconRes, context);
+        }
 
         int memberCount = (group.getMembers() != null) ? group.getMembers().size() : 0;
         holder.tvMembers.setText(memberCount + (memberCount == 1 ? " Member" : " Members"));
 
-        // --- הלוגיקה לתגית הניהול והיצירה ---
         String creatorId = group.getCreatorId();
         boolean isCreator = creatorId != null && creatorId.equals(currentUserId);
         boolean isManager = group.getManagers() != null && group.getManagers().containsKey(currentUserId);
@@ -88,7 +107,6 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
         } else {
             holder.chipCreator.setVisibility(View.GONE);
         }
-        // --------------------------------------------
 
         holder.tvCreator.setText("Loading...");
         if (creatorId != null && !creatorId.isEmpty()) {
@@ -111,30 +129,25 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
             holder.tvCreator.setText("By Unknown");
         }
 
-        // הלוגיקה שמחליטה איך נראה הכפתור: JOIN, PENDING או LEAVE
         if (showJoinButton && currentUserId != null) {
             holder.btnJoin.setVisibility(View.VISIBLE);
-            Context context = holder.itemView.getContext();
 
             boolean isMember = group.getMembers() != null && group.getMembers().containsKey(currentUserId);
             boolean isPending = group.getPendingRequests() != null && group.getPendingRequests().containsKey(currentUserId);
 
             if (isMember) {
-                // המשתמש כבר בקבוצה - הכפתור הופך לכפתור עזיבה אפור
                 holder.btnJoin.setText("LEAVE");
                 holder.btnJoin.setTextColor(ContextCompat.getColor(context, R.color.fitlinkTextSecondary));
                 holder.btnJoin.setOnClickListener(v -> {
                     if (listener != null) listener.onLeaveClick(group);
                 });
             } else if (isPending) {
-                // המשתמש שלח בקשה וממתין לאישור
                 holder.btnJoin.setText("PENDING");
                 holder.btnJoin.setTextColor(ContextCompat.getColor(context, R.color.fitlinkTextSecondary));
                 holder.btnJoin.setOnClickListener(v -> {
                     Toast.makeText(context, "Your request is pending approval", Toast.LENGTH_SHORT).show();
                 });
             } else {
-                // המשתמש לא בקבוצה - כפתור הצטרפות רגיל
                 holder.btnJoin.setText("JOIN");
                 holder.btnJoin.setTextColor(ContextCompat.getColor(context, R.color.fitlinkPrimary));
                 holder.btnJoin.setOnClickListener(v -> {
@@ -148,6 +161,18 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) listener.onGroupClick(group);
         });
+    }
+
+    // מתודת העזר המעודכנת שמחזירה גם את הצבע (Tint) לאייקון
+    private void setFallbackIcon(GroupViewHolder holder, int sportIconRes, Context context) {
+        holder.imgIcon.setImageResource(sportIconRes);
+        int padding = (int) (12 * context.getResources().getDisplayMetrics().density);
+        holder.imgIcon.setPadding(padding, padding, padding, padding);
+
+        // החזרת צבע הפרימרי של האפליקציה (כחול) לאייקון
+        holder.imgIcon.setImageTintList(ColorStateList.valueOf(
+                ContextCompat.getColor(context, R.color.fitlinkPrimary)
+        ));
     }
 
     private int getSportIconResource(SportType type) {
@@ -173,8 +198,6 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
         final ImageView imgIcon, imgSportMini;
         final Chip chipLevel;
         final Button btnJoin;
-
-        // התגית החדשה שהוספנו
         final Chip chipCreator;
 
         public GroupViewHolder(@NonNull View itemView) {
@@ -188,8 +211,6 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
             imgSportMini = itemView.findViewById(R.id.img_item_group_sport_mini);
             chipLevel = itemView.findViewById(R.id.chip_group_level);
             btnJoin = itemView.findViewById(R.id.btn_item_group_join);
-
-            // קישור התגית מתוך קובץ העיצוב (XML)
             chipCreator = itemView.findViewById(R.id.chip_group_creator);
         }
     }

@@ -1,5 +1,6 @@
 package com.example.fitlink.screens;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
@@ -8,6 +9,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -21,6 +24,8 @@ import com.example.fitlink.models.Comment;
 import com.example.fitlink.models.Event;
 import com.example.fitlink.models.SportType;
 import com.example.fitlink.models.User;
+import com.example.fitlink.screens.dialogs.EditEventDialog;
+import com.example.fitlink.screens.dialogs.EditIndependentEventDialog;
 import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.google.android.material.button.MaterialButton;
@@ -40,13 +45,38 @@ public class EventDetailsActivity extends BaseActivity {
     private TextView tvTitle, tvCreator, tvDateTime, tvLocation, tvParticipants, tvDescription;
     private MaterialButton btnMainAction, btnSecondaryAction;
 
-    // --- משתני אזור התגובות ---
     private RecyclerView rvComments;
     private CommentAdapter commentAdapter;
     private EditText etNewComment;
     private MaterialButton btnSendComment;
 
+    // שני המשתנים לדיאלוגים השונים
+    private EditIndependentEventDialog currentEditIndependentDialog;
+    private EditEventDialog currentEditGroupEventDialog;
+
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy - HH:mm", Locale.getDefault());
+
+    // העדכון החדש: נותב את בחירת המיקום לדיאלוג שפתוח כרגע
+    private final ActivityResultLauncher<Intent> mapPickerLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    String address = result.getData().getStringExtra("address");
+                    double lat = result.getData().getDoubleExtra("lat", 0);
+                    double lng = result.getData().getDoubleExtra("lng", 0);
+
+                    if (currentEditIndependentDialog != null && currentEditIndependentDialog.isShowing()) {
+                        currentEditIndependentDialog.updateLocationDetails(address, lat, lng);
+                    } else if (currentEditGroupEventDialog != null && currentEditGroupEventDialog.isShowing()) {
+                        currentEditGroupEventDialog.updateLocationDetails(address, lat, lng);
+                    }
+                }
+            }
+    );
+
+    public ActivityResultLauncher<Intent> getMapPickerLauncher() {
+        return mapPickerLauncher;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +84,6 @@ public class EventDetailsActivity extends BaseActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_event_details);
 
-        // מושכים רק את ה-ID מהאינטנט!
         String eventId = getIntent().getStringExtra("EVENT_ID");
         if (eventId == null || eventId.isEmpty()) {
             Toast.makeText(this, "Event ID missing", Toast.LENGTH_SHORT).show();
@@ -62,7 +91,6 @@ public class EventDetailsActivity extends BaseActivity {
             return;
         }
 
-        // מניח שיש לך פונקציה getEvent ב-DatabaseService. אם קראת לה בשם אחר, עדכן כאן.
         databaseService.getEvent(eventId, new DatabaseService.DatabaseCallback<Event>() {
             @Override
             public void onCompleted(Event event) {
@@ -91,17 +119,20 @@ public class EventDetailsActivity extends BaseActivity {
         populateEventData();
         setupActionButtons();
 
-        // אתחול וטעינת התגובות
         setupComments();
         loadComments();
     }
 
     private void initViews() {
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_event_details), (v, insets) -> {
+        View root = findViewById(R.id.main_event_details);
+
+        ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
             Insets systemAndImeBars = insets.getInsets(WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.ime());
             v.setPadding(systemAndImeBars.left, systemAndImeBars.top, systemAndImeBars.right, systemAndImeBars.bottom);
             return insets;
         });
+
+        root.post(() -> ViewCompat.requestApplyInsets(root));
 
         imgIcon = findViewById(R.id.img_item_event_icon);
         tvTitle = findViewById(R.id.tv_details_event_title);
@@ -114,7 +145,6 @@ public class EventDetailsActivity extends BaseActivity {
         btnMainAction = findViewById(R.id.btn_event_action_main);
         btnSecondaryAction = findViewById(R.id.btn_event_action_secondary);
 
-        // חיבור משתני אזור התגובות
         rvComments = findViewById(R.id.rv_event_comments);
         etNewComment = findViewById(R.id.et_new_comment);
         btnSendComment = findViewById(R.id.btn_send_comment);
@@ -252,8 +282,21 @@ public class EventDetailsActivity extends BaseActivity {
         });
     }
 
+    // הפונקציה המעודכנת שמחליטה איזה דיאלוג עריכה לפתוח
     private void editEvent() {
-        Toast.makeText(this, "Opening Edit Event Dialog...", Toast.LENGTH_SHORT).show();
+        if (currentEvent.isIndependent()) {
+            currentEditIndependentDialog = new EditIndependentEventDialog(this, currentEvent, updatedEvent -> {
+                this.currentEvent = updatedEvent;
+                populateEventData();
+            });
+            currentEditIndependentDialog.show();
+        } else {
+            currentEditGroupEventDialog = new EditEventDialog(this, currentEvent, updatedEvent -> {
+                this.currentEvent = updatedEvent;
+                populateEventData();
+            });
+            currentEditGroupEventDialog.show();
+        }
     }
 
     private void deleteEvent() {

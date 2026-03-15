@@ -3,6 +3,7 @@ package com.example.fitlink.screens;
 import android.app.AlertDialog;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -79,11 +80,17 @@ public class GroupChatActivity extends BaseActivity {
     }
 
     private void initViews() {
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_group_chat), (v, insets) -> {
+        View root = findViewById(R.id.main_group_chat);
+
+        ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
             Insets systemAndImeBars = insets.getInsets(WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.ime());
             v.setPadding(systemAndImeBars.left, systemAndImeBars.top, systemAndImeBars.right, systemAndImeBars.bottom);
             return insets;
         });
+
+        // 🌟 הפקודה שפותרת את הבאג בטעינה הראשונית! 🌟
+        // מכריחה את המערכת לחשב את גובה כפתורי הניווט מיד כשהמסך נטען
+        root.post(() -> ViewCompat.requestApplyInsets(root));
 
         Toolbar toolbar = findViewById(R.id.toolbar_group_chat);
         setSupportActionBar(toolbar);

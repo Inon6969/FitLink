@@ -547,6 +547,19 @@ public class DatabaseService {
         writeData(EVENTS_PATH + "/" + eventId, event, callback);
     }
     /**
+     * Updates an existing event in the database.
+     */
+    public void updateEvent(@NotNull final Event event, @Nullable final DatabaseCallback<Void> callback) {
+        databaseReference.child(EVENTS_PATH).child(event.getId()).setValue(event)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        if (callback != null) callback.onCompleted(null);
+                    } else {
+                        if (callback != null) callback.onFailed(task.getException());
+                    }
+                });
+    }
+    /**
      * Retrieves a specific event by its ID.
      */
     public void getEvent(@NotNull final String eventId, @NotNull final DatabaseCallback<Event> callback) {
@@ -624,7 +637,8 @@ public class DatabaseService {
         });
     }
     /**
-     * Deletes a group entirely from the database and removes its reference from all members.
+     * Deletes a group entirely from the database, including its chat, its events,
+     * the events' comments, and removes its reference from all members.
      */
     public void deleteGroup(@NotNull final String groupId, @Nullable final DatabaseCallback<Void> callback) {
         // שלב 1: שולפים את הקבוצה כדי לדעת מי החברים בה
@@ -636,28 +650,44 @@ public class DatabaseService {
                     return;
                 }
 
-                Map<String, Object> updates = new HashMap<>();
+                // שלב 2: שולפים את כל האירועים ששייכים לקבוצה הזו
+                getEventsByGroupId(groupId, new DatabaseCallback<List<Event>>() {
+                    @Override
+                    public void onCompleted(List<Event> groupEvents) {
+                        Map<String, Object> updates = new HashMap<>();
 
-                // שלב 2: מוחקים את הקבוצה עצמה מנתיב הקבוצות
-                updates.put(GROUPS_PATH + "/" + groupId, null);
-                //מחיקת צאט הקבוצה
-                updates.put(GROUP_CHATS_PATH + "/" + groupId, null);
+                        // שלב 3: מוחקים את הקבוצה עצמה ואת הצ'אט שלה
+                        updates.put(GROUPS_PATH + "/" + groupId, null);
+                        updates.put(GROUP_CHATS_PATH + "/" + groupId, null);
 
-                // שלב 3: עוברים על כל החברים ומוחקים את הקבוצה מרשימת הקבוצות האישית שלהם
-                if (group.getMembers() != null) {
-                    for (String userId : group.getMembers().keySet()) {
-                        updates.put(USERS_PATH + "/" + userId + "/groupIds/" + groupId, null);
+                        // שלב 4: מוחקים את הקבוצה מרשימת הקבוצות האישית של כל חבר
+                        if (group.getMembers() != null) {
+                            for (String userId : group.getMembers().keySet()) {
+                                updates.put(USERS_PATH + "/" + userId + "/groupIds/" + groupId, null);
+                            }
+                        }
+
+                        // שלב 5: מוחקים את כל האירועים של הקבוצה ואת התגובות של כל אירוע
+                        if (groupEvents != null) {
+                            for (Event event : groupEvents) {
+                                updates.put(EVENTS_PATH + "/" + event.getId(), null);
+                                updates.put("event_comments/" + event.getId(), null);
+                            }
+                        }
+
+                        // שלב 6: מבצעים את כל המחיקות בבת אחת (Atomic update)
+                        databaseReference.updateChildren(updates).addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                if (callback != null) callback.onCompleted(null);
+                            } else {
+                                if (callback != null) callback.onFailed(task.getException());
+                            }
+                        });
                     }
-                }
 
-                // הערה: אם תרצה בעתיד למחוק גם את כל האירועים של הקבוצה, יהיה צריך להוסיף אותם ל-updates כאן
-
-                // שלב 4: מבצעים את המחיקה הכפולה בבת אחת (Atomic update)
-                databaseReference.updateChildren(updates).addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        if (callback != null) callback.onCompleted(null);
-                    } else {
-                        if (callback != null) callback.onFailed(task.getException());
+                    @Override
+                    public void onFailed(Exception e) {
+                        if (callback != null) callback.onFailed(e);
                     }
                 });
             }
@@ -668,7 +698,6 @@ public class DatabaseService {
             }
         });
     }
-
     /**
      * User joins an event.
      */

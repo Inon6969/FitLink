@@ -2,36 +2,29 @@ package com.example.fitlink.screens.dialogs;
 
 import android.app.Dialog;
 import android.content.Context;
-import android.view.View;
+import android.content.res.ColorStateList;
+import android.graphics.Bitmap;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.core.content.ContextCompat;
+
 import com.example.fitlink.R;
 import com.example.fitlink.models.Group;
 import com.example.fitlink.models.SportType;
-import com.example.fitlink.utils.SharedPreferencesUtil;
+import com.example.fitlink.utils.ImageUtil;
 
 public class GroupDescriptionDialog {
 
     private final Context context;
     private final Group group;
-    private OnEditListener editListener; // מאזין ללחיצה על עריכה
-
-    // ממשק להעברת אירוע העריכה למסך שפתח את הדיאלוג
-    public interface OnEditListener {
-        void onEditClick(Group group);
-    }
 
     // בנאי (Constructor)
     public GroupDescriptionDialog(Context context, Group group) {
         this.context = context;
         this.group = group;
-    }
-
-    public void setOnEditListener(OnEditListener listener) {
-        this.editListener = listener;
     }
 
     // הפונקציה שבונה ומציגה את הדיאלוג
@@ -52,9 +45,7 @@ public class GroupDescriptionDialog {
         TextView tvName = dialog.findViewById(R.id.tv_dialog_group_name);
         TextView tvDescription = dialog.findViewById(R.id.tv_dialog_group_description);
         Button btnClose = dialog.findViewById(R.id.btn_dialog_close);
-        Button btnEdit = dialog.findViewById(R.id.btn_dialog_edit_group); // כפתור העריכה החדש
 
-        imgIcon.setImageResource(getSportIconResource(group.getSportType()));
         tvName.setText(group.getName());
 
         String description = group.getDescription();
@@ -63,31 +54,39 @@ public class GroupDescriptionDialog {
         }
         tvDescription.setText(description);
 
-        // --- לוגיקת הצגת כפתור העריכה ---
-        String currentUserId = SharedPreferencesUtil.getUserId(context);
-        boolean isCreator = currentUserId != null && currentUserId.equals(group.getCreatorId());
+        // --- הלוגיקה להצגת התמונה או האייקון ---
+        String base64Image = group.getGroupImage();
+        int sportIconRes = getSportIconResource(group.getSportType());
 
-        if (btnEdit != null) {
-            if (isCreator) {
-                btnEdit.setVisibility(View.VISIBLE);
-                btnEdit.setOnClickListener(v -> {
-                    dialog.dismiss();
-                    if (editListener != null) {
-                        editListener.onEditClick(group);
-                    }
-                });
+        if (base64Image != null && !base64Image.isEmpty()) {
+            Bitmap bitmap = ImageUtil.convertFrom64base(base64Image);
+            if (bitmap != null) {
+                imgIcon.setImageBitmap(bitmap);
+                imgIcon.setPadding(0, 0, 0, 0); // ביטול הריווח לתמונה מלאה
+                imgIcon.setImageTintList(null); // ביטול הצביעה הכחולה
             } else {
-                btnEdit.setVisibility(View.GONE);
+                setFallbackIcon(imgIcon, sportIconRes);
             }
+        } else {
+            setFallbackIcon(imgIcon, sportIconRes);
         }
-        // ----------------------------------
 
         btnClose.setOnClickListener(v -> dialog.dismiss());
 
         dialog.show();
     }
 
-    // פונקציית עזר למציאת האייקון הנכון
+    // פונקציית עזר להגדרת אייקון ברירת המחדל (כולל צבע וריווח)
+    private void setFallbackIcon(ImageView imgIcon, int sportIconRes) {
+        imgIcon.setImageResource(sportIconRes);
+        int padding = (int) (12 * context.getResources().getDisplayMetrics().density);
+        imgIcon.setPadding(padding, padding, padding, padding);
+        imgIcon.setImageTintList(ColorStateList.valueOf(
+                ContextCompat.getColor(context, R.color.fitlinkPrimary)
+        ));
+    }
+
+    // פונקציית עזר למציאת האייקון הנכון לפי סוג הספורט
     private int getSportIconResource(SportType type) {
         if (type == SportType.RUNNING) {
             return R.drawable.ic_running;
