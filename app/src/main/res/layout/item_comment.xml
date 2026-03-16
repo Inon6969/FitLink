@@ -25,8 +25,6 @@
             android:layout_height="match_parent"
             android:contentDescription="User Profile Image"
             android:scaleType="centerCrop"
-            android:padding="8dp"
-            app:tint="@color/fitlinkPrimary"
             android:src="@drawable/ic_user" />
     </com.google.android.material.card.MaterialCardView>
 

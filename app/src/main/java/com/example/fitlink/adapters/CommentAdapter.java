@@ -1,11 +1,16 @@
 package com.example.fitlink.adapters;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.fitlink.R;
@@ -46,14 +51,44 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
         holder.tvText.setText(comment.getText());
         holder.tvTime.setText(timeFormat.format(new Date(comment.getTimestamp())));
 
-        // משיכת שם המשתמש שכתב את התגובה
+        // הגדרת משתנים לצבע ול-padding
+        int primaryColor = ContextCompat.getColor(holder.itemView.getContext(), R.color.fitlinkPrimary);
+        float density = holder.itemView.getContext().getResources().getDisplayMetrics().density;
+        int paddingPx = (int) (8 * density); // המרה של 8dp לפיקסלים
+
+        // --- מצב ברירת מחדל: הצגת האייקון עם צבע ו-padding ---
+        holder.imgUserProfile.setImageResource(R.drawable.ic_user);
+        holder.imgUserProfile.setPadding(paddingPx, paddingPx, paddingPx, paddingPx);
+        holder.imgUserProfile.setColorFilter(primaryColor);
+
         holder.tvUserName.setText("Loading...");
+
+        // משיכת שם המשתמש ותמונת הפרופיל
         if (comment.getUserId() != null) {
             DatabaseService.getInstance().getUser(comment.getUserId(), new DatabaseService.DatabaseCallback<User>() {
                 @Override
                 public void onCompleted(User user) {
                     if (user != null) {
                         holder.tvUserName.setText(user.getFirstName() + " " + user.getLastName());
+
+                        // טעינת תמונת הפרופיל
+                        if (user.getProfileImage() != null && !user.getProfileImage().isEmpty()) {
+                            try {
+                                // המרה ממחרוזת Base64 לתמונה
+                                byte[] decodedString = Base64.decode(user.getProfileImage(), Base64.DEFAULT);
+                                Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+
+                                holder.imgUserProfile.setImageBitmap(decodedByte);
+
+                                // --- מצב תמונה אמיתית: ביטול הצבע (tint) ואיפוס ה-padding ---
+                                holder.imgUserProfile.clearColorFilter();
+                                holder.imgUserProfile.setPadding(0, 0, 0, 0);
+
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                // במקרה של שגיאה (התמונה פגומה), נשארים במצב ברירת מחדל
+                            }
+                        }
                     } else {
                         holder.tvUserName.setText("Unknown User");
                     }
@@ -74,12 +109,14 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
 
     public static class CommentViewHolder extends RecyclerView.ViewHolder {
         final TextView tvUserName, tvTime, tvText;
+        final ImageView imgUserProfile; // נוסף: רפרנס לתמונה
 
         public CommentViewHolder(@NonNull View itemView) {
             super(itemView);
             tvUserName = itemView.findViewById(R.id.tv_comment_user_name);
             tvTime = itemView.findViewById(R.id.tv_comment_time);
             tvText = itemView.findViewById(R.id.tv_comment_text);
+            imgUserProfile = itemView.findViewById(R.id.img_item_user_profile); // חיבור ה-View
         }
     }
 }

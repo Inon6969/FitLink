@@ -293,7 +293,11 @@
                             android:textColor="@color/fitlinkPrimary"
                             android:textSize="16sp"
                             tools:text="Yinon" />
-                        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E0E0E0" android:layout_marginTop="8dp"/>
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="#E0E0E0"
+                            android:layout_marginTop="8dp"/>
                     </LinearLayout>
 
                     <LinearLayout
@@ -316,7 +320,11 @@
                             android:textColor="@color/fitlinkPrimary"
                             android:textSize="16sp"
                             tools:text="Cohen" />
-                        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E0E0E0" android:layout_marginTop="8dp"/>
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="#E0E0E0"
+                            android:layout_marginTop="8dp"/>
                     </LinearLayout>
 
                     <LinearLayout
@@ -339,7 +347,11 @@
                             android:textColor="@color/fitlinkPrimary"
                             android:textSize="16sp"
                             tools:text="yinon@example.com" />
-                        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E0E0E0" android:layout_marginTop="8dp"/>
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="#E0E0E0"
+                            android:layout_marginTop="8dp"/>
                     </LinearLayout>
 
                     <LinearLayout
@@ -362,7 +374,11 @@
                             android:textColor="@color/fitlinkPrimary"
                             android:textSize="16sp"
                             tools:text="050-1234567" />
-                        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E0E0E0" android:layout_marginTop="8dp"/>
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="#E0E0E0"
+                            android:layout_marginTop="8dp"/>
                     </LinearLayout>
 
                     <LinearLayout

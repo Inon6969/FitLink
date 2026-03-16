@@ -1,18 +1,25 @@
 package com.example.fitlink.adapters;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.text.format.DateFormat;
+import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.fitlink.R;
 import com.example.fitlink.models.ChatMessage;
+import com.example.fitlink.models.User;
+import com.example.fitlink.services.DatabaseService;
 
 import java.util.Calendar;
 import java.util.List;
@@ -26,15 +33,14 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private final List<ChatMessage> messages;
     private final String currentUserId;
-    private final String creatorId; // שונה מ-adminId ל-creatorId
-    private final Map<String, Boolean> managers; // הוספנו את רשימת המנהלים
+    private final String creatorId;
+    private final Map<String, Boolean> managers;
     private final OnMessageLongClickListener longClickListener;
 
     public interface OnMessageLongClickListener {
         void onMessageLongClick(ChatMessage message);
     }
 
-    // הקונסטרקטור המעודכן שמקבל גם את המנהלים
     public ChatAdapter(List<ChatMessage> messages, String currentUserId, String creatorId, Map<String, Boolean> managers, OnMessageLongClickListener longClickListener) {
         this.messages = messages;
         this.currentUserId = currentUserId;
@@ -87,20 +93,52 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
             // --- לוגיקת ההדגשה לפי תפקיד (Creator או Manager) ---
             if (creatorId != null && message.getSenderId().equals(creatorId)) {
-                // יוצר הקבוצה
                 receivedHolder.tvName.setText(message.getSenderName() + " (Creator)");
-                receivedHolder.tvName.setTextColor(Color.parseColor("#D32F2F")); // כתום בולט
+                receivedHolder.tvName.setTextColor(Color.parseColor("#D32F2F"));
                 receivedHolder.tvName.setTypeface(null, Typeface.BOLD);
             } else if (managers != null && managers.containsKey(message.getSenderId())) {
-                // מנהל משנה
                 receivedHolder.tvName.setText(message.getSenderName() + " (Manager)");
-                receivedHolder.tvName.setTextColor(Color.parseColor("#FF9800")); // ירוק בולט
+                receivedHolder.tvName.setTextColor(Color.parseColor("#FF9800"));
                 receivedHolder.tvName.setTypeface(null, Typeface.BOLD);
             } else {
-                // חבר רגיל
                 receivedHolder.tvName.setText(message.getSenderName());
-                receivedHolder.tvName.setTextColor(Color.parseColor("#424242")); // אפור רגיל
+                receivedHolder.tvName.setTextColor(Color.parseColor("#424242"));
                 receivedHolder.tvName.setTypeface(null, Typeface.NORMAL);
+            }
+
+            // --- טיפול בתמונת הפרופיל ---
+            int primaryColor = ContextCompat.getColor(holder.itemView.getContext(), R.color.fitlinkPrimary);
+            float density = holder.itemView.getContext().getResources().getDisplayMetrics().density;
+            int paddingPx = (int) (6 * density); // פדינג קצת יותר קטן לתמונה בצ'אט (6dp)
+
+            // מצב ברירת מחדל
+            receivedHolder.imgUserProfile.setImageResource(R.drawable.ic_user);
+            receivedHolder.imgUserProfile.setPadding(paddingPx, paddingPx, paddingPx, paddingPx);
+            receivedHolder.imgUserProfile.setColorFilter(primaryColor);
+
+            if (message.getSenderId() != null) {
+                DatabaseService.getInstance().getUser(message.getSenderId(), new DatabaseService.DatabaseCallback<User>() {
+                    @Override
+                    public void onCompleted(User user) {
+                        if (user != null && user.getProfileImage() != null && !user.getProfileImage().isEmpty()) {
+                            try {
+                                byte[] decodedString = Base64.decode(user.getProfileImage(), Base64.DEFAULT);
+                                Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+
+                                receivedHolder.imgUserProfile.setImageBitmap(decodedByte);
+                                receivedHolder.imgUserProfile.clearColorFilter();
+                                receivedHolder.imgUserProfile.setPadding(0, 0, 0, 0);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onFailed(Exception e) {
+                        // נשארים עם תמונת ברירת המחדל
+                    }
+                });
             }
 
             receivedHolder.itemView.setOnLongClickListener(v -> {
@@ -133,12 +171,14 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     static class ReceivedMessageHolder extends RecyclerView.ViewHolder {
         TextView tvName, tvMessage, tvTime;
+        ImageView imgUserProfile; // נוסף: רפרנס לתמונת הפרופיל
 
         ReceivedMessageHolder(View itemView) {
             super(itemView);
             tvName = itemView.findViewById(R.id.tv_chat_received_name);
             tvMessage = itemView.findViewById(R.id.tv_chat_received_message);
             tvTime = itemView.findViewById(R.id.tv_chat_received_time);
+            imgUserProfile = itemView.findViewById(R.id.img_chat_user_profile); // חיבור התמונה מ-XML
         }
     }
 }

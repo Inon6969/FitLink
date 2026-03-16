@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:paddingStart="8dp"
@@ -7,10 +8,32 @@
     android:paddingEnd="40dp"
     android:paddingBottom="4dp">
 
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/card_chat_user_profile"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_alignParentStart="true"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="8dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="0dp"
+        app:cardBackgroundColor="@android:color/transparent"
+        app:strokeColor="#E0E0E0"
+        app:strokeWidth="1dp">
+
+        <ImageView
+            android:id="@+id/img_chat_user_profile"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="User Profile Image"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_user" />
+    </com.google.android.material.card.MaterialCardView>
+
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
+        android:layout_toEndOf="@id/card_chat_user_profile"
         android:background="@drawable/bg_chat_bubble_received"
         android:elevation="1dp"
         android:orientation="vertical"
