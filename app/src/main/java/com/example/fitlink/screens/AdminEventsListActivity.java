@@ -144,6 +144,7 @@ public class AdminEventsListActivity extends BaseActivity {
                 startActivity(intent);
             }
         });
+        eventAdapter.setShowGroupContext(true);
         rvEvents.setAdapter(eventAdapter);
     }
 

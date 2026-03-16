@@ -290,17 +290,19 @@ public class EventDetailsActivity extends BaseActivity {
 
         boolean isPastEvent = currentEvent.getEndTimestamp() < System.currentTimeMillis();
 
+        // איפוס מצב התחלתי
         btnMainAction.setVisibility(View.VISIBLE);
         btnSecondaryAction.setVisibility(View.GONE);
         btnTertiaryAction.setVisibility(View.GONE);
 
+        // 1. טיפול באירוע עבר
         if (isPastEvent) {
             btnMainAction.setText("Event Completed");
-            btnMainAction.setBackgroundColor(getResources().getColor(android.R.color.darker_gray));
+            btnMainAction.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getResources().getColor(android.R.color.darker_gray)));
             btnMainAction.setEnabled(false);
 
-            // אם זה היוצר או שמדובר במנהל דרך פאנל הניהול - מאפשרים למחוק
             if (canManage) {
+                // מחיקה תמיד בכפתור השלישי
                 btnTertiaryAction.setVisibility(View.VISIBLE);
                 btnTertiaryAction.setText("Delete Event");
                 btnTertiaryAction.setOnClickListener(v -> deleteEvent());
@@ -310,44 +312,35 @@ public class EventDetailsActivity extends BaseActivity {
 
         btnMainAction.setEnabled(true);
 
-        if (canManage) {
-            if (isIndependent) {
-                btnMainAction.setText("Edit Event");
-                btnMainAction.setBackgroundColor(getResources().getColor(R.color.fitlinkPrimary));
-                btnMainAction.setOnClickListener(v -> editEvent());
-
-                btnTertiaryAction.setVisibility(View.VISIBLE);
-                btnTertiaryAction.setText("Delete Event");
-                btnTertiaryAction.setOnClickListener(v -> deleteEvent());
-            } else {
-                if (isJoined) {
-                    btnMainAction.setText("Leave Event");
-                    btnMainAction.setBackgroundColor(getResources().getColor(android.R.color.darker_gray));
-                    btnMainAction.setOnClickListener(v -> leaveEvent());
-                } else {
-                    btnMainAction.setText("Join Event");
-                    btnMainAction.setBackgroundColor(getResources().getColor(R.color.fitlinkPrimary));
-                    btnMainAction.setOnClickListener(v -> joinEvent());
-                }
-
-                btnSecondaryAction.setVisibility(View.VISIBLE);
-                btnSecondaryAction.setText("Edit Event");
-                btnSecondaryAction.setOnClickListener(v -> editEvent());
-
-                btnTertiaryAction.setVisibility(View.VISIBLE);
-                btnTertiaryAction.setText("Delete Event");
-                btnTertiaryAction.setOnClickListener(v -> deleteEvent());
-            }
+        // 2. טיפול בכפתור הראשי (הצטרפות / עזיבה / הסתרה)
+        if (isIndependent && isCreator) {
+            // יוצר של אירוע עצמאי לא צריך כפתור הצטרפות/עזיבה, לכן נסתיר אותו
+            btnMainAction.setVisibility(View.GONE);
         } else {
+            // כל השאר מקבלים אפשרות הצטרפות או עזיבה בכפתור הראשי
+            btnMainAction.setVisibility(View.VISIBLE);
             if (isJoined) {
                 btnMainAction.setText("Leave Event");
-                btnMainAction.setBackgroundColor(getResources().getColor(android.R.color.darker_gray));
+                btnMainAction.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getResources().getColor(android.R.color.darker_gray)));
                 btnMainAction.setOnClickListener(v -> leaveEvent());
             } else {
                 btnMainAction.setText("Join Event");
-                btnMainAction.setBackgroundColor(getResources().getColor(R.color.fitlinkPrimary));
+                btnMainAction.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getResources().getColor(R.color.fitlinkPrimary)));
                 btnMainAction.setOnClickListener(v -> joinEvent());
             }
+        }
+
+        // 3. טיפול בכפתורי הניהול (תמיד יופיעו באותו עיצוב למנהלים וליוצרים)
+        if (canManage) {
+            // עריכה תמיד בכפתור המשני (Outlined)
+            btnSecondaryAction.setVisibility(View.VISIBLE);
+            btnSecondaryAction.setText("Edit Event");
+            btnSecondaryAction.setOnClickListener(v -> editEvent());
+
+            // מחיקה תמיד בכפתור השלישי
+            btnTertiaryAction.setVisibility(View.VISIBLE);
+            btnTertiaryAction.setText("Delete Event");
+            btnTertiaryAction.setOnClickListener(v -> deleteEvent());
         }
     }
 

@@ -1,6 +1,8 @@
 package com.example.fitlink.adapters;
 
 import android.content.Context;
+import android.text.Html;
+import android.text.Spanned;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -163,16 +165,15 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         String limit = event.getMaxParticipants() > 0 ? String.valueOf(event.getMaxParticipants()) : "Unlimited";
         holder.tvParticipants.setText(participants + "/" + limit + " Participants");
 
-        // --- התיקון החדש: הצגת סטטוס "אירוע עבר" לעומת סטטוס "רשום" ---
         boolean isPastEvent = event.getEndTimestamp() < System.currentTimeMillis();
         boolean isJoined = event.getParticipants() != null && event.getParticipants().containsKey(currentUserId);
 
         if (isPastEvent) {
             holder.chipStatus.setVisibility(View.VISIBLE);
             holder.chipStatus.setText("COMPLETED");
-            holder.itemView.setAlpha(0.6f); // עושה את האירוע קצת שקוף כדי לסמן שהוא בעבר
+            holder.itemView.setAlpha(0.6f);
         } else {
-            holder.itemView.setAlpha(1.0f); // אטימות רגילה לאירועים עתידיים
+            holder.itemView.setAlpha(1.0f);
             if (isJoined) {
                 holder.chipStatus.setVisibility(View.VISIBLE);
                 holder.chipStatus.setText("JOINED");
@@ -194,16 +195,32 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
                 @Override
                 public void onCompleted(User user) {
                     String creatorName = (user != null) ? (user.getFirstName() + " " + user.getLastName()) : "Unknown";
-                    holder.tvCreator.setText(contextPrefix + " • By " + creatorName);
+                    holder.tvCreator.setText(formatSubtitle(contextPrefix, creatorName));
                 }
 
                 @Override
                 public void onFailed(Exception e) {
-                    holder.tvCreator.setText(contextPrefix + " • By Unknown");
+                    holder.tvCreator.setText(formatSubtitle(contextPrefix, "Unknown"));
                 }
             });
         } else {
-            holder.tvCreator.setText(contextPrefix + " • By Unknown");
+            holder.tvCreator.setText(formatSubtitle(contextPrefix, "Unknown"));
+        }
+    }
+
+    // פונקציה שמייצרת עיצוב טקסטואלי נקי ומודרני (ללא אימוג'ים)
+    private Spanned formatSubtitle(String groupName, String creatorName) {
+        String formatted;
+        if (groupName.equals("Independent")) {
+            formatted = "<b>Independent Event</b> &nbsp;&nbsp;&#8226;&nbsp;&nbsp; By " + creatorName;
+        } else {
+            formatted = "<b>" + groupName + "</b> &nbsp;&nbsp;&#8226;&nbsp;&nbsp; By " + creatorName;
+        }
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+            return Html.fromHtml(formatted, Html.FROM_HTML_MODE_COMPACT);
+        } else {
+            return Html.fromHtml(formatted);
         }
     }
 
