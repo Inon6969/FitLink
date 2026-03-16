@@ -167,8 +167,8 @@
                 android:layout_margin="4dp"
                 android:backgroundTint="@color/fitlinkPrimary"
                 android:fontFamily="@font/poppins_medium"
-                android:text="Save Changes"
-                android:textSize="16sp"
+                android:text="Save"
+                android:textSize="18sp"
                 app:cornerRadius="12dp" />
 
             <com.google.android.material.button.MaterialButton

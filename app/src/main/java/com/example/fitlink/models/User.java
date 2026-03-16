@@ -30,9 +30,13 @@ public class User implements Serializable {
     // מפה של מזהי אירועים (Key = eventId, Value = true)
     private Map<String, Boolean> eventIds;
 
+    // --- חדש: מונה אירועי היסטוריה לשמירה על גיימיפיקציה גם אחרי ניקוי DB ---
+    private int pastEventsCount;
+
     public User() {
         this.groupIds = new HashMap<>();
         this.eventIds = new HashMap<>();
+        this.pastEventsCount = 0;
     }
 
     public User(String id, String email, String password, String firstName, String lastName, String phone, boolean isAdmin, String profileImage) {
@@ -46,6 +50,7 @@ public class User implements Serializable {
         this.profileImage = profileImage;
         this.groupIds = new HashMap<>();
         this.eventIds = new HashMap<>();
+        this.pastEventsCount = 0;
     }
 
     public String getId() {
@@ -150,6 +155,15 @@ public class User implements Serializable {
         this.eventIds.put(eventId, true);
     }
 
+    // Getters and Setters עבור מונה ההיסטוריה (גיימיפיקציה)
+    public int getPastEventsCount() {
+        return pastEventsCount;
+    }
+
+    public void setPastEventsCount(int pastEventsCount) {
+        this.pastEventsCount = pastEventsCount;
+    }
+
     @NonNull
     @Override
     public String toString() {
@@ -161,6 +175,7 @@ public class User implements Serializable {
                 ", isAdmin=" + isAdmin +
                 ", groupsCount=" + (groupIds != null ? groupIds.size() : 0) +
                 ", eventsCount=" + (eventIds != null ? eventIds.size() : 0) +
+                ", pastEventsCount=" + pastEventsCount +
                 '}';
     }
 

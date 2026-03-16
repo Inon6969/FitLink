@@ -32,10 +32,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
     private final String currentUserId;
     private final OnEventClickListener listener;
 
-    // מילון שמות הקבוצות לטעינה מהירה ושמירה במטמון
     private Map<String, String> groupNamesMap = new HashMap<>();
-
-    // דגל שקובע האם להציג את ההקשר (קבוצה/עצמאי) - דלוק רק ב-My Calendar
     private boolean showGroupContext = false;
 
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy - HH:mm", Locale.getDefault());
@@ -56,7 +53,6 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         notifyDataSetChanged();
     }
 
-    // מתודה להדלקת התצוגה המורחבת של היוצר
     public void setShowGroupContext(boolean showGroupContext) {
         this.showGroupContext = showGroupContext;
         notifyDataSetChanged();
@@ -75,14 +71,12 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
 
         holder.tvTitle.setText(event.getTitle());
 
-        // עדכון התמונה
         if (event.getSportType() != null) {
             holder.imgIcon.setImageResource(getSportIconResource(event.getSportType()));
         } else {
             holder.imgIcon.setImageResource(R.drawable.ic_calendar);
         }
 
-        // ניהול תצוגת הספורט (תמיד מופיע לאירוע עצמאי)
         if (event.isIndependent()) {
             holder.layoutSport.setVisibility(View.VISIBLE);
             if (event.getSportType() != null) {
@@ -98,9 +92,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
 
         holder.tvCreator.setText("Loading...");
 
-        // --- פיצול תצוגת שם היוצר לפי הדגל שלנו ---
         if (showGroupContext) {
-            // תצוגה מורחבת (עבור My Calendar) - מציג "קבוצה • יוצר"
             if (event.isIndependent()) {
                 loadCreatorNameAndSetSubtitle(holder, event.getCreatorId(), "Independent");
             } else {
@@ -130,7 +122,6 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
                 }
             }
         } else {
-            // תצוגה רגילה (לשאר האפליקציה) - מציג רק "By Creator"
             String creatorId = event.getCreatorId();
             if (creatorId != null && !creatorId.isEmpty()) {
                 DatabaseService.getInstance().getUser(creatorId, new DatabaseService.DatabaseCallback<User>() {
@@ -150,11 +141,9 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
             }
         }
 
-        // תגית יוצר (Created by you)
         boolean isCreator = event.getCreatorId() != null && event.getCreatorId().equals(currentUserId);
         holder.chipCreator.setVisibility(isCreator ? View.VISIBLE : View.GONE);
 
-        // שאר הפרטים (תאריך, מיקום, משך, משתתפים)
         if (event.getStartTimestamp() > 0) {
             String formattedDate = dateFormat.format(new Date(event.getStartTimestamp()));
             holder.tvDateTime.setText(formattedDate);
@@ -174,12 +163,22 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         String limit = event.getMaxParticipants() > 0 ? String.valueOf(event.getMaxParticipants()) : "Unlimited";
         holder.tvParticipants.setText(participants + "/" + limit + " Participants");
 
+        // --- התיקון החדש: הצגת סטטוס "אירוע עבר" לעומת סטטוס "רשום" ---
+        boolean isPastEvent = event.getEndTimestamp() < System.currentTimeMillis();
         boolean isJoined = event.getParticipants() != null && event.getParticipants().containsKey(currentUserId);
-        if (isJoined) {
+
+        if (isPastEvent) {
             holder.chipStatus.setVisibility(View.VISIBLE);
-            holder.chipStatus.setText("JOINED");
+            holder.chipStatus.setText("COMPLETED");
+            holder.itemView.setAlpha(0.6f); // עושה את האירוע קצת שקוף כדי לסמן שהוא בעבר
         } else {
-            holder.chipStatus.setVisibility(View.INVISIBLE);
+            holder.itemView.setAlpha(1.0f); // אטימות רגילה לאירועים עתידיים
+            if (isJoined) {
+                holder.chipStatus.setVisibility(View.VISIBLE);
+                holder.chipStatus.setText("JOINED");
+            } else {
+                holder.chipStatus.setVisibility(View.INVISIBLE);
+            }
         }
 
         holder.itemView.setOnClickListener(v -> {
@@ -189,9 +188,6 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         });
     }
 
-    /**
-     * פונקציית עזר ששולפת את שם היוצר ומרכיבה את הכותרת המשולבת (Subtitle)
-     */
     private void loadCreatorNameAndSetSubtitle(EventViewHolder holder, String creatorId, String contextPrefix) {
         if (creatorId != null && !creatorId.isEmpty()) {
             DatabaseService.getInstance().getUser(creatorId, new DatabaseService.DatabaseCallback<User>() {

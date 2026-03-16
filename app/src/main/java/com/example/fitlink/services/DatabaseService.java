@@ -654,6 +654,7 @@ public class DatabaseService {
     /**
      * Deletes a group entirely from the database, including its chat, its events,
      * the events' comments, and removes its reference from all members.
+     * Preserves gamification stats for past events.
      */
     public void deleteGroup(@NotNull final String groupId, @Nullable final DatabaseCallback<Void> callback) {
         getGroup(groupId, new DatabaseCallback<Group>() {
@@ -679,18 +680,29 @@ public class DatabaseService {
                         }
 
                         if (groupEvents != null) {
+                            long currentTime = System.currentTimeMillis();
                             for (Event event : groupEvents) {
+                                boolean isPastEvent = event.getEndTimestamp() < currentTime;
+
                                 updates.put(EVENTS_PATH + "/" + event.getId(), null);
                                 updates.put("event_comments/" + event.getId(), null);
 
-                                // ניקוי האירוע אצל כל המשתתפים שנרשמו אליו
+                                // ניקוי האירוע אצל כל המשתתפים שנרשמו אליו ושימור ההיסטוריה
                                 if (event.getParticipants() != null) {
                                     for (String participantId : event.getParticipants().keySet()) {
                                         updates.put(USERS_PATH + "/" + participantId + "/eventIds/" + event.getId(), null);
+
+                                        if (isPastEvent) {
+                                            updates.put(USERS_PATH + "/" + participantId + "/pastEventsCount", com.google.firebase.database.ServerValue.increment(1));
+                                        }
                                     }
                                 }
+
                                 if (event.getCreatorId() != null) {
                                     updates.put(USERS_PATH + "/" + event.getCreatorId() + "/eventIds/" + event.getId(), null);
+                                    if (isPastEvent && (event.getParticipants() == null || !event.getParticipants().containsKey(event.getCreatorId()))) {
+                                        updates.put(USERS_PATH + "/" + event.getCreatorId() + "/pastEventsCount", com.google.firebase.database.ServerValue.increment(1));
+                                    }
                                 }
                             }
                         }
@@ -759,11 +771,10 @@ public class DatabaseService {
         });
     }
     /**
-     * Deletes an event entirely from the database, including its comments,
-     * and removes its reference from all participants.
+     * Deletes an event entirely from the database.
+     * If it's a past event, it increments the pastEventsCount for all participants to preserve gamification stats.
      */
     public void deleteEvent(@NotNull final String eventId, @Nullable final DatabaseCallback<Void> callback) {
-        // שלב 1: שולפים את האירוע כדי לדעת מי המשתתפים בו
         getEvent(eventId, new DatabaseCallback<Event>() {
             @Override
             public void onCompleted(Event event) {
@@ -774,25 +785,34 @@ public class DatabaseService {
 
                 Map<String, Object> updates = new HashMap<>();
 
-                // שלב 2: מחיקת האירוע עצמו
+                // שלב 1: מחיקת האירוע עצמו והתגובות
                 updates.put(EVENTS_PATH + "/" + eventId, null);
-
-                // שלב 3: מחיקת כל התגובות ששייכות לאירוע
                 updates.put("event_comments/" + eventId, null);
 
-                // שלב 4: מחיקת האירוע מהפרופיל של כל המשתתפים בו
+                // בדיקה אם זה אירוע עבר שצריך לשמור בהיסטוריה
+                boolean isPastEvent = event.getEndTimestamp() < System.currentTimeMillis();
+
+                // שלב 2: ניקוי האירוע מהפרופיל של כל המשתתפים בו (ושמירת ההיסטוריה אם צריך)
                 if (event.getParticipants() != null) {
                     for (String userId : event.getParticipants().keySet()) {
                         updates.put(USERS_PATH + "/" + userId + "/eventIds/" + eventId, null);
+
+                        // הקסם: אם האירוע עבר, מוסיפים 1+ למונה של המשתמש בשרת
+                        if (isPastEvent) {
+                            updates.put(USERS_PATH + "/" + userId + "/pastEventsCount", com.google.firebase.database.ServerValue.increment(1));
+                        }
                     }
                 }
 
-                // נוודא שזה נמחק גם מהיוצר (למקרה שהוא לא היה ברשימת המשתתפים מסיבה כלשהי)
+                // מוודאים שגם היוצר מטופל למקרה שלא היה ברשימת המשתתפים משום מה
                 if (event.getCreatorId() != null) {
                     updates.put(USERS_PATH + "/" + event.getCreatorId() + "/eventIds/" + eventId, null);
+                    if (isPastEvent && (event.getParticipants() == null || !event.getParticipants().containsKey(event.getCreatorId()))) {
+                        updates.put(USERS_PATH + "/" + event.getCreatorId() + "/pastEventsCount", com.google.firebase.database.ServerValue.increment(1));
+                    }
                 }
 
-                // שלב 5: ביצוע כל המחיקות בבת אחת (Atomic update)
+                // שלב 3: ביצוע כל העדכונים בבת אחת בצורה בטוחה (Atomic update)
                 databaseReference.updateChildren(updates).addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         if (callback != null) callback.onCompleted(null);
@@ -925,6 +945,66 @@ public class DatabaseService {
                         }
                     }
                 });
+    }
+    /**
+     * Admin Function: Cleans up events that ended more than a specified number of months ago.
+     * It leverages the existing deleteEvent() function to ensure gamification stats are safely preserved!
+     */
+    public void cleanupOldEvents(int monthsOld, @Nullable final DatabaseCallback<Integer> callback) {
+        // חישוב חותמת הזמן של הלפני X חודשים (30 ימים * 24 שעות * 60 דקות * 60 שניות * 1000 מילישניות)
+        long cutoffTimestamp = System.currentTimeMillis() - ((long) monthsOld * 30L * 24L * 60L * 60L * 1000L);
+
+        getAllEvents(new DatabaseCallback<List<Event>>() {
+            @Override
+            public void onCompleted(List<Event> events) {
+                if (events == null || events.isEmpty()) {
+                    if (callback != null) callback.onCompleted(0);
+                    return;
+                }
+
+                // סינון אירועים ישנים
+                List<Event> eventsToDelete = new ArrayList<>();
+                for (Event event : events) {
+                    if (event.getEndTimestamp() > 0 && event.getEndTimestamp() < cutoffTimestamp) {
+                        eventsToDelete.add(event);
+                    }
+                }
+
+                if (eventsToDelete.isEmpty()) {
+                    if (callback != null) callback.onCompleted(0); // אין מה לנקות
+                    return;
+                }
+
+                // מחיקת האירועים הישנים בזה אחר זה (כל אחד שומר על הסטטיסטיקות של משתתפיו)
+                int[] completedOperations = {0};
+                for (Event event : eventsToDelete) {
+                    deleteEvent(event.getId(), new DatabaseCallback<Void>() {
+                        @Override
+                        public void onCompleted(Void object) {
+                            checkIfDone();
+                        }
+
+                        @Override
+                        public void onFailed(Exception e) {
+                            checkIfDone(); // ממשיכים הלאה גם אם אירוע אחד נכשל
+                        }
+
+                        private void checkIfDone() {
+                            completedOperations[0]++;
+                            // אם סיימנו לעבור על כל האירועים
+                            if (completedOperations[0] == eventsToDelete.size()) {
+                                if (callback != null) callback.onCompleted(eventsToDelete.size());
+                            }
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onFailed(Exception e) {
+                if (callback != null) callback.onFailed(e);
+            }
+        });
     }
 
     /// callback interface for database operations

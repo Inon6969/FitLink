@@ -1,6 +1,5 @@
 package com.example.fitlink.screens;
 
-import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
@@ -39,7 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class UsersListActivity extends BaseActivity {
+public class AdminUsersListActivity extends BaseActivity {
 
     private static final String TAG = "UsersListActivity";
 
@@ -59,7 +58,7 @@ public class UsersListActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_users_list);
+        setContentView(R.layout.activity_admin_users_list);
 
         initViews();
         setupToolbar();
@@ -100,7 +99,7 @@ public class UsersListActivity extends BaseActivity {
         userAdapter = new UserAdapter(new UserAdapter.OnUserClickListener() {
             @Override
             public void onUserClick(User user) {
-                new EditUserDialog(UsersListActivity.this, user, () -> loadUsers()).show();
+                new EditUserDialog(AdminUsersListActivity.this, user, () -> loadUsers()).show();
             }
 
             @Override
@@ -115,7 +114,7 @@ public class UsersListActivity extends BaseActivity {
 
             @Override
             public boolean isCurrentUser(User user) {
-                return user.getId().equals(SharedPreferencesUtil.getUserId(UsersListActivity.this));
+                return user.getId().equals(SharedPreferencesUtil.getUserId(AdminUsersListActivity.this));
             }
         });
         usersList.setAdapter(userAdapter);
@@ -194,7 +193,7 @@ public class UsersListActivity extends BaseActivity {
             public void onFailed(Exception e) {
                 progressBar.setVisibility(View.GONE);
                 Log.e(TAG, "Failed to get users list", e);
-                Toast.makeText(UsersListActivity.this, "Error loading users", Toast.LENGTH_SHORT).show();
+                Toast.makeText(AdminUsersListActivity.this, "Error loading users", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -215,13 +214,13 @@ public class UsersListActivity extends BaseActivity {
         databaseService.updateUserAdminStatus(user.getId(), newRole, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Void object) {
-                Toast.makeText(UsersListActivity.this, "Status updated", Toast.LENGTH_SHORT).show();
+                Toast.makeText(AdminUsersListActivity.this, "Status updated", Toast.LENGTH_SHORT).show();
                 loadUsers(); // רענון הרשימה
             }
 
             @Override
             public void onFailed(Exception e) {
-                Toast.makeText(UsersListActivity.this, "Update failed", Toast.LENGTH_SHORT).show();
+                Toast.makeText(AdminUsersListActivity.this, "Update failed", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -274,7 +273,7 @@ public class UsersListActivity extends BaseActivity {
                                     if (!hasFailed[0]) {
                                         hasFailed[0] = true;
                                         progressBar.setVisibility(View.GONE);
-                                        Toast.makeText(UsersListActivity.this, "Failed to delete user's groups", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(AdminUsersListActivity.this, "Failed to delete user's groups", Toast.LENGTH_SHORT).show();
                                     }
                                 }
                             });
@@ -285,7 +284,7 @@ public class UsersListActivity extends BaseActivity {
                 @Override
                 public void onFailed(Exception e) {
                     progressBar.setVisibility(View.GONE);
-                    Toast.makeText(UsersListActivity.this, "Failed to fetch groups", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(AdminUsersListActivity.this, "Failed to fetch groups", Toast.LENGTH_SHORT).show();
                 }
             });
         } else {
@@ -300,20 +299,20 @@ public class UsersListActivity extends BaseActivity {
             public void onCompleted(Void object) {
                 progressBar.setVisibility(View.GONE);
                 if (isSelf) {
-                    SharedPreferencesUtil.signOutUser(UsersListActivity.this);
-                    Intent intent = new Intent(UsersListActivity.this, LoginActivity.class);
+                    SharedPreferencesUtil.signOutUser(AdminUsersListActivity.this);
+                    Intent intent = new Intent(AdminUsersListActivity.this, LoginActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);
                     return;
                 }
-                Toast.makeText(UsersListActivity.this, "User deleted successfully", Toast.LENGTH_SHORT).show();
+                Toast.makeText(AdminUsersListActivity.this, "User deleted successfully", Toast.LENGTH_SHORT).show();
                 loadUsers(); // רענון המסך אחרי המחיקה
             }
 
             @Override
             public void onFailed(Exception e) {
                 progressBar.setVisibility(View.GONE);
-                Toast.makeText(UsersListActivity.this, "Failed to delete user", Toast.LENGTH_SHORT).show();
+                Toast.makeText(AdminUsersListActivity.this, "Failed to delete user", Toast.LENGTH_SHORT).show();
             }
         });
     }

@@ -43,7 +43,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class EventsListActivity extends BaseActivity {
+public class AdminEventsListActivity extends BaseActivity {
 
     private EventAdapter eventAdapter;
     private TextView tvEventCount;
@@ -85,7 +85,7 @@ public class EventsListActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_events_list);
+        setContentView(R.layout.activity_admin_events_list);
 
         currentUserId = SharedPreferencesUtil.getUserId(this);
 
@@ -97,33 +97,33 @@ public class EventsListActivity extends BaseActivity {
     }
 
     private void initViews() {
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_events_layout), (v, insets) -> {
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_admin_events_layout), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-        tvEventCount = findViewById(R.id.tv_event_count);
-        etSearch = findViewById(R.id.edit_EventsList_search);
-        spinnerSearchType = findViewById(R.id.spinner_events_search_type);
-        spinnerSearchOptions = findViewById(R.id.spinner_events_search_options);
-        layoutSearchText = findViewById(R.id.layout_search_text);
+        tvEventCount = findViewById(R.id.tv_admin_event_count);
+        etSearch = findViewById(R.id.edit_admin_events_search);
+        spinnerSearchType = findViewById(R.id.spinner_admin_events_search_type);
+        spinnerSearchOptions = findViewById(R.id.spinner_admin_events_search_options);
+        layoutSearchText = findViewById(R.id.layout_admin_search_text);
 
-        layoutRangePicker = findViewById(R.id.layout_range_picker);
-        btnRangeStart = findViewById(R.id.btn_range_start);
-        btnRangeEnd = findViewById(R.id.btn_range_end);
+        layoutRangePicker = findViewById(R.id.layout_admin_range_picker);
+        btnRangeStart = findViewById(R.id.btn_admin_range_start);
+        btnRangeEnd = findViewById(R.id.btn_admin_range_end);
 
-        layoutDurationPicker = findViewById(R.id.layout_duration_picker);
-        etDurationMin = findViewById(R.id.et_duration_min);
-        etDurationMax = findViewById(R.id.et_duration_max);
+        layoutDurationPicker = findViewById(R.id.layout_admin_duration_picker);
+        etDurationMin = findViewById(R.id.et_admin_duration_min);
+        etDurationMax = findViewById(R.id.et_admin_duration_max);
 
-        progressBar = findViewById(R.id.events_progress_bar);
-        emptyState = findViewById(R.id.events_empty_state);
-        btnCreateEvent = findViewById(R.id.btn_EventsList_create_event);
+        progressBar = findViewById(R.id.admin_events_progress_bar);
+        emptyState = findViewById(R.id.admin_events_empty_state);
+        btnCreateEvent = findViewById(R.id.btn_admin_create_event);
     }
 
     private void setupToolbar() {
-        Toolbar toolbar = findViewById(R.id.toolbar_events);
+        Toolbar toolbar = findViewById(R.id.toolbar_admin_events);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -132,14 +132,15 @@ public class EventsListActivity extends BaseActivity {
     }
 
     private void setupRecyclerView() {
-        RecyclerView rvEvents = findViewById(R.id.rv_events_list);
+        RecyclerView rvEvents = findViewById(R.id.rv_admin_events_list);
         rvEvents.setLayoutManager(new LinearLayoutManager(this));
 
         eventAdapter = new EventAdapter(new ArrayList<>(), currentUserId, new EventAdapter.OnEventClickListener() {
             @Override
             public void onEventClick(Event event) {
-                Intent intent = new Intent(EventsListActivity.this, EventDetailsActivity.class);
+                Intent intent = new Intent(AdminEventsListActivity.this, EventDetailsActivity.class);
                 intent.putExtra("EVENT_ID", event.getId());
+                intent.putExtra("IS_ADMIN_MODE", true); // פרמטר מפתח למנהלים!
                 startActivity(intent);
             }
         });
@@ -341,7 +342,7 @@ public class EventsListActivity extends BaseActivity {
         btnCreateEvent.setOnClickListener(v -> {
             currentCreateEventDialog = new CreateIndependentEventDialog(this);
             currentCreateEventDialog.setOnDismissListener(d -> {
-                loadIndependentEvents();
+                loadAllEvents(); // רענון אחרי יצירה
                 currentCreateEventDialog = null;
             });
             currentCreateEventDialog.show();
@@ -351,39 +352,31 @@ public class EventsListActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        loadIndependentEvents();
+        loadAllEvents();
     }
 
-    private void loadIndependentEvents() {
+    private void loadAllEvents() {
         progressBar.setVisibility(View.VISIBLE);
-        databaseService.getAllIndependentEvents(new DatabaseService.DatabaseCallback<List<Event>>() {
+        // טוען את *כל* האירועים למנהל (כולל קבוצות והיסטוריה)
+        databaseService.getAllEvents(new DatabaseService.DatabaseCallback<List<Event>>() {
             @Override
             public void onCompleted(List<Event> events) {
                 progressBar.setVisibility(View.GONE);
-                long currentTime = System.currentTimeMillis();
-                allEvents = new ArrayList<>();
-                if (events != null) {
-                    for (Event event : events) {
-                        // התיקון: מסנן ומכניס לרשימה רק אירועים שעדיין לא הסתיימו
-                        if (event.getEndTimestamp() >= currentTime) {
-                            allEvents.add(event);
-                        }
-                    }
-                }
+                allEvents = (events != null) ? events : new ArrayList<>();
                 executeSearch();
             }
 
             @Override
             public void onFailed(Exception e) {
                 progressBar.setVisibility(View.GONE);
-                Toast.makeText(EventsListActivity.this, "Error loading events", Toast.LENGTH_SHORT).show();
+                Toast.makeText(AdminEventsListActivity.this, "Error loading events", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
     private void updateListDisplay(List<Event> listToDisplay) {
         if (eventAdapter != null) eventAdapter.updateList(listToDisplay);
-        tvEventCount.setText(MessageFormat.format("Showing {0} events", listToDisplay.size()));
+        tvEventCount.setText(MessageFormat.format("Total events: {0}", listToDisplay.size()));
         emptyState.setVisibility(listToDisplay.isEmpty() ? View.VISIBLE : View.GONE);
     }
 }

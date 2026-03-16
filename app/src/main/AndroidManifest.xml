@@ -27,6 +27,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.FitLink">
         <activity
+            android:name=".screens.AdminEventsListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".screens.AdminGroupsListActivity"
+            android:exported="false" />
+        <activity
             android:name=".screens.EventParticipantsActivity"
             android:exported="false" />
         <activity
@@ -72,7 +78,7 @@
             android:name=".screens.LandingActivity"
             android:exported="false" />
         <activity
-            android:name=".screens.UsersListActivity"
+            android:name=".screens.AdminUsersListActivity"
             android:exported="false" />
         <activity
             android:name=".screens.UserProfileActivity"

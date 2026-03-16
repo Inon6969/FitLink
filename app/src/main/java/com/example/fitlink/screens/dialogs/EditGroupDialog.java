@@ -80,18 +80,18 @@ public class EditGroupDialog extends Dialog {
         // מילוי הנתונים הקיימים
         prefillData(sportAdapter);
 
-        // --- התיקון שלנו: תמיכה בפתיחת המפה משני המסכים ---
         btnOpenMap.setOnClickListener(v -> {
             Intent intent = new Intent(context, MapPickerActivity.class);
             if (context instanceof GroupDashboardActivity) {
                 ((GroupDashboardActivity) context).getMapPickerLauncher().launch(intent);
             } else if (context instanceof GroupsListActivity) {
                 ((GroupsListActivity) context).getMapPickerLauncher().launch(intent);
+            } else if (context instanceof com.example.fitlink.screens.AdminGroupsListActivity) { // השורה החדשה למנהלים!
+                ((com.example.fitlink.screens.AdminGroupsListActivity) context).getMapPickerLauncher().launch(intent);
             } else {
                 Toast.makeText(context, "Cannot open map from this screen", Toast.LENGTH_SHORT).show();
             }
         });
-        // ----------------------------------------------------
 
         btnCancel.setOnClickListener(v -> dismiss());
 

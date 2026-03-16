@@ -3,6 +3,7 @@ package com.example.fitlink.screens.dialogs;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -37,7 +38,7 @@ import java.util.Locale;
 
 public class CreateIndependentEventDialog extends Dialog {
 
-    private final EventsListActivity parentActivity;
+    private final Context context;
     private final String currentUserId;
 
     private EditText etTitle, etDescription, etMaxParticipants;
@@ -57,10 +58,11 @@ public class CreateIndependentEventDialog extends Dialog {
 
     private long selectedDurationMillis = 0;
 
-    public CreateIndependentEventDialog(@NonNull EventsListActivity activity) {
-        super(activity);
-        this.parentActivity = activity;
-        this.currentUserId = SharedPreferencesUtil.getUserId(activity);
+    // בנאי מעודכן שמקבל Context במקום Activity ספציפי
+    public CreateIndependentEventDialog(@NonNull Context context) {
+        super(context);
+        this.context = context;
+        this.currentUserId = SharedPreferencesUtil.getUserId(context);
         this.eventCalendar = Calendar.getInstance();
     }
 
@@ -111,9 +113,16 @@ public class CreateIndependentEventDialog extends Dialog {
         btnTime.setOnClickListener(v -> showTimePicker());
         btnDuration.setOnClickListener(v -> showDurationPicker());
 
+        // התיקון הקריטי: מאפשר פתיחה גם מדף אירועים וגם מדף הניהול
         btnLocation.setOnClickListener(v -> {
-            Intent mapIntent = new Intent(parentActivity, MapPickerActivity.class);
-            parentActivity.getMapPickerLauncher().launch(mapIntent);
+            Intent mapIntent = new Intent(context, MapPickerActivity.class);
+            if (context instanceof EventsListActivity) {
+                ((EventsListActivity) context).getMapPickerLauncher().launch(mapIntent);
+            } else if (context instanceof com.example.fitlink.screens.AdminEventsListActivity) {
+                ((com.example.fitlink.screens.AdminEventsListActivity) context).getMapPickerLauncher().launch(mapIntent);
+            } else {
+                Toast.makeText(context, "Cannot open map from this screen", Toast.LENGTH_SHORT).show();
+            }
         });
 
         btnSave.setOnClickListener(v -> validateAndCreateEvent());
@@ -200,7 +209,7 @@ public class CreateIndependentEventDialog extends Dialog {
 
         long startTimestamp = eventCalendar.getTimeInMillis();
 
-        // הבדיקה החדשה: מוודא שהאירוע העצמאי נקבע לזמן שהוא בעתיד
+        // מוודא שהאירוע העצמאי נקבע לזמן שהוא בעתיד
         if (startTimestamp <= System.currentTimeMillis()) {
             Toast.makeText(getContext(), "Event time must be in the future", Toast.LENGTH_LONG).show();
             return;

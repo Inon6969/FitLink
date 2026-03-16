@@ -4,91 +4,140 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="16dp"
-    app:cardBackgroundColor="@color/fitlinkBackground"
-    app:cardCornerRadius="24dp"
-    app:cardElevation="8dp">
+    android:layout_margin="20dp"
+    app:cardBackgroundColor="@color/white"
+    app:cardCornerRadius="28dp"
+    app:cardElevation="12dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
         android:orientation="vertical"
         android:padding="24dp">
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_dialog_group_icon"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="#F5F7FA"
+            app:cardCornerRadius="40dp"
+            app:cardElevation="0dp"
+            app:strokeColor="#EAECEF"
+            app:strokeWidth="1dp">
+
+            <ImageView
+                android:id="@+id/img_dialog_group_icon"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="16dp"
+                android:scaleType="centerCrop"
+                app:tint="@color/fitlinkPrimary"
+                tools:src="@drawable/ic_running" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            android:id="@+id/tv_dialog_group_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/poppins_bold"
+            android:gravity="center"
+            android:textColor="@color/fitlinkPrimary"
+            android:textSize="22sp"
+            tools:text="Morning Runners" />
+
+        <View
+            android:layout_width="60dp"
+            android:layout_height="3dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="24dp"
+            android:background="#EEEEEE" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="16dp">
+            android:orientation="vertical">
 
             <TextView
-                android:id="@+id/tv_dialog_group_name"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginEnd="16dp"
-                android:fontFamily="@font/poppins_bold"
+                android:layout_marginBottom="8dp"
+                android:fontFamily="@font/poppins_semibold"
+                android:letterSpacing="0.05"
+                android:text="ABOUT THIS GROUP"
+                android:textAllCaps="true"
+                android:textColor="@color/fitlinkTextSecondary"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/tv_dialog_group_description"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="32dp"
+                android:fontFamily="@font/poppins_regular"
+                android:lineSpacingExtra="6dp"
                 android:textColor="@color/fitlinkPrimary"
-                android:textSize="22sp"
-                android:gravity="start"
-                tools:text="Morning Runners" />
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/card_dialog_group_icon"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                app:cardCornerRadius="32dp"
-                app:cardElevation="0dp"
-                app:cardBackgroundColor="@android:color/transparent"
-                app:strokeWidth="1dp"
-                app:strokeColor="#E0E0E0">
-
-                <ImageView
-                    android:id="@+id/img_dialog_group_icon"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="centerCrop"
-                    android:padding="12dp"
-                    app:tint="@color/fitlinkPrimary"
-                    tools:src="@drawable/ic_running" />
-            </com.google.android.material.card.MaterialCardView>
-
+                android:textSize="15sp"
+                tools:text="Join our morning runs across the city! We welcome all levels of runners to stay active together." />
         </LinearLayout>
 
-        <TextView
+        <LinearLayout
+            android:id="@+id/layout_dialog_group_admin_actions"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:fontFamily="@font/poppins_medium"
-            android:text="About this group"
-            android:textColor="@color/fitlinkTextSecondary"
-            android:textSize="14sp" />
+            android:layout_marginBottom="16dp"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            tools:visibility="visible">
 
-        <TextView
-            android:id="@+id/tv_dialog_group_description"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="32dp"
-            android:fontFamily="@font/poppins_regular"
-            android:lineSpacingExtra="4dp"
-            android:textColor="@color/fitlinkPrimary"
-            android:textSize="16sp"
-            tools:text="This is a description of the group." />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_dialog_group_edit"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_marginEnd="6dp"
+                android:layout_weight="1"
+                android:fontFamily="@font/poppins_semibold"
+                android:text="Edit"
+                android:textColor="@color/fitlinkPrimary"
+                app:cornerRadius="16dp"
+                app:icon="@android:drawable/ic_menu_edit"
+                app:iconGravity="textStart"
+                app:iconTint="@color/fitlinkPrimary"
+                app:strokeColor="@color/fitlinkPrimary"
+                app:strokeWidth="1dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_dialog_group_delete"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
+                android:fontFamily="@font/poppins_semibold"
+                android:text="Delete"
+                android:textColor="#FF4C4C"
+                app:cornerRadius="16dp"
+                app:icon="@android:drawable/ic_menu_delete"
+                app:iconGravity="textStart"
+                app:iconTint="#FF4C4C"
+                app:strokeColor="#FF4C4C"
+                app:strokeWidth="1dp" />
+        </LinearLayout>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_dialog_close"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="54dp"
             android:fontFamily="@font/poppins_bold"
-            android:paddingVertical="12dp"
             android:text="Close"
             android:textAllCaps="false"
-            android:textColor="@color/fitlinkBackground"
+            android:textColor="@color/white"
             android:textSize="16sp"
             app:backgroundTint="@color/fitlinkPrimary"
-            app:cornerRadius="24dp" />
+            app:cornerRadius="27dp"
+            app:elevation="0dp" />
 
     </LinearLayout>
-
 </com.google.android.material.card.MaterialCardView>

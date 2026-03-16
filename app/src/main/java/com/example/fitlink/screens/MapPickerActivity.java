@@ -102,8 +102,15 @@ public class MapPickerActivity extends AppCompatActivity {
             return false;
         });
 
+        // --- הבדיקה הקריטית החדשה שכופה על המשתמש לחכות במצבי טעינה ---
         btnConfirm.setOnClickListener(v -> {
-            if (finalSelectedPoint != null && !finalAddressString.isEmpty() && !finalAddressString.equals("Moving map...")) {
+            String currentStatus = tvSelectedAddress.getText().toString();
+
+            if (currentStatus.equals("Moving map...") ||
+                    currentStatus.equals("Loading address...") ||
+                    currentStatus.equals("Searching...")) {
+                Toast.makeText(this, "Please wait for location to load", Toast.LENGTH_SHORT).show();
+            } else if (finalSelectedPoint != null && !finalAddressString.isEmpty()) {
                 returnResult();
             } else {
                 Toast.makeText(this, "Please wait for location to load", Toast.LENGTH_SHORT).show();
@@ -117,6 +124,7 @@ public class MapPickerActivity extends AppCompatActivity {
             delayHandler.removeCallbacks(fetchAddressRunnable); // מבטל את הבקשה הקודמת
         }
 
+        finalAddressString = ""; // איפוס הכתובת כל עוד המפה בתנועה
         tvSelectedAddress.setText("Moving map...");
 
         // יוצר בקשה חדשה שתרוץ חצי שנייה אחרי שהמפה תפסיק לזוז
@@ -129,6 +137,7 @@ public class MapPickerActivity extends AppCompatActivity {
         IGeoPoint center = map.getMapCenter();
         finalSelectedPoint = new GeoPoint(center.getLatitude(), center.getLongitude());
 
+        finalAddressString = ""; // איפוס לפני חיפוש ברשת
         tvSelectedAddress.setText("Loading address...");
 
         executorService.execute(() -> {
@@ -150,6 +159,7 @@ public class MapPickerActivity extends AppCompatActivity {
     }
 
     private void searchAddressFromText(String locationName) {
+        finalAddressString = ""; // איפוס הכתובת בזמן חיפוש
         tvSelectedAddress.setText("Searching...");
 
         executorService.execute(() -> {
@@ -160,7 +170,7 @@ public class MapPickerActivity extends AppCompatActivity {
                     Address address = addresses.get(0);
                     GeoPoint newPoint = new GeoPoint(address.getLatitude(), address.getLongitude());
 
-                    // מזיז את המפה לנקודה החדשה (הכתובת כבר תתעדכן אוטומטית בזכות ה-MapListener!)
+                    // מזיז את המפה לנקודה החדשה (הכתובת תתעדכן אוטומטית בזכות ה-MapListener)
                     runOnUiThread(() -> map.getController().animateTo(newPoint));
                 } else {
                     runOnUiThread(() -> {

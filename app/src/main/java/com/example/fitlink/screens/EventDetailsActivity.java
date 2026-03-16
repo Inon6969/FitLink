@@ -42,6 +42,7 @@ public class EventDetailsActivity extends BaseActivity {
 
     private Event currentEvent;
     private String currentUserId;
+    private boolean isAdminMode = false;
 
     private ImageView imgIcon;
     private TextView tvTitle, tvCreator, tvDateTime, tvLocation, tvParticipants, tvDescription;
@@ -113,6 +114,7 @@ public class EventDetailsActivity extends BaseActivity {
 
     private void continueInitialization() {
         currentUserId = SharedPreferencesUtil.getUserId(this);
+        isAdminMode = getIntent().getBooleanExtra("IS_ADMIN_MODE", false); // זיהוי אם מנהל
 
         initViews();
         setupToolbar();
@@ -150,17 +152,15 @@ public class EventDetailsActivity extends BaseActivity {
         etNewComment = findViewById(R.id.et_new_comment);
         btnSendComment = findViewById(R.id.btn_send_comment);
 
-        // --- אתחול האזורים הלחיצים והוספת פעולות ---
         LinearLayout layoutDatetime = findViewById(R.id.layout_datetime_click_area);
         LinearLayout layoutLocation = findViewById(R.id.layout_location_click_area);
         LinearLayout layoutParticipants = findViewById(R.id.layout_participants_click_area);
 
-        // הוספת קו תחתון לטקסטים כדי שייראו כלחיצים
-        tvDateTime.setPaintFlags(tvDateTime.getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
-        tvLocation.setPaintFlags(tvLocation.getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
-        tvParticipants.setPaintFlags(tvParticipants.getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
+        // בודקים אם האירוע נמצא בעבר
+        boolean isPastEvent = currentEvent.getEndTimestamp() < System.currentTimeMillis();
 
-        // 1. לחיצה על המשתתפים -> עובר לרשימת המשתתפים
+        // המשתתפים תמיד לחיצים (כדי לראות מי היה באירוע)
+        tvParticipants.setPaintFlags(tvParticipants.getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
         layoutParticipants.setOnClickListener(v -> {
             if (currentEvent != null) {
                 Intent intent = new Intent(EventDetailsActivity.this, EventParticipantsActivity.class);
@@ -169,49 +169,59 @@ public class EventDetailsActivity extends BaseActivity {
             }
         });
 
-        // 2. לחיצה על מיקום -> פותח את מסך בחירת אפליקציית הניווט (Waze, Google Maps וכו')
-        layoutLocation.setOnClickListener(v -> {
-            if (currentEvent != null && currentEvent.getLocation() != null) {
-                String address = currentEvent.getLocation().getAddress();
-                double lat = currentEvent.getLocation().getLatitude();
-                double lng = currentEvent.getLocation().getLongitude();
+        if (!isPastEvent) {
+            // === אירוע עתידי: הכל פתוח ולחיץ ===
+            tvDateTime.setPaintFlags(tvDateTime.getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
+            tvLocation.setPaintFlags(tvLocation.getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
 
-                // יצירת URI אוניברסלי לאפליקציות מפות וניווט
-                android.net.Uri locationUri = android.net.Uri.parse("geo:0,0?q=" + lat + "," + lng + "(" + android.net.Uri.encode(address) + ")");
-                Intent mapIntent = new Intent(Intent.ACTION_VIEW, locationUri);
+            layoutLocation.setOnClickListener(v -> {
+                if (currentEvent != null && currentEvent.getLocation() != null) {
+                    String address = currentEvent.getLocation().getAddress();
+                    double lat = currentEvent.getLocation().getLatitude();
+                    double lng = currentEvent.getLocation().getLongitude();
 
-                // יצירת תפריט בחירה של אנדרואיד
-                Intent chooser = Intent.createChooser(mapIntent, "Navigate with...");
+                    android.net.Uri locationUri = android.net.Uri.parse("geo:0,0?q=" + lat + "," + lng + "(" + android.net.Uri.encode(address) + ")");
+                    Intent mapIntent = new Intent(Intent.ACTION_VIEW, locationUri);
 
-                try {
-                    startActivity(chooser);
-                } catch (Exception e) {
-                    Toast.makeText(EventDetailsActivity.this, "No navigation app found", Toast.LENGTH_SHORT).show();
+                    Intent chooser = Intent.createChooser(mapIntent, "Navigate with...");
+                    try {
+                        startActivity(chooser);
+                    } catch (Exception e) {
+                        Toast.makeText(EventDetailsActivity.this, "No navigation app found", Toast.LENGTH_SHORT).show();
+                    }
                 }
-            }
-        });
+            });
 
-        // 3. לחיצה על זמן -> פותח את לוח השנה של המכשיר
-        layoutDatetime.setOnClickListener(v -> {
-            if (currentEvent != null && currentEvent.getStartTimestamp() > 0) {
-                Intent calendarIntent = new Intent(Intent.ACTION_INSERT);
-                calendarIntent.setType("vnd.android.cursor.item/event");
-                calendarIntent.putExtra(android.provider.CalendarContract.Events.TITLE, currentEvent.getTitle());
-                calendarIntent.putExtra(android.provider.CalendarContract.Events.DESCRIPTION, currentEvent.getDescription());
-                calendarIntent.putExtra(android.provider.CalendarContract.EXTRA_EVENT_BEGIN_TIME, currentEvent.getStartTimestamp());
-                calendarIntent.putExtra(android.provider.CalendarContract.EXTRA_EVENT_END_TIME, currentEvent.getStartTimestamp() + currentEvent.getDurationMillis());
+            layoutDatetime.setOnClickListener(v -> {
+                if (currentEvent != null && currentEvent.getStartTimestamp() > 0) {
+                    Intent calendarIntent = new Intent(Intent.ACTION_INSERT);
+                    calendarIntent.setType("vnd.android.cursor.item/event");
+                    calendarIntent.putExtra(android.provider.CalendarContract.Events.TITLE, currentEvent.getTitle());
+                    calendarIntent.putExtra(android.provider.CalendarContract.Events.DESCRIPTION, currentEvent.getDescription());
+                    calendarIntent.putExtra(android.provider.CalendarContract.EXTRA_EVENT_BEGIN_TIME, currentEvent.getStartTimestamp());
+                    calendarIntent.putExtra(android.provider.CalendarContract.EXTRA_EVENT_END_TIME, currentEvent.getStartTimestamp() + currentEvent.getDurationMillis());
 
-                if (currentEvent.getLocation() != null && currentEvent.getLocation().getAddress() != null) {
-                    calendarIntent.putExtra(android.provider.CalendarContract.Events.EVENT_LOCATION, currentEvent.getLocation().getAddress());
+                    if (currentEvent.getLocation() != null && currentEvent.getLocation().getAddress() != null) {
+                        calendarIntent.putExtra(android.provider.CalendarContract.Events.EVENT_LOCATION, currentEvent.getLocation().getAddress());
+                    }
+
+                    try {
+                        startActivity(calendarIntent);
+                    } catch (Exception e) {
+                        Toast.makeText(this, "No calendar app found", Toast.LENGTH_SHORT).show();
+                    }
                 }
+            });
+        } else {
+            // === אירוע עבר: מבטלים פעולות לא הגיוניות ===
+            // מורידים את הקו התחתון כדי שלא ייראה כמו קישור לחיץ
+            tvDateTime.setPaintFlags(tvDateTime.getPaintFlags() & (~android.graphics.Paint.UNDERLINE_TEXT_FLAG));
+            tvLocation.setPaintFlags(tvLocation.getPaintFlags() & (~android.graphics.Paint.UNDERLINE_TEXT_FLAG));
 
-                try {
-                    startActivity(calendarIntent);
-                } catch (Exception e) {
-                    Toast.makeText(this, "No calendar app found", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
+            // מקפיצים הודעה למקרה שהמשתמש בכל זאת מנסה ללחוץ
+            layoutLocation.setOnClickListener(v -> Toast.makeText(this, "Cannot navigate to a past event.", Toast.LENGTH_SHORT).show());
+            layoutDatetime.setOnClickListener(v -> Toast.makeText(this, "Event has already ended.", Toast.LENGTH_SHORT).show());
+        }
     }
 
     private void setupToolbar() {
@@ -275,14 +285,33 @@ public class EventDetailsActivity extends BaseActivity {
         boolean isJoined = currentEvent.getParticipants() != null && currentEvent.getParticipants().containsKey(currentUserId);
         boolean isIndependent = currentEvent.isIndependent();
 
-        // אתחול כפתורים בסיסי
+        // המנהל מקבל הרשאות ניהול בדיוק כמו יוצר האירוע!
+        boolean canManage = isCreator || isAdminMode;
+
+        boolean isPastEvent = currentEvent.getEndTimestamp() < System.currentTimeMillis();
+
         btnMainAction.setVisibility(View.VISIBLE);
         btnSecondaryAction.setVisibility(View.GONE);
         btnTertiaryAction.setVisibility(View.GONE);
 
-        if (isCreator) {
+        if (isPastEvent) {
+            btnMainAction.setText("Event Completed");
+            btnMainAction.setBackgroundColor(getResources().getColor(android.R.color.darker_gray));
+            btnMainAction.setEnabled(false);
+
+            // אם זה היוצר או שמדובר במנהל דרך פאנל הניהול - מאפשרים למחוק
+            if (canManage) {
+                btnTertiaryAction.setVisibility(View.VISIBLE);
+                btnTertiaryAction.setText("Delete Event");
+                btnTertiaryAction.setOnClickListener(v -> deleteEvent());
+            }
+            return;
+        }
+
+        btnMainAction.setEnabled(true);
+
+        if (canManage) {
             if (isIndependent) {
-                // אירוע עצמאי: עריכה או מחיקה (ללא עזיבה)
                 btnMainAction.setText("Edit Event");
                 btnMainAction.setBackgroundColor(getResources().getColor(R.color.fitlinkPrimary));
                 btnMainAction.setOnClickListener(v -> editEvent());
@@ -291,7 +320,6 @@ public class EventDetailsActivity extends BaseActivity {
                 btnTertiaryAction.setText("Delete Event");
                 btnTertiaryAction.setOnClickListener(v -> deleteEvent());
             } else {
-                // אירוע קבוצתי: הצטרפות/עזיבה, עריכה, מחיקה
                 if (isJoined) {
                     btnMainAction.setText("Leave Event");
                     btnMainAction.setBackgroundColor(getResources().getColor(android.R.color.darker_gray));
@@ -311,7 +339,6 @@ public class EventDetailsActivity extends BaseActivity {
                 btnTertiaryAction.setOnClickListener(v -> deleteEvent());
             }
         } else {
-            // משתמש רגיל (לא היוצר): רק להצטרף או לעזוב
             if (isJoined) {
                 btnMainAction.setText("Leave Event");
                 btnMainAction.setBackgroundColor(getResources().getColor(android.R.color.darker_gray));
@@ -421,38 +448,56 @@ public class EventDetailsActivity extends BaseActivity {
         commentAdapter = new CommentAdapter(new ArrayList<>());
         rvComments.setAdapter(commentAdapter);
 
-        btnSendComment.setOnClickListener(v -> {
-            String text = etNewComment.getText() != null ? etNewComment.getText().toString().trim() : "";
+        // חישוב מתי נועלים את התגובות (3 ימים = 3 * 24 * 60 * 60 * 1000 מילישניות)
+        long THREE_DAYS_MILLIS = 3L * 24 * 60 * 60 * 1000;
+        boolean isCommentsLocked = currentEvent.getEndTimestamp() + THREE_DAYS_MILLIS < System.currentTimeMillis();
 
-            if (text.isEmpty()) {
-                return;
+        View commentBar = findViewById(R.id.layout_comment_bar);
+
+        if (isCommentsLocked) {
+            // אם עברו 3 ימים מסיום האירוע - מסתירים לגמרי את שורת הקלדת התגובה!
+            if (commentBar != null) {
+                commentBar.setVisibility(View.GONE);
+            }
+        } else {
+            // אם אנחנו עדיין בטווח הזמן המותר, מאפשרים לשלוח תגובות כרגיל
+            if (commentBar != null) {
+                commentBar.setVisibility(View.VISIBLE);
             }
 
-            Comment newComment = new Comment(
-                    "",
-                    currentEvent.getId(),
-                    currentUserId,
-                    text,
-                    System.currentTimeMillis()
-            );
+            btnSendComment.setOnClickListener(v -> {
+                String text = etNewComment.getText() != null ? etNewComment.getText().toString().trim() : "";
 
-            btnSendComment.setEnabled(false);
-
-            databaseService.addEventComment(newComment, new DatabaseService.DatabaseCallback<Void>() {
-                @Override
-                public void onCompleted(Void object) {
-                    etNewComment.setText("");
-                    btnSendComment.setEnabled(true);
-                    Toast.makeText(EventDetailsActivity.this, "Comment added", Toast.LENGTH_SHORT).show();
+                if (text.isEmpty()) {
+                    return;
                 }
 
-                @Override
-                public void onFailed(Exception e) {
-                    btnSendComment.setEnabled(true);
-                    Toast.makeText(EventDetailsActivity.this, "Failed to send comment", Toast.LENGTH_SHORT).show();
-                }
+                Comment newComment = new Comment(
+                        "",
+                        currentEvent.getId(),
+                        currentUserId,
+                        text,
+                        System.currentTimeMillis()
+                );
+
+                btnSendComment.setEnabled(false);
+
+                databaseService.addEventComment(newComment, new DatabaseService.DatabaseCallback<Void>() {
+                    @Override
+                    public void onCompleted(Void object) {
+                        etNewComment.setText("");
+                        btnSendComment.setEnabled(true);
+                        Toast.makeText(EventDetailsActivity.this, "Comment added", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onFailed(Exception e) {
+                        btnSendComment.setEnabled(true);
+                        Toast.makeText(EventDetailsActivity.this, "Failed to send comment", Toast.LENGTH_SHORT).show();
+                    }
+                });
             });
-        });
+        }
     }
 
     private void loadComments() {

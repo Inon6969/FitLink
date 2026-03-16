@@ -14,7 +14,7 @@ import com.example.fitlink.R;
 
 public class AdminActivity extends BaseActivity {
 
-    LinearLayout cardUsers;
+    LinearLayout cardUsers, cardGroups, cardEvents;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,7 +23,7 @@ public class AdminActivity extends BaseActivity {
         setContentView(R.layout.activity_admin);
 
         initViews();
-        setupToolbar(); // הפונקציה החדשה שמוסיפה את כפתור החזור
+        setupToolbar();
         setupClickListeners();
     }
 
@@ -35,6 +35,8 @@ public class AdminActivity extends BaseActivity {
         });
 
         cardUsers = findViewById(R.id.card_users);
+        cardGroups = findViewById(R.id.card_groups);
+        cardEvents = findViewById(R.id.card_events);
     }
 
     private void setupToolbar() {
@@ -42,18 +44,28 @@ public class AdminActivity extends BaseActivity {
         setSupportActionBar(toolbar);
 
         if (getSupportActionBar() != null) {
-            // מאפשר את הצגת כפתור החזור (החץ)
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            // הגדרת הפעולה בלחיצה על החץ - סגירת המסך הנוכחי וחזרה אחורה
             toolbar.setNavigationOnClickListener(v -> onBackPressed());
         }
     }
 
     private void setupClickListeners() {
+        // ניהול משתמשים
         cardUsers.setOnClickListener(v -> {
-            Intent intent = new Intent(this, UsersListActivity.class);
+            Intent intent = new Intent(this, AdminUsersListActivity.class);
             startActivity(intent);
         });
 
+        // ניהול קבוצות
+        cardGroups.setOnClickListener(v -> {
+            Intent intent = new Intent(this, AdminGroupsListActivity.class);
+            startActivity(intent);
+        });
+
+        // ניהול אירועים
+        cardEvents.setOnClickListener(v -> {
+            Intent intent = new Intent(this, AdminEventsListActivity.class); // שינינו ל-AdminEventsListActivity
+            startActivity(intent);
+        });
     }
 }

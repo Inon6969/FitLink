@@ -19,6 +19,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.fitlink.R;
+import com.example.fitlink.models.Event;
 import com.example.fitlink.models.User;
 import com.example.fitlink.screens.dialogs.EditUserDialog;
 import com.example.fitlink.screens.dialogs.ProfileImageDialog;
@@ -26,13 +27,15 @@ import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.ImageUtil;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 
+import java.util.List;
 import java.util.Objects;
 
 public class UserProfileActivity extends BaseActivity {
     private static final int REQ_CAMERA = 100;
     private static final int REQ_GALLERY = 200;
 
-    private TextView txtTitle, txtFirstName, txtLastName, txtEmail, txtPhone, txtPassword;
+    private TextView txtTitle, txtRank, txtFirstName, txtLastName, txtEmail, txtPhone, txtPassword;
+    private TextView txtStatGroups, txtStatUpcoming, txtStatCompleted;
     private ImageView imgUserProfile, imgTogglePassword;
     private Button btnEditUser, btnChangePhoto, btnToExit, btnToMain, btnToContact;
 
@@ -49,10 +52,7 @@ public class UserProfileActivity extends BaseActivity {
 
         String currentUserId = SharedPreferencesUtil.getUserId(this);
 
-        // מנסים לשלוף ID מהאינטנט (במידה ולחצו על משתמש מרשימת החברים)
         viewedUserId = getIntent().getStringExtra("USER_ID");
-
-        // אם לא הועבר ID, סימן שהמשתמש נכנס לפרופיל של עצמו דרך התפריט הראשי
         if (viewedUserId == null || viewedUserId.isEmpty()) {
             viewedUserId = currentUserId;
         }
@@ -77,24 +77,27 @@ public class UserProfileActivity extends BaseActivity {
         btnChangePhoto = findViewById(R.id.btn_DetailsAboutUser_change_photo);
 
         txtTitle = findViewById(R.id.txt_DetailsAboutUser_title);
+        txtRank = findViewById(R.id.txt_DetailsAboutUser_rank);
         txtFirstName = findViewById(R.id.txt_DetailsAboutUser_first_name);
         txtLastName = findViewById(R.id.txt_DetailsAboutUser_last_name);
         txtEmail = findViewById(R.id.txt_DetailsAboutUser_email);
         txtPhone = findViewById(R.id.txt_DetailsAboutUser_phone);
         txtPassword = findViewById(R.id.txt_DetailsAboutUser_password);
 
+        txtStatGroups = findViewById(R.id.txt_stat_groups);
+        txtStatUpcoming = findViewById(R.id.txt_stat_upcoming);
+        txtStatCompleted = findViewById(R.id.txt_stat_completed);
+
         imgUserProfile = findViewById(R.id.img_DetailsAboutUser_user_profile);
         imgTogglePassword = findViewById(R.id.img_DetailsAboutUser_toggle_password);
 
         if (!isCurrentUser) {
-            // צפייה במשתמש אחר: מסתירים פעולות פרטיות וסיסמה
             btnToExit.setVisibility(View.GONE);
             btnEditUser.setVisibility(View.GONE);
             btnChangePhoto.setVisibility(View.GONE);
             txtPassword.setVisibility(View.GONE);
             imgTogglePassword.setVisibility(View.GONE);
 
-            // הופכים את הכפתור הראשי לכפתור "חזור"
             btnToMain.setText("Back");
             btnToMain.setOnClickListener(v -> onBackPressed());
 
@@ -103,7 +106,6 @@ public class UserProfileActivity extends BaseActivity {
                 startActivity(intent);
             });
         } else {
-            // פרופיל אישי - כל הפעולות זמינות
             btnToExit.setOnClickListener(v -> logout());
             btnEditUser.setOnClickListener(v -> openEditDialog());
             btnChangePhoto.setOnClickListener(v -> openImagePicker());
@@ -142,11 +144,9 @@ public class UserProfileActivity extends BaseActivity {
 
     private void loadUserData() {
         if (isCurrentUser) {
-            // טעינה מיידית מזיכרון המכשיר למהירות מקסימלית
             user = SharedPreferencesUtil.getUser(this);
             updateUI();
 
-            // משיכה חרישית ברקע כדי לוודא שהנתונים מעודכנים ב-100%
             DatabaseService.getInstance().getUser(viewedUserId, new DatabaseService.DatabaseCallback<User>() {
                 @Override
                 public void onCompleted(User freshUser) {
@@ -160,7 +160,6 @@ public class UserProfileActivity extends BaseActivity {
                 public void onFailed(Exception e) {}
             });
         } else {
-            // משיכת פרטי המשתמש האחר מהדאטהבייס
             DatabaseService.getInstance().getUser(viewedUserId, new DatabaseService.DatabaseCallback<User>() {
                 @Override
                 public void onCompleted(User fetchedUser) {
@@ -205,29 +204,73 @@ public class UserProfileActivity extends BaseActivity {
         } else {
             imgUserProfile.setImageResource(R.drawable.ic_user);
         }
+
+        loadUserStats();
     }
 
-    private void openEditDialog() {
-        EditUserDialog editDialog = new EditUserDialog(this, user, () -> {
-            updateUI(); // מרענן את המסך אחרי עריכה
-        });
-        editDialog.show();
-    }
+    // הפונקציה שמחשבת את נתוני הגיימיפיקציה
+    private void loadUserStats() {
+        int groupsCount = user.getGroupIds() != null ? user.getGroupIds().size() : 0;
+        txtStatGroups.setText(String.valueOf(groupsCount));
 
-    private void updateUserInDatabaseAndSharedPreference() {
-        DatabaseService.getInstance().updateUser(user, new DatabaseService.DatabaseCallback<Void>() {
+        DatabaseService.getInstance().getAllEvents(new DatabaseService.DatabaseCallback<List<Event>>() {
             @Override
-            public void onCompleted(Void object) {
-                updateUI();
-                SharedPreferencesUtil.saveUser(UserProfileActivity.this, user);
-                Toast.makeText(UserProfileActivity.this, "הפרטים עודכנו בהצלחה!", Toast.LENGTH_SHORT).show();
+            public void onCompleted(List<Event> events) {
+                int upcomingCount = 0;
+                // מתחילים מהמונה השמור (כדי לא לאבד היסטוריה אחרי ניקוי דאטהבייס)
+                int completedCount = user.getPastEventsCount();
+                long currentTime = System.currentTimeMillis();
+
+                if (events != null) {
+                    for (Event event : events) {
+                        // בודקים אם המשתמש משתתף באירוע
+                        if (event.getParticipants() != null && event.getParticipants().containsKey(user.getId())) {
+                            if (event.getEndTimestamp() < currentTime) {
+                                completedCount++;
+                            } else {
+                                upcomingCount++;
+                            }
+                        }
+                    }
+                }
+
+                txtStatUpcoming.setText(String.valueOf(upcomingCount));
+                txtStatCompleted.setText(String.valueOf(completedCount));
+
+                // עדכון הדרגה (Rank) לפי כמות אירועי העבר
+                updateUserRank(completedCount);
             }
 
             @Override
             public void onFailed(Exception e) {
-                Toast.makeText(UserProfileActivity.this, "שגיאה בעדכון הנתונים: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                txtStatUpcoming.setText("-");
+                txtStatCompleted.setText("-");
             }
         });
+    }
+
+    private void updateUserRank(int totalCompleted) {
+        String rankText;
+        if (totalCompleted == 0) {
+            rankText = "🌱 Rookie";
+        } else if (totalCompleted <= 3) {
+            rankText = "🥉 Beginner";
+        } else if (totalCompleted <= 10) {
+            rankText = "🥈 Active Member";
+        } else if (totalCompleted <= 25) {
+            rankText = "🥇 Fitness Enthusiast";
+        } else {
+            rankText = "🏆 Pro Athlete";
+        }
+
+        txtRank.setText(rankText);
+    }
+
+    private void openEditDialog() {
+        EditUserDialog editDialog = new EditUserDialog(this, user, () -> {
+            updateUI();
+        });
+        editDialog.show();
     }
 
     private void openImagePicker() {
