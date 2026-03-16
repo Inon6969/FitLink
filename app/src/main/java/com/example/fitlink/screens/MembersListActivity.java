@@ -133,6 +133,9 @@ public class MembersListActivity extends BaseActivity {
             }
 
             @Override
+            public void onEditUser(User user) { } // לא רלוונטי לאירוע
+
+            @Override
             public void onToggleAdmin(User user) {
                 handleToggleManager(user);
             }

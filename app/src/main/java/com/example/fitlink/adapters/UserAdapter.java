@@ -149,8 +149,14 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
                 holder.btnDeleteUser.setVisibility(View.GONE);
             }
 
+            // במצב קבוצה נסתיר את כפתור העריכה
+            // (אלא אם אתה רוצה שמנהל יוכל לערוך פרופילים של משתמשים אחרים גם משם)
+            if (holder.btnEditUser != null) {
+                holder.btnEditUser.setVisibility(View.GONE);
+            }
+
         } else {
-            // === לוגיקה למסך הניהול הראשי (UsersListActivity) ===
+            // === לוגיקה למסך הניהול הראשי (AdminUsersListActivity) ===
             if (user.getIsAdmin()) {
                 holder.chipRole.setText("Admin");
                 holder.chipRole.setVisibility(View.VISIBLE);
@@ -173,8 +179,11 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
                 });
             }
 
-            // כפתור מחיקה גלוי תמיד למנהל הראשי
+            // כפתורי מחיקה ועריכה גלויים תמיד למנהל הראשי
             holder.btnDeleteUser.setVisibility(View.VISIBLE);
+            if (holder.btnEditUser != null) {
+                holder.btnEditUser.setVisibility(View.VISIBLE);
+            }
         }
 
         // הגדרת לחיצה על כפתור המחיקה (משמש גם למחיקת משתמש וגם להסרה מקבוצה)
@@ -182,12 +191,19 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
             if (onUserClickListener != null) onUserClickListener.onDeleteUser(user);
         });
 
+        // הגדרת לחיצה על כפתור העריכה החדש
+        if (holder.btnEditUser != null) {
+            holder.btnEditUser.setOnClickListener(v -> {
+                if (onUserClickListener != null) onUserClickListener.onEditUser(user);
+            });
+        }
+
         // במצב קבוצה (כפתור מינוי מנהלים) או במצב רגיל (מנהלי אפליקציה)
         holder.btnToggleAdmin.setOnClickListener(v -> {
             if (onUserClickListener != null) onUserClickListener.onToggleAdmin(user);
         });
 
-        // לחיצה על כל השורה
+        // לחיצה על כל השורה (כעת תעביר לפרופיל המשתמש, כפי שהוגדר ב-AdminUsersListActivity)
         holder.itemView.setOnClickListener(v -> {
             if (onUserClickListener != null) onUserClickListener.onUserClick(user);
         });
@@ -224,8 +240,10 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
         notifyItemRemoved(index);
     }
 
+    // עדכון הממשק (Interface) עם פעולת onEditUser
     public interface OnUserClickListener {
         void onUserClick(User user);
+        void onEditUser(User user);
         void onToggleAdmin(User user);
         void onDeleteUser(User user);
         boolean isCurrentUser(User user);
@@ -238,6 +256,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
         final TextView tvPassword;
         final ImageButton btnDeleteUser;
         final ImageButton btnToggleAdmin;
+        final ImageButton btnEditUser; // הכפתור החדש
         final ImageView imgProfile;
 
         // התגיות שלנו מ-XML
@@ -252,6 +271,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
             tvPassword = itemView.findViewById(R.id.tv_item_user_password);
             btnDeleteUser = itemView.findViewById(R.id.btn_item_user_delete);
             btnToggleAdmin = itemView.findViewById(R.id.btn_item_user_toggleAdmin);
+            btnEditUser = itemView.findViewById(R.id.btn_item_user_edit); // קישור ל-XML
             imgProfile = itemView.findViewById(R.id.img_item_user_profile);
 
             // קישור התגיות

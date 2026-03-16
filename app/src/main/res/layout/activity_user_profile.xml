@@ -167,7 +167,8 @@
                                 android:fontFamily="@font/poppins_regular"
                                 android:textColor="@color/fitlinkTextSecondary"
                                 android:textSize="12sp"
-                                android:text="Groups" />
+                                android:textAlignment="center"
+                                android:text="Groups\nJoined" />
                         </LinearLayout>
 
                         <View
@@ -382,6 +383,7 @@
                     </LinearLayout>
 
                     <LinearLayout
+                        android:id="@+id/layout_DetailsAboutUser_password_container"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical">

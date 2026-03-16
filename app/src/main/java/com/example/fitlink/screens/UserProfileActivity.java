@@ -10,6 +10,7 @@ import android.text.method.PasswordTransformationMethod;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -91,12 +92,13 @@ public class UserProfileActivity extends BaseActivity {
         imgUserProfile = findViewById(R.id.img_DetailsAboutUser_user_profile);
         imgTogglePassword = findViewById(R.id.img_DetailsAboutUser_toggle_password);
 
+        LinearLayout layoutPasswordContainer = findViewById(R.id.layout_DetailsAboutUser_password_container);
+
         if (!isCurrentUser) {
             btnToExit.setVisibility(View.GONE);
             btnEditUser.setVisibility(View.GONE);
             btnChangePhoto.setVisibility(View.GONE);
-            txtPassword.setVisibility(View.GONE);
-            imgTogglePassword.setVisibility(View.GONE);
+            layoutPasswordContainer.setVisibility(View.GONE);
 
             btnToMain.setText("Back");
             btnToMain.setOnClickListener(v -> onBackPressed());
@@ -105,6 +107,23 @@ public class UserProfileActivity extends BaseActivity {
                 Intent intent = new Intent(this, ContactActivity.class);
                 startActivity(intent);
             });
+
+            // הוספת קו תחתון כדי לסמן שהטקסט לחיץ (בהשראת EventDetailsActivity)
+            txtPhone.setPaintFlags(txtPhone.getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
+
+            // פתיחת אפליקציית החיוג בלחיצה על מספר הטלפון
+            txtPhone.setOnClickListener(v -> {
+                if (user != null && user.getPhone() != null && !user.getPhone().isEmpty()) {
+                    Intent dialIntent = new Intent(Intent.ACTION_DIAL);
+                    dialIntent.setData(android.net.Uri.parse("tel:" + user.getPhone()));
+                    try {
+                        startActivity(dialIntent);
+                    } catch (Exception e) {
+                        Toast.makeText(this, "No dialer app found", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+
         } else {
             btnToExit.setOnClickListener(v -> logout());
             btnEditUser.setOnClickListener(v -> openEditDialog());

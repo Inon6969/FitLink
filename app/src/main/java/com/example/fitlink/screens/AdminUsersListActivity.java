@@ -68,7 +68,6 @@ public class AdminUsersListActivity extends BaseActivity {
     }
 
     private void initViews() {
-        // התאמת Insets למסך מלא
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -99,6 +98,15 @@ public class AdminUsersListActivity extends BaseActivity {
         userAdapter = new UserAdapter(new UserAdapter.OnUserClickListener() {
             @Override
             public void onUserClick(User user) {
+                // לחיצה על כל הפריט מעבירה לפרופיל המשתמש
+                Intent intent = new Intent(AdminUsersListActivity.this, UserProfileActivity.class);
+                intent.putExtra("USER_ID", user.getId());
+                startActivity(intent);
+            }
+
+            @Override
+            public void onEditUser(User user) {
+                // לחיצה על כפתור העריכה פותחת את דיאלוג העריכה
                 new EditUserDialog(AdminUsersListActivity.this, user, () -> loadUsers()).show();
             }
 
@@ -121,12 +129,10 @@ public class AdminUsersListActivity extends BaseActivity {
     }
 
     private void setupSearchLogic() {
-        // הגדרת אפשרויות לסינון ב-Spinner
         String[] searchOptions = {"Name", "Email", "Phone"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, searchOptions);
         spinnerSearchType.setAdapter(adapter);
 
-        // האזנה לשינויים בטקסט החיפוש
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -186,7 +192,7 @@ public class AdminUsersListActivity extends BaseActivity {
             public void onCompleted(List<User> users) {
                 progressBar.setVisibility(View.GONE);
                 allUsers = (users != null) ? users : new ArrayList<>();
-                filterUsers(etSearch.getText().toString()); // הפעלת פילטר קיים אם יש
+                filterUsers(etSearch.getText().toString());
             }
 
             @Override
@@ -215,7 +221,7 @@ public class AdminUsersListActivity extends BaseActivity {
             @Override
             public void onCompleted(Void object) {
                 Toast.makeText(AdminUsersListActivity.this, "Status updated", Toast.LENGTH_SHORT).show();
-                loadUsers(); // רענון הרשימה
+                loadUsers();
             }
 
             @Override
@@ -237,7 +243,6 @@ public class AdminUsersListActivity extends BaseActivity {
         progressBar.setVisibility(View.VISIBLE);
 
         if (deleteGroups) {
-            // שולפים את כל הקבוצות ומחפשים קבוצות שהמשתמש יצר
             databaseService.getAllGroups(new DatabaseService.DatabaseCallback<List<Group>>() {
                 @Override
                 public void onCompleted(List<Group> allGroups) {
@@ -251,10 +256,8 @@ public class AdminUsersListActivity extends BaseActivity {
                     }
 
                     if (userGroups.isEmpty()) {
-                        // אם אין לו קבוצות, פשוט מוחקים את המשתמש
                         performFinalUserDeletion(user, isSelf);
                     } else {
-                        // יש קבוצות - נמחק אותן קודם אחת-אחת
                         int[] deletedCount = {0};
                         boolean[] hasFailed = {false};
                         for (Group g : userGroups) {
@@ -262,7 +265,6 @@ public class AdminUsersListActivity extends BaseActivity {
                                 @Override
                                 public void onCompleted(Void object) {
                                     deletedCount[0]++;
-                                    // כשכל הקבוצות נמחקו בהצלחה, מוחקים את המשתמש
                                     if (deletedCount[0] == userGroups.size() && !hasFailed[0]) {
                                         performFinalUserDeletion(user, isSelf);
                                     }
@@ -288,7 +290,6 @@ public class AdminUsersListActivity extends BaseActivity {
                 }
             });
         } else {
-            // אם המנהל בחר לא למחוק את הקבוצות, מוחקים ישירות את המשתמש
             performFinalUserDeletion(user, isSelf);
         }
     }
@@ -306,7 +307,7 @@ public class AdminUsersListActivity extends BaseActivity {
                     return;
                 }
                 Toast.makeText(AdminUsersListActivity.this, "User deleted successfully", Toast.LENGTH_SHORT).show();
-                loadUsers(); // רענון המסך אחרי המחיקה
+                loadUsers();
             }
 
             @Override

@@ -203,6 +203,17 @@
                     android:scaleType="centerInside"
                     android:src="@drawable/ic_add_admin"
                     app:tint="@color/fitlinkPrimary" />
+
+                <ImageButton
+                    android:id="@+id/btn_item_user_edit"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="8dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Edit User"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_edit"
+                    app:tint="@color/fitlinkPrimary" />
             </LinearLayout>
 
         </LinearLayout>

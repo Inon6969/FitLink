@@ -124,6 +124,9 @@ public class EventParticipantsActivity extends BaseActivity {
             }
 
             @Override
+            public void onEditUser(User user) { } // לא רלוונטי לאירוע
+
+            @Override
             public void onToggleAdmin(User user) { } // לא רלוונטי לאירוע
 
             @Override
