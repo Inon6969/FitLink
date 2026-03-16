@@ -1,5 +1,6 @@
 package com.example.fitlink.screens;
 
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
@@ -41,6 +42,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 public class AdminEventsListActivity extends BaseActivity {
@@ -54,7 +56,7 @@ public class AdminEventsListActivity extends BaseActivity {
     private MaterialButton btnRangeStart, btnRangeEnd;
     private ProgressBar progressBar;
     private LinearLayout emptyState;
-    private MaterialButton btnCreateEvent;
+    private MaterialButton btnCreateEvent, btnCleanupEvents;
 
     private List<Event> allEvents = new ArrayList<>();
     private String currentUserId;
@@ -94,6 +96,7 @@ public class AdminEventsListActivity extends BaseActivity {
         setupRecyclerView();
         setupSearchLogic();
         setupCreateEventButton();
+        setupCleanupButton();
     }
 
     private void initViews() {
@@ -120,6 +123,7 @@ public class AdminEventsListActivity extends BaseActivity {
         progressBar = findViewById(R.id.admin_events_progress_bar);
         emptyState = findViewById(R.id.admin_events_empty_state);
         btnCreateEvent = findViewById(R.id.btn_admin_create_event);
+        btnCleanupEvents = findViewById(R.id.btn_admin_cleanup_events);
     }
 
     private void setupToolbar() {
@@ -140,7 +144,7 @@ public class AdminEventsListActivity extends BaseActivity {
             public void onEventClick(Event event) {
                 Intent intent = new Intent(AdminEventsListActivity.this, EventDetailsActivity.class);
                 intent.putExtra("EVENT_ID", event.getId());
-                intent.putExtra("IS_ADMIN_MODE", true); // פרמטר מפתח למנהלים!
+                intent.putExtra("IS_ADMIN_MODE", true);
                 startActivity(intent);
             }
         });
@@ -343,11 +347,80 @@ public class AdminEventsListActivity extends BaseActivity {
         btnCreateEvent.setOnClickListener(v -> {
             currentCreateEventDialog = new CreateIndependentEventDialog(this);
             currentCreateEventDialog.setOnDismissListener(d -> {
-                loadAllEvents(); // רענון אחרי יצירה
+                loadAllEvents();
                 currentCreateEventDialog = null;
             });
             currentCreateEventDialog.show();
         });
+    }
+
+    // --- מערכת הניקוי המשודרגת עם בחירת תאריך ושעה ---
+    private void setupCleanupButton() {
+        btnCleanupEvents.setOnClickListener(v -> {
+            Calendar c = Calendar.getInstance();
+
+            DatePickerDialog datePickerDialog = new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
+                // לאחר בחירת התאריך, מקפיץ את בחירת השעה
+                TimePickerDialog timePickerDialog = new TimePickerDialog(this, (timeView, hourOfDay, minute) -> {
+                    // חיבור התאריך והשעה יחד לנקודת חיתוך מדויקת
+                    Calendar selectedDateTime = Calendar.getInstance();
+                    selectedDateTime.set(year, month, dayOfMonth, hourOfDay, minute, 0);
+                    long cutoffTimestamp = selectedDateTime.getTimeInMillis();
+
+                    String formattedDateTime = String.format(Locale.getDefault(), "%02d/%02d/%d %02d:%02d", dayOfMonth, month + 1, year, hourOfDay, minute);
+                    showCleanupConfirmation(cutoffTimestamp, formattedDateTime);
+
+                }, c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), true);
+
+                timePickerDialog.setTitle("Select Time");
+                timePickerDialog.show();
+
+            }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
+
+            // מונע בחירת תאריכים בעתיד
+            datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
+
+            datePickerDialog.setTitle("Select Date");
+            datePickerDialog.show();
+        });
+    }
+
+    private void showCleanupConfirmation(long cutoffTimestamp, String formattedDate) {
+        String title = "Confirm Cleanup";
+        String message = "Are you sure you want to permanently delete all events that ended before " + formattedDate + "?\n\n(Gamification stats for users will be safely preserved).";
+
+        // שימוש בדיאלוג המעוצב שלנו
+        new com.example.fitlink.screens.dialogs.DeleteEventDialog(this, title, message, () -> {
+            progressBar.setVisibility(View.VISIBLE);
+            btnCleanupEvents.setEnabled(false);
+            btnCleanupEvents.setText("Cleaning...");
+
+            databaseService.cleanupOldEvents(cutoffTimestamp, new DatabaseService.DatabaseCallback<Integer>() {
+                @Override
+                public void onCompleted(Integer deletedCount) {
+                    progressBar.setVisibility(View.GONE);
+                    btnCleanupEvents.setEnabled(true);
+                    btnCleanupEvents.setText("Clean Old Events");
+
+                    // התיקון: הודעה מותאמת אם נמחקו אירועים או שלא היו כאלה בכלל
+                    if (deletedCount == 0) {
+                        Toast.makeText(AdminEventsListActivity.this, "No old events found for this timeframe.", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(AdminEventsListActivity.this, "Cleanup finished! " + deletedCount + " old events removed.", Toast.LENGTH_LONG).show();
+                    }
+
+                    loadAllEvents();
+                }
+
+                @Override
+                public void onFailed(Exception e) {
+                    progressBar.setVisibility(View.GONE);
+                    btnCleanupEvents.setEnabled(true);
+                    btnCleanupEvents.setText("Clean Old Events");
+                    Toast.makeText(AdminEventsListActivity.this, "Cleanup failed.", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }).show();
     }
 
     @Override
@@ -358,7 +431,6 @@ public class AdminEventsListActivity extends BaseActivity {
 
     private void loadAllEvents() {
         progressBar.setVisibility(View.VISIBLE);
-        // טוען את *כל* האירועים למנהל (כולל קבוצות והיסטוריה)
         databaseService.getAllEvents(new DatabaseService.DatabaseCallback<List<Event>>() {
             @Override
             public void onCompleted(List<Event> events) {

@@ -59,7 +59,7 @@
                 android:id="@+id/btn_admin_create_event"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
+                android:layout_marginBottom="12dp"
                 android:backgroundTint="@color/fitlinkPrimary"
                 android:fontFamily="@font/poppins_bold"
                 android:text="Create Event"
@@ -70,6 +70,25 @@
                 app:iconGravity="textEnd"
                 app:iconSize="25dp"
                 app:iconTint="@color/fitlinkBackground" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_admin_cleanup_events"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:fontFamily="@font/poppins_bold"
+                android:text="Clean Old Events"
+                android:textColor="#FF4C4C"
+                android:textSize="18sp"
+                app:cornerRadius="24dp"
+                app:icon="@drawable/ic_delete"
+                app:iconGravity="textEnd"
+                app:iconSize="25dp"
+                app:iconTint="#FF4C4C"
+                app:strokeColor="#FF4C4C"
+                app:strokeWidth="1.5dp"
+                android:textAllCaps="false" />
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"

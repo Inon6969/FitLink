@@ -102,8 +102,8 @@
                 android:text="Edit"
                 android:textColor="@color/fitlinkPrimary"
                 app:cornerRadius="16dp"
-                app:icon="@android:drawable/ic_menu_edit"
-                app:iconGravity="textStart"
+                app:icon="@drawable/ic_edit"
+                app:iconGravity="textEnd"
                 app:iconTint="@color/fitlinkPrimary"
                 app:strokeColor="@color/fitlinkPrimary"
                 app:strokeWidth="1dp" />
@@ -119,8 +119,8 @@
                 android:text="Delete"
                 android:textColor="#FF4C4C"
                 app:cornerRadius="16dp"
-                app:icon="@android:drawable/ic_menu_delete"
-                app:iconGravity="textStart"
+                app:icon="@drawable/ic_delete"
+                app:iconGravity="textEnd"
                 app:iconTint="#FF4C4C"
                 app:strokeColor="#FF4C4C"
                 app:strokeWidth="1dp" />

@@ -950,59 +950,70 @@ public class DatabaseService {
      * Admin Function: Cleans up events that ended more than a specified number of months ago.
      * It leverages the existing deleteEvent() function to ensure gamification stats are safely preserved!
      */
-    public void cleanupOldEvents(int monthsOld, @Nullable final DatabaseCallback<Integer> callback) {
-        // חישוב חותמת הזמן של הלפני X חודשים (30 ימים * 24 שעות * 60 דקות * 60 שניות * 1000 מילישניות)
-        long cutoffTimestamp = System.currentTimeMillis() - ((long) monthsOld * 30L * 24L * 60L * 60L * 1000L);
+    /**
+     * Admin Function: Cleans up events that ended before a specified cutoff timestamp.
+     * It leverages the existing deleteEvent() function to ensure gamification stats are safely preserved!
+     */
+    /**
+     * Admin Function: Cleans up events that ended before a specified cutoff timestamp.
+     * Uses a single-fetch (get) to prevent infinite loops from continuous listeners.
+     */
+    public void cleanupOldEvents(long cutoffTimestamp, @Nullable final DatabaseCallback<Integer> callback) {
+        // קריאה חד-פעמית למסד הנתונים (ולא מאזין רציף)
+        databaseReference.child(EVENTS_PATH).get().addOnCompleteListener(task -> {
+            if (!task.isSuccessful()) {
+                if (callback != null) callback.onFailed(task.getException());
+                return;
+            }
 
-        getAllEvents(new DatabaseCallback<List<Event>>() {
-            @Override
-            public void onCompleted(List<Event> events) {
-                if (events == null || events.isEmpty()) {
-                    if (callback != null) callback.onCompleted(0);
-                    return;
-                }
-
-                // סינון אירועים ישנים
-                List<Event> eventsToDelete = new ArrayList<>();
-                for (Event event : events) {
-                    if (event.getEndTimestamp() > 0 && event.getEndTimestamp() < cutoffTimestamp) {
-                        eventsToDelete.add(event);
-                    }
-                }
-
-                if (eventsToDelete.isEmpty()) {
-                    if (callback != null) callback.onCompleted(0); // אין מה לנקות
-                    return;
-                }
-
-                // מחיקת האירועים הישנים בזה אחר זה (כל אחד שומר על הסטטיסטיקות של משתתפיו)
-                int[] completedOperations = {0};
-                for (Event event : eventsToDelete) {
-                    deleteEvent(event.getId(), new DatabaseCallback<Void>() {
-                        @Override
-                        public void onCompleted(Void object) {
-                            checkIfDone();
-                        }
-
-                        @Override
-                        public void onFailed(Exception e) {
-                            checkIfDone(); // ממשיכים הלאה גם אם אירוע אחד נכשל
-                        }
-
-                        private void checkIfDone() {
-                            completedOperations[0]++;
-                            // אם סיימנו לעבור על כל האירועים
-                            if (completedOperations[0] == eventsToDelete.size()) {
-                                if (callback != null) callback.onCompleted(eventsToDelete.size());
-                            }
-                        }
-                    });
+            List<Event> events = new ArrayList<>();
+            for (DataSnapshot snapshot : task.getResult().getChildren()) {
+                Event event = snapshot.getValue(Event.class);
+                if (event != null) {
+                    events.add(event);
                 }
             }
 
-            @Override
-            public void onFailed(Exception e) {
-                if (callback != null) callback.onFailed(e);
+            if (events.isEmpty()) {
+                if (callback != null) callback.onCompleted(0);
+                return;
+            }
+
+            // סינון אירועים ישנים
+            List<Event> eventsToDelete = new ArrayList<>();
+            for (Event event : events) {
+                if (event.getEndTimestamp() > 0 && event.getEndTimestamp() < cutoffTimestamp) {
+                    eventsToDelete.add(event);
+                }
+            }
+
+            if (eventsToDelete.isEmpty()) {
+                if (callback != null) callback.onCompleted(0); // אין מה לנקות
+                return;
+            }
+
+            // מחיקת האירועים הישנים בזה אחר זה (כל אחד שומר על הסטטיסטיקות של משתתפיו)
+            int[] completedOperations = {0};
+            for (Event event : eventsToDelete) {
+                deleteEvent(event.getId(), new DatabaseCallback<Void>() {
+                    @Override
+                    public void onCompleted(Void object) {
+                        checkIfDone();
+                    }
+
+                    @Override
+                    public void onFailed(Exception e) {
+                        checkIfDone(); // ממשיכים הלאה גם אם אירוע אחד נכשל
+                    }
+
+                    private void checkIfDone() {
+                        completedOperations[0]++;
+                        // אם סיימנו לעבור על כל האירועים
+                        if (completedOperations[0] == eventsToDelete.size()) {
+                            if (callback != null) callback.onCompleted(eventsToDelete.size());
+                        }
+                    }
+                });
             }
         });
     }

@@ -23,6 +23,7 @@
             app:tint="#D32F2F" />
 
         <TextView
+            android:id="@+id/tv_delete_event_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
@@ -32,6 +33,7 @@
             android:textSize="20sp" />
 
         <TextView
+            android:id="@+id/tv_delete_event_message"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"

@@ -245,7 +245,7 @@
                         app:strokeWidth="1dp"
                         app:icon="@drawable/ic_camera"
                         app:iconTint="@color/fitlinkPrimary"
-                        app:iconGravity="textStart"
+                        app:iconGravity="textEnd"
                         android:textAllCaps="false" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -417,8 +417,8 @@
                 android:textColor="@color/white"
                 android:textSize="16sp"
                 app:cornerRadius="30dp"
-                app:icon="@android:drawable/ic_menu_edit"
-                app:iconGravity="textStart"
+                app:icon="@drawable/ic_edit"
+                app:iconGravity="textEnd"
                 app:iconTint="@color/white" />
 
         </LinearLayout>

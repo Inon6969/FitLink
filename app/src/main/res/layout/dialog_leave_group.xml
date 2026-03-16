@@ -54,7 +54,8 @@
                 android:textAllCaps="false"
                 android:textColor="@color/fitlinkPrimary"
                 app:cornerRadius="16dp"
-                app:strokeColor="@color/fitlinkPrimary" />
+                app:strokeColor="@color/fitlinkPrimary"
+                app:strokeWidth="2dp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnLeaveGroupConfirm"
