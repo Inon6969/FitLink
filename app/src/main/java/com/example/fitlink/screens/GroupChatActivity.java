@@ -22,7 +22,7 @@ import com.example.fitlink.models.Group;
 import com.example.fitlink.models.User;
 import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.SharedPreferencesUtil;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +32,7 @@ public class GroupChatActivity extends BaseActivity {
     private Group currentGroup;
     private RecyclerView rvChat;
     private EditText etMessage;
-    private FloatingActionButton btnSend;
+    private MaterialButton btnSend; // עודכן ל-MaterialButton
     private ChatAdapter adapter;
     private List<ChatMessage> messageList;
     private String currentUserId;
@@ -102,7 +102,9 @@ public class GroupChatActivity extends BaseActivity {
 
         rvChat = findViewById(R.id.rv_chat_messages);
         etMessage = findViewById(R.id.et_chat_input);
-        btnSend = findViewById(R.id.fab_send_message);
+
+        // ה-ID עודכן בהתאם לעיצוב החדש בקובץ ה-XML
+        btnSend = findViewById(R.id.btn_send_message);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setStackFromEnd(true);
