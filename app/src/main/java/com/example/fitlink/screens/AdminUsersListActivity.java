@@ -247,63 +247,13 @@ public class AdminUsersListActivity extends BaseActivity {
     private void executeUserDeletion(User user, boolean isSelf, boolean deleteGroups) {
         progressBar.setVisibility(View.VISIBLE);
 
-        if (deleteGroups) {
-            databaseService.getAllGroups(new DatabaseService.DatabaseCallback<List<Group>>() {
-                @Override
-                public void onCompleted(List<Group> allGroups) {
-                    List<Group> userGroups = new ArrayList<>();
-                    if (allGroups != null) {
-                        for (Group g : allGroups) {
-                            if (g.getCreatorId() != null && g.getCreatorId().equals(user.getId())) {
-                                userGroups.add(g);
-                            }
-                        }
-                    }
-
-                    if (userGroups.isEmpty()) {
-                        performFinalUserDeletion(user, isSelf);
-                    } else {
-                        int[] deletedCount = {0};
-                        boolean[] hasFailed = {false};
-                        for (Group g : userGroups) {
-                            databaseService.deleteGroup(g.getId(), new DatabaseService.DatabaseCallback<Void>() {
-                                @Override
-                                public void onCompleted(Void object) {
-                                    deletedCount[0]++;
-                                    if (deletedCount[0] == userGroups.size() && !hasFailed[0]) {
-                                        performFinalUserDeletion(user, isSelf);
-                                    }
-                                }
-
-                                @Override
-                                public void onFailed(Exception e) {
-                                    if (!hasFailed[0]) {
-                                        hasFailed[0] = true;
-                                        progressBar.setVisibility(View.GONE);
-                                        Toast.makeText(AdminUsersListActivity.this, "Failed to delete user's groups", Toast.LENGTH_SHORT).show();
-                                    }
-                                }
-                            });
-                        }
-                    }
-                }
-
-                @Override
-                public void onFailed(Exception e) {
-                    progressBar.setVisibility(View.GONE);
-                    Toast.makeText(AdminUsersListActivity.this, "Failed to fetch groups", Toast.LENGTH_SHORT).show();
-                }
-            });
-        } else {
-            performFinalUserDeletion(user, isSelf);
-        }
-    }
-
-    private void performFinalUserDeletion(User user, boolean isSelf) {
-        databaseService.deleteUser(user.getId(), new DatabaseService.DatabaseCallback<Void>() {
+        // קוראים לפונקציה החדשה שעושה את כל העבודה בצורה אטומית ובטוחה
+        databaseService.deleteUserCompletely(user, deleteGroups, new DatabaseService.DatabaseCallback<Void>() {
             @Override
             public void onCompleted(Void object) {
                 progressBar.setVisibility(View.GONE);
+
+                // אם האדמין מחק את עצמו (בטעות או בכוונה), ננתק אותו מהאפליקציה
                 if (isSelf) {
                     SharedPreferencesUtil.signOutUser(AdminUsersListActivity.this);
                     Intent intent = new Intent(AdminUsersListActivity.this, LoginActivity.class);
@@ -311,7 +261,8 @@ public class AdminUsersListActivity extends BaseActivity {
                     startActivity(intent);
                     return;
                 }
-                Toast.makeText(AdminUsersListActivity.this, "User deleted successfully", Toast.LENGTH_SHORT).show();
+
+                Toast.makeText(AdminUsersListActivity.this, "User entirely deleted", Toast.LENGTH_SHORT).show();
                 loadUsers();
             }
 

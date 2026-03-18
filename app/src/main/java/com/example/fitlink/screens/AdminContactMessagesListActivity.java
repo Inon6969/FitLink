@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -24,18 +25,19 @@ import com.example.fitlink.services.DatabaseService;
 
 import java.util.List;
 
-public class AdminMessagesListActivity extends BaseActivity {
+public class AdminContactMessagesListActivity extends BaseActivity {
 
     private RecyclerView rvMessages;
     private ProgressBar progressBar;
     private LinearLayout layoutNoMessages;
+    private TextView tvMessagesCount; // הרפרנס לטקסט החדש
     private ContactMessageAdapter messageAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_admin_messages_list);
+        setContentView(R.layout.activity_admin_contact_messages_list);
 
         initViews();
         setupToolbar();
@@ -53,6 +55,7 @@ public class AdminMessagesListActivity extends BaseActivity {
         rvMessages = findViewById(R.id.rv_admin_messages);
         progressBar = findViewById(R.id.progress_admin_messages);
         layoutNoMessages = findViewById(R.id.layout_no_messages);
+        tvMessagesCount = findViewById(R.id.tv_admin_messages_count); // קישור הרכיב מהעיצוב
     }
 
     private void setupToolbar() {
@@ -68,23 +71,33 @@ public class AdminMessagesListActivity extends BaseActivity {
         rvMessages.setLayoutManager(new LinearLayoutManager(this));
 
         messageAdapter = new ContactMessageAdapter(new ContactMessageAdapter.OnMessageClickListener() {
+
+            @Override
+            public void onMessageClick(ContactMessage message) {
+                if (message.getUserId() != null && !message.getUserId().isEmpty()) {
+                    Intent intent = new Intent(AdminContactMessagesListActivity.this, UserProfileActivity.class);
+                    intent.putExtra("USER_ID", message.getUserId());
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(AdminContactMessagesListActivity.this, "User profile not available", Toast.LENGTH_SHORT).show();
+                }
+            }
+
             @Override
             public void onReplyClick(ContactMessage message) {
-                // פתיחת אפליקציית אימייל עם כתובת המשתמש
                 Intent intent = new Intent(Intent.ACTION_SENDTO);
                 intent.setData(Uri.parse("mailto:" + message.getEmail()));
                 intent.putExtra(Intent.EXTRA_SUBJECT, "FitLink Support Response");
                 try {
                     startActivity(intent);
                 } catch (Exception e) {
-                    Toast.makeText(AdminMessagesListActivity.this, "No email app found", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(AdminContactMessagesListActivity.this, "No email app found", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onDeleteClick(ContactMessage message) {
-                // דיאלוג אישור לפני מחיקה
-                new AlertDialog.Builder(AdminMessagesListActivity.this)
+                new AlertDialog.Builder(AdminContactMessagesListActivity.this)
                         .setTitle("Delete Message")
                         .setMessage("Are you sure you want to delete this message?")
                         .setPositiveButton("Delete", (dialog, which) -> deleteMessage(message.getId()))
@@ -105,9 +118,12 @@ public class AdminMessagesListActivity extends BaseActivity {
                 if (messages == null || messages.isEmpty()) {
                     layoutNoMessages.setVisibility(View.VISIBLE);
                     rvMessages.setVisibility(View.GONE);
+                    tvMessagesCount.setVisibility(View.GONE); // הסתרת הטקסט כשאין הודעות
                 } else {
                     layoutNoMessages.setVisibility(View.GONE);
                     rvMessages.setVisibility(View.VISIBLE);
+                    tvMessagesCount.setVisibility(View.VISIBLE); // הצגת הטקסט
+                    tvMessagesCount.setText("Total messages: " + messages.size()); // עדכון מספר ההודעות
                     messageAdapter.updateList(messages);
                 }
             }
@@ -115,7 +131,7 @@ public class AdminMessagesListActivity extends BaseActivity {
             @Override
             public void onFailed(Exception e) {
                 progressBar.setVisibility(View.GONE);
-                Toast.makeText(AdminMessagesListActivity.this, "Failed to load messages", Toast.LENGTH_SHORT).show();
+                Toast.makeText(AdminContactMessagesListActivity.this, "Failed to load messages", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -126,14 +142,14 @@ public class AdminMessagesListActivity extends BaseActivity {
             @Override
             public void onCompleted(Void object) {
                 progressBar.setVisibility(View.GONE);
-                Toast.makeText(AdminMessagesListActivity.this, "Message deleted", Toast.LENGTH_SHORT).show();
+                Toast.makeText(AdminContactMessagesListActivity.this, "Message deleted", Toast.LENGTH_SHORT).show();
                 // ה-Listener ב-DatabaseService ירענן את הרשימה אוטומטית כי עשינו addValueEventListener
             }
 
             @Override
             public void onFailed(Exception e) {
                 progressBar.setVisibility(View.GONE);
-                Toast.makeText(AdminMessagesListActivity.this, "Failed to delete message", Toast.LENGTH_SHORT).show();
+                Toast.makeText(AdminContactMessagesListActivity.this, "Failed to delete message", Toast.LENGTH_SHORT).show();
             }
         });
     }

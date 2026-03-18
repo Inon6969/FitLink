@@ -28,7 +28,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.FitLink">
         <activity
-            android:name=".screens.AdminMessagesListActivity"
+            android:name=".screens.AdminContactMessagesListActivity"
             android:exported="false" />
         <activity
             android:name=".screens.AdminEventsListActivity"

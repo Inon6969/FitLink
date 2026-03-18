@@ -273,6 +273,117 @@ public class DatabaseService {
         deleteData(USERS_PATH + "/" + uid, callback);
     }
 
+    /**
+     * פונקציה למחיקה הרמטית של משתמש מכל רחבי האפליקציה בבת אחת (Atomic Update)
+     * מוחקת: משתמש, קבוצות שיצר (אם נבחר), אירועים עצמאיים שיצר, אירועים של הקבוצות שימחקו.
+     * מסירה מהשתתפות: חברות בקבוצות אחרות, ניהול בקבוצות אחרות, השתתפות באירועים של אחרים.
+     */
+    public void deleteUserCompletely(@NotNull final User userToDelete, boolean deleteCreatedGroups, @Nullable final DatabaseCallback<Void> callback) {
+        String userId = userToDelete.getId();
+
+        getAllGroups(new DatabaseCallback<List<Group>>() {
+            @Override
+            public void onCompleted(List<Group> allGroups) {
+
+                getAllEvents(new DatabaseCallback<List<Event>>() {
+                    @Override
+                    public void onCompleted(List<Event> allEvents) {
+                        Map<String, Object> updates = new HashMap<>();
+                        Map<String, Integer> pastEventsToIncrement = new HashMap<>();
+                        long currentTime = System.currentTimeMillis();
+
+                        // 1. הכנת מחיקת פרופיל המשתמש עצמו
+                        updates.put(USERS_PATH + "/" + userId, null);
+
+                        // 2. סריקה וטיפול בכל הקבוצות באפליקציה
+                        if (allGroups != null) {
+                            for (Group group : allGroups) {
+                                boolean isCreator = group.getCreatorId() != null && group.getCreatorId().equals(userId);
+
+                                if (isCreator && deleteCreatedGroups) {
+                                    // מחיקת הקבוצה שיצר וכל הצ'אטים שלה
+                                    updates.put(GROUPS_PATH + "/" + group.getId(), null);
+                                    updates.put(GROUP_CHATS_PATH + "/" + group.getId(), null);
+
+                                    // הסרת הקבוצה מרשימת הקבוצות של שאר המשתתפים
+                                    if (group.getMembers() != null) {
+                                        for (String memberId : group.getMembers().keySet()) {
+                                            if (!memberId.equals(userId)) {
+                                                updates.put(USERS_PATH + "/" + memberId + "/groupIds/" + group.getId(), null);
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    // המשתמש הוא לא היוצר (או שבחרנו לא למחוק קבוצות) - רק נסיר אותו מרשימות הקבוצה
+                                    updates.put(GROUPS_PATH + "/" + group.getId() + "/members/" + userId, null);
+                                    updates.put(GROUPS_PATH + "/" + group.getId() + "/managers/" + userId, null);
+                                    updates.put(GROUPS_PATH + "/" + group.getId() + "/pendingRequests/" + userId, null);
+                                }
+                            }
+                        }
+
+                        // 3. סריקה וטיפול בכל האירועים באפליקציה
+                        if (allEvents != null) {
+                            for (Event event : allEvents) {
+                                boolean isCreator = event.getCreatorId() != null && event.getCreatorId().equals(userId);
+                                // בודק האם הקבוצה של האירוע הזה כבר סומנה למחיקה בשלב הקודם
+                                boolean isGroupDeleted = event.getGroupId() != null && updates.containsKey(GROUPS_PATH + "/" + event.getGroupId());
+
+                                // מוחקים את האירוע רק אם הוא עצמאי והמשתמש יצר אותו, או אם הקבוצה שלו נמחקת
+                                if ((isCreator && event.isIndependent()) || isGroupDeleted) {
+                                    updates.put(EVENTS_PATH + "/" + event.getId(), null);
+                                    updates.put("event_comments/" + event.getId(), null);
+
+                                    boolean isPastEvent = event.getEndTimestamp() < currentTime;
+
+                                    if (event.getParticipants() != null) {
+                                        for (String participantId : event.getParticipants().keySet()) {
+                                            if (!participantId.equals(userId)) {
+                                                updates.put(USERS_PATH + "/" + participantId + "/eventIds/" + event.getId(), null);
+                                                // חישוב שמירת נקודות הגיימיפיקציה למשתתפים אחרים באירוע עבר שנמחק
+                                                if (isPastEvent) {
+                                                    pastEventsToIncrement.put(participantId, pastEventsToIncrement.getOrDefault(participantId, 0) + 1);
+                                                }
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    // האירוע נשאר קיים - רק מסירים את המשתמש מרשימת המשתתפים שלו
+                                    updates.put(EVENTS_PATH + "/" + event.getId() + "/participants/" + userId, null);
+                                }
+                            }
+                        }
+
+                        // עדכון הניקוד (Gamification) למשתמשים אחרים שהיו באירועים שנמחקו
+                        for (Map.Entry<String, Integer> entry : pastEventsToIncrement.entrySet()) {
+                            updates.put(USERS_PATH + "/" + entry.getKey() + "/pastEventsCount",
+                                    com.google.firebase.database.ServerValue.increment(entry.getValue()));
+                        }
+
+                        // 4. שיגור כל העדכונים ל-Firebase כמקשה אחת (Atomic Update)
+                        databaseReference.updateChildren(updates).addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                if (callback != null) callback.onCompleted(null);
+                            } else {
+                                if (callback != null) callback.onFailed(task.getException());
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onFailed(Exception e) {
+                        if (callback != null) callback.onFailed(e);
+                    }
+                });
+            }
+
+            @Override
+            public void onFailed(Exception e) {
+                if (callback != null) callback.onFailed(e);
+            }
+        });
+    }
+
     /// get a user by email and password
     ///
     /// @param email    the email of the user
@@ -878,10 +989,11 @@ public class DatabaseService {
                 });
     }
 
-    public void sendContactMessage(String name, String email, String phone, String message, @Nullable final DatabaseCallback<Void> callback) {
+    public void sendContactMessage(String userId, String name, String email, String phone, String message, @Nullable final DatabaseCallback<Void> callback) {
         String messageId = generateNewId("contact_messages");
 
         Map<String, Object> messageData = new HashMap<>();
+        messageData.put("userId", userId); // שמירת מזהה המשתמש
         messageData.put("name", name);
         messageData.put("email", email);
         messageData.put("phone", phone);

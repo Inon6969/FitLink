@@ -124,14 +124,14 @@ public class ContactActivity extends BaseActivity {
         }
 
         // Get the identity dynamically from the SharedPreferences
+        String userId = currentUser.getId(); // שליפת ה-ID
         String name = currentUser.getFullName();
         String email = currentUser.getEmail();
 
-        // שליפת הטלפון - אם אין נשמור מחרוזת שאומרת שאין טלפון כדי למנוע קריסה
         String phone = (currentUser.getPhone() != null && !currentUser.getPhone().isEmpty()) ? currentUser.getPhone() : "No phone provided";
 
-        // שליחת הטלפון יחד עם שאר הנתונים ל-DatabaseService
-        databaseService.sendContactMessage(name, email, phone, message, new DatabaseService.DatabaseCallback<Void>() {
+        // העברת ה-userId כפרמטר הראשון
+        databaseService.sendContactMessage(userId, name, email, phone, message, new DatabaseService.DatabaseCallback<Void>() {
             @Override
             public void onCompleted(Void object) {
                 Toast.makeText(ContactActivity.this, "Message sent successfully!", Toast.LENGTH_LONG).show();

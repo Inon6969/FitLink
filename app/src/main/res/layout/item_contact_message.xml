@@ -26,14 +26,23 @@
             android:textColor="@color/fitlinkPrimary"
             android:textSize="18sp" />
 
-        <ImageView
-            android:id="@+id/img_item_msg_sender_profile"
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="90dp"
             android:layout_height="90dp"
             android:layout_marginBottom="14dp"
-            android:contentDescription="Profile Image"
-            android:scaleType="centerCrop"
-            android:src="@drawable/ic_user" />
+            app:cardCornerRadius="45dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp">
+
+            <ImageView
+                android:id="@+id/img_item_msg_sender_profile"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="Profile Image"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_user" />
+
+        </com.google.android.material.card.MaterialCardView>
 
         <TextView
             android:id="@+id/tv_item_msg_sender_name"
@@ -113,7 +122,7 @@
                 android:layout_width="22dp"
                 android:layout_height="22dp"
                 android:layout_marginEnd="10dp"
-                android:src="@android:drawable/ic_dialog_email"
+                android:src="@drawable/ic_message"
                 app:tint="@color/fitlinkPrimary" />
 
             <TextView
@@ -177,29 +186,42 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
+            android:gravity="center"
             android:orientation="horizontal">
 
-            <ImageButton
-                android:id="@+id/btn_item_msg_reply"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:layout_marginEnd="12dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Reply"
-                android:scaleType="centerInside"
-                android:src="@android:drawable/ic_dialog_email"
-                app:tint="@color/fitlinkPrimary" />
-
-            <ImageButton
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_item_msg_delete"
-                android:layout_width="50dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
                 android:layout_height="50dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Delete Message"
-                android:scaleType="centerInside"
-                android:src="@drawable/ic_delete"
-                app:tint="#FF5252" />
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:fontFamily="@font/poppins_medium"
+                android:text="Delete"
+                android:textAllCaps="false"
+                android:textColor="#FF5252"
+                app:cornerRadius="12dp"
+                app:icon="@drawable/ic_delete"
+                app:iconGravity="textEnd"
+                app:iconTint="#FF5252"
+                app:strokeColor="#FF5252"
+                app:strokeWidth="1dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_item_msg_reply"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:backgroundTint="@color/fitlinkPrimary"
+                android:fontFamily="@font/poppins_medium"
+                android:text="Reply"
+                android:textAllCaps="false"
+                android:textColor="@color/white"
+                app:cornerRadius="12dp"
+                app:icon="@android:drawable/ic_dialog_email"
+                app:iconGravity="textEnd"
+                app:iconTint="@color/white" />
         </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

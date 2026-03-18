@@ -241,7 +241,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/poppins_semibold"
-                            android:text="User Messages"
+                            android:text="Users Messages"
                             android:textColor="@color/fitlinkPrimary"
                             android:textSize="15sp" />
 

@@ -38,15 +38,9 @@ public class SplashActivity extends AppCompatActivity {
     }
 
     private void startSplashProcess() {
-        new Thread(() -> {
-            try {
-                Thread.sleep(5000);
-            } catch (InterruptedException ignored) {
-            } finally {
-                // אנחנו חייבים לעבור ל-UI Thread כדי להציג הודעות ולבצע מעברי מסך בצורה בטוחה
-                runOnUiThread(this::checkLoginAndNetwork);
-            }
-        }).start();
+        // שימוש ב-Handler (הדרך התקנית באנדרואיד) במקום Thread.sleep
+        // ממתין 2500 מילי-שניות (2.5 שניות) ואז מריץ את checkLoginAndNetwork
+        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(this::checkLoginAndNetwork, 2500);
     }
 
     private void checkLoginAndNetwork() {

@@ -108,10 +108,8 @@ public class UserProfileActivity extends BaseActivity {
                 startActivity(intent);
             });
 
-            // הוספת קו תחתון כדי לסמן שהטקסט לחיץ (בהשראת EventDetailsActivity)
+            // --- טיפול במספר הטלפון ---
             txtPhone.setPaintFlags(txtPhone.getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
-
-            // פתיחת אפליקציית החיוג בלחיצה על מספר הטלפון
             txtPhone.setOnClickListener(v -> {
                 if (user != null && user.getPhone() != null && !user.getPhone().isEmpty()) {
                     Intent dialIntent = new Intent(Intent.ACTION_DIAL);
@@ -120,6 +118,20 @@ public class UserProfileActivity extends BaseActivity {
                         startActivity(dialIntent);
                     } catch (Exception e) {
                         Toast.makeText(this, "No dialer app found", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+
+            // --- טיפול באימייל ---
+            txtEmail.setPaintFlags(txtEmail.getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
+            txtEmail.setOnClickListener(v -> {
+                if (user != null && user.getEmail() != null && !user.getEmail().isEmpty()) {
+                    Intent emailIntent = new Intent(Intent.ACTION_SENDTO);
+                    emailIntent.setData(android.net.Uri.parse("mailto:" + user.getEmail()));
+                    try {
+                        startActivity(emailIntent);
+                    } catch (Exception e) {
+                        Toast.makeText(this, "No email app found", Toast.LENGTH_SHORT).show();
                     }
                 }
             });

@@ -71,7 +71,7 @@ public class AdminActivity extends BaseActivity {
 
         // צפייה בהודעות משתמשים (צור קשר)
         cardMessages.setOnClickListener(v -> {
-            Intent intent = new Intent(this, AdminMessagesListActivity.class);
+            Intent intent = new Intent(this, AdminContactMessagesListActivity.class);
             startActivity(intent);
         });
     }

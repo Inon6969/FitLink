@@ -1,9 +1,11 @@
 package com.example.fitlink.adapters;
 
+import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -11,6 +13,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.fitlink.R;
 import com.example.fitlink.models.ContactMessage;
+import com.example.fitlink.models.User;
+import com.example.fitlink.services.DatabaseService;
+import com.example.fitlink.utils.ImageUtil;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -24,7 +29,9 @@ public class ContactMessageAdapter extends RecyclerView.Adapter<ContactMessageAd
     private final OnMessageClickListener listener;
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
 
+    // הוספנו את onMessageClick כדי להאזין ללחיצה על כל ההודעה
     public interface OnMessageClickListener {
+        void onMessageClick(ContactMessage message);
         void onReplyClick(ContactMessage message);
         void onDeleteClick(ContactMessage message);
     }
@@ -42,7 +49,6 @@ public class ContactMessageAdapter extends RecyclerView.Adapter<ContactMessageAd
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // שימוש בשם העיצוב החדש והספציפי
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_contact_message, parent, false);
         return new ViewHolder(view);
     }
@@ -54,7 +60,6 @@ public class ContactMessageAdapter extends RecyclerView.Adapter<ContactMessageAd
         holder.tvName.setText(msg.getName());
         holder.tvEmail.setText(msg.getEmail());
 
-        // הגדרת מספר הטלפון (עם הגנה למקרה שאין מספר)
         if (msg.getPhone() != null && !msg.getPhone().isEmpty()) {
             holder.tvPhone.setText(msg.getPhone());
         } else {
@@ -64,6 +69,29 @@ public class ContactMessageAdapter extends RecyclerView.Adapter<ContactMessageAd
         holder.tvContent.setText(msg.getMessage());
         holder.tvDate.setText(dateFormat.format(new Date(msg.getTimestamp())));
 
+        holder.imgProfile.setImageResource(R.drawable.ic_user);
+
+        if (msg.getUserId() != null && !msg.getUserId().isEmpty()) {
+            DatabaseService.getInstance().getUser(msg.getUserId(), new DatabaseService.DatabaseCallback<User>() {
+                @Override
+                public void onCompleted(User user) {
+                    if (user != null && user.getProfileImage() != null && !user.getProfileImage().isEmpty()) {
+                        Bitmap bmp = ImageUtil.convertFrom64base(user.getProfileImage());
+                        if (bmp != null) {
+                            holder.imgProfile.setImageBitmap(bmp);
+                        }
+                    }
+                }
+
+                @Override
+                public void onFailed(Exception e) {}
+            });
+        }
+
+        // האזנה ללחיצה על הכרטיסייה כולה (מעבר לפרופיל)
+        holder.itemView.setOnClickListener(v -> listener.onMessageClick(msg));
+
+        // האזנה לכפתורים
         holder.btnReply.setOnClickListener(v -> listener.onReplyClick(msg));
         holder.btnDelete.setOnClickListener(v -> listener.onDeleteClick(msg));
     }
@@ -75,16 +103,17 @@ public class ContactMessageAdapter extends RecyclerView.Adapter<ContactMessageAd
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvName, tvEmail, tvPhone, tvDate, tvContent;
-        ImageButton btnDelete, btnReply;
+        ImageView imgProfile;
+        Button btnDelete, btnReply; // מעודכן לכפתורים הרחבים
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            // קישור לשמות ה-IDs החדשים מהעיצוב המעודכן
             tvName = itemView.findViewById(R.id.tv_item_msg_sender_name);
             tvEmail = itemView.findViewById(R.id.tv_item_msg_sender_email);
             tvPhone = itemView.findViewById(R.id.tv_item_msg_sender_phone);
             tvDate = itemView.findViewById(R.id.tv_item_msg_date);
             tvContent = itemView.findViewById(R.id.tv_item_msg_content);
+            imgProfile = itemView.findViewById(R.id.img_item_msg_sender_profile);
             btnDelete = itemView.findViewById(R.id.btn_item_msg_delete);
             btnReply = itemView.findViewById(R.id.btn_item_msg_reply);
         }
