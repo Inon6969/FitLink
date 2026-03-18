@@ -56,7 +56,8 @@ public class GroupsListActivity extends BaseActivity {
     private LinearLayout emptyState;
     private MaterialButton btnCreateGroup;
 
-    private List<Group> allGroups = new ArrayList<>();
+    // התיקון: אתחול כ-null כדי למנוע העלמה מוקדמת של ה-ProgressBar
+    private List<Group> allGroups = null;
     private CreateGroupDialog currentCreateGroupDialog;
 
     private final ActivityResultLauncher<Intent> mapPickerLauncher = registerForActivityResult(
@@ -247,7 +248,6 @@ public class GroupsListActivity extends BaseActivity {
         databaseService.getAllGroups(new DatabaseService.DatabaseCallback<List<Group>>() {
             @Override
             public void onCompleted(List<Group> groups) {
-                progressBar.setVisibility(View.GONE);
                 allGroups = (groups != null) ? groups : new ArrayList<>();
                 executeSearch();
             }
@@ -260,6 +260,8 @@ public class GroupsListActivity extends BaseActivity {
     }
 
     private void updateListDisplay(List<Group> listToDisplay) {
+        // התיקון: מוודא שה-ProgressBar נעלם רק כשהרשימה מוכנה
+        progressBar.setVisibility(View.GONE);
         if (groupAdapter != null) groupAdapter.updateList(listToDisplay);
         tvGroupCount.setText(MessageFormat.format("Showing {0} groups", listToDisplay.size()));
         emptyState.setVisibility(listToDisplay.isEmpty() ? View.VISIBLE : View.GONE);
@@ -272,11 +274,30 @@ public class GroupsListActivity extends BaseActivity {
             Toast.makeText(this, "You are already a member of this group", Toast.LENGTH_SHORT).show();
             return;
         }
+
+        // במקרה שהמשתמש כבר שלח בקשה (Pending) - נפתח את דיאלוג האישור לביטול
         if (group.getPendingRequests() != null && group.getPendingRequests().containsKey(currentUserId)) {
-            Toast.makeText(this, "Your request is already pending", Toast.LENGTH_SHORT).show();
+            new com.example.fitlink.screens.dialogs.CancelJoinRequestDialog(this, group, () -> {
+                progressBar.setVisibility(View.VISIBLE);
+                databaseService.cancelJoinRequest(group.getId(), Objects.requireNonNull(currentUserId), new DatabaseService.DatabaseCallback<Void>() {
+                    @Override
+                    public void onCompleted(Void object) {
+                        progressBar.setVisibility(View.GONE);
+                        Toast.makeText(GroupsListActivity.this, "Join request cancelled", Toast.LENGTH_SHORT).show();
+                        loadGroups(); // רענון הרשימה לעדכון הכפתור בחזרה ל-JOIN
+                    }
+
+                    @Override
+                    public void onFailed(Exception e) {
+                        progressBar.setVisibility(View.GONE);
+                        Toast.makeText(GroupsListActivity.this, "Failed to cancel request", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }).show();
             return;
         }
 
+        // אם הוא עדיין לא שלח בקשה - נשלח בקשה חדשה
         progressBar.setVisibility(View.VISIBLE);
         databaseService.requestToJoinGroup(group.getId(), Objects.requireNonNull(currentUserId), new DatabaseService.DatabaseCallback<Void>() {
             @Override

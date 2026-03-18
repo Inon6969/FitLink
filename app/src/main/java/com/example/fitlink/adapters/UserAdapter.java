@@ -34,6 +34,11 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
     private String groupCreatorId = null;
     private Map<String, Boolean> groupManagers = new HashMap<>();
 
+    // משתנים למצב אירוע
+    private boolean isEventMode = false;
+    private boolean isCurrentUserEventCreator = false;
+    private String eventCreatorId = null;
+
     // הקונסטרקטור
     public UserAdapter(@Nullable final OnUserClickListener onUserClickListener) {
         this.userList = new ArrayList<>();
@@ -47,6 +52,16 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
         this.isCurrentUserGroupManager = isCurrentUserGroupManager;
         this.groupCreatorId = groupCreatorId;
         this.groupManagers = groupManagers != null ? groupManagers : new HashMap<>();
+        this.isEventMode = false; // מוודא שאין התנגשות
+        notifyDataSetChanged();
+    }
+
+    // מתודה להפעלת מצב אירוע המקבלת את מזהה היוצר והרשאות המשתמש הנוכחי
+    public void setEventMode(boolean isEventMode, boolean isCurrentUserEventCreator, String eventCreatorId) {
+        this.isEventMode = isEventMode;
+        this.isCurrentUserEventCreator = isCurrentUserEventCreator;
+        this.eventCreatorId = eventCreatorId;
+        this.isGroupMode = false; // מוודא שאין התנגשות
         notifyDataSetChanged();
     }
 
@@ -101,16 +116,41 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
             holder.chipIsMe.setVisibility(View.GONE);
         }
 
-        // הסתרת שדה הסיסמה והאייקון שלו כאשר צופים ברשימת חברי קבוצה
+        // הסתרת שדה הסיסמה והאייקון שלו כאשר צופים ברשימת חברי קבוצה או אירוע
         View passwordLayout = (View) holder.tvPassword.getParent();
-        if (isGroupMode) {
+        if (isGroupMode || isEventMode) {
             passwordLayout.setVisibility(View.GONE);
         } else {
             passwordLayout.setVisibility(View.VISIBLE);
         }
 
         // לוגיקת הרשאות וניהול תגיות וכפתורים
-        if (isGroupMode) {
+        if (isEventMode) {
+            // === לוגיקה למסך משתתפי אירוע ===
+            boolean isCreator = eventCreatorId != null && eventCreatorId.equals(user.getId());
+
+            // 1. קביעת תגית היוצר (תגית You מנוהלת אוטומטית למעלה)
+            if (isCreator) {
+                holder.chipRole.setText("Creator");
+                holder.chipRole.setVisibility(View.VISIBLE);
+            } else {
+                holder.chipRole.setVisibility(View.GONE);
+            }
+
+            // 2. הסתרת כפתורי עריכה וניהול מכולם
+            holder.btnToggleAdmin.setVisibility(View.GONE);
+            if (holder.btnEditUser != null) {
+                holder.btnEditUser.setVisibility(View.GONE);
+            }
+
+            // 3. כפתור הסרת משתתף: יוצג רק ליוצר האירוע, עבור כולם חוץ מעצמו
+            if (isCurrentUserEventCreator && !isCreator) {
+                holder.btnDeleteUser.setVisibility(View.VISIBLE);
+            } else {
+                holder.btnDeleteUser.setVisibility(View.GONE);
+            }
+
+        } else if (isGroupMode) {
             // === לוגיקה למסך חברי הקבוצה (MembersListActivity) ===
             boolean isCreator = groupCreatorId != null && groupCreatorId.equals(user.getId());
             boolean isManager = groupManagers.containsKey(user.getId());
@@ -150,7 +190,6 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
             }
 
             // במצב קבוצה נסתיר את כפתור העריכה
-            // (אלא אם אתה רוצה שמנהל יוכל לערוך פרופילים של משתמשים אחרים גם משם)
             if (holder.btnEditUser != null) {
                 holder.btnEditUser.setVisibility(View.GONE);
             }
@@ -173,10 +212,6 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
                 } else {
                     holder.btnToggleAdmin.setImageResource(R.drawable.ic_add_admin);
                 }
-
-                holder.btnToggleAdmin.setOnClickListener(v -> {
-                    if (onUserClickListener != null) onUserClickListener.onToggleAdmin(user);
-                });
             }
 
             // כפתורי מחיקה ועריכה גלויים תמיד למנהל הראשי
@@ -186,24 +221,24 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
             }
         }
 
-        // הגדרת לחיצה על כפתור המחיקה (משמש גם למחיקת משתמש וגם להסרה מקבוצה)
+        // הגדרת לחיצה על כפתור המחיקה (משמש גם למחיקת משתמש, גם להסרה מקבוצה וגם להסרה מאירוע)
         holder.btnDeleteUser.setOnClickListener(v -> {
             if (onUserClickListener != null) onUserClickListener.onDeleteUser(user);
         });
 
-        // הגדרת לחיצה על כפתור העריכה החדש
+        // הגדרת לחיצה על כפתור העריכה
         if (holder.btnEditUser != null) {
             holder.btnEditUser.setOnClickListener(v -> {
                 if (onUserClickListener != null) onUserClickListener.onEditUser(user);
             });
         }
 
-        // במצב קבוצה (כפתור מינוי מנהלים) או במצב רגיל (מנהלי אפליקציה)
+        // לחיצה על שינוי הרשאות ניהול
         holder.btnToggleAdmin.setOnClickListener(v -> {
             if (onUserClickListener != null) onUserClickListener.onToggleAdmin(user);
         });
 
-        // לחיצה על כל השורה (כעת תעביר לפרופיל המשתמש, כפי שהוגדר ב-AdminUsersListActivity)
+        // לחיצה על כל השורה (תעביר לפרופיל המשתמש)
         holder.itemView.setOnClickListener(v -> {
             if (onUserClickListener != null) onUserClickListener.onUserClick(user);
         });
@@ -240,7 +275,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
         notifyItemRemoved(index);
     }
 
-    // עדכון הממשק (Interface) עם פעולת onEditUser
+    // הממשק (Interface)
     public interface OnUserClickListener {
         void onUserClick(User user);
         void onEditUser(User user);
@@ -256,7 +291,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
         final TextView tvPassword;
         final ImageButton btnDeleteUser;
         final ImageButton btnToggleAdmin;
-        final ImageButton btnEditUser; // הכפתור החדש
+        final ImageButton btnEditUser;
         final ImageView imgProfile;
 
         // התגיות שלנו מ-XML
@@ -271,7 +306,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
             tvPassword = itemView.findViewById(R.id.tv_item_user_password);
             btnDeleteUser = itemView.findViewById(R.id.btn_item_user_delete);
             btnToggleAdmin = itemView.findViewById(R.id.btn_item_user_toggleAdmin);
-            btnEditUser = itemView.findViewById(R.id.btn_item_user_edit); // קישור ל-XML
+            btnEditUser = itemView.findViewById(R.id.btn_item_user_edit);
             imgProfile = itemView.findViewById(R.id.img_item_user_profile);
 
             // קישור התגיות

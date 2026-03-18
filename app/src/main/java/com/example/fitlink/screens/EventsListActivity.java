@@ -56,7 +56,9 @@ public class EventsListActivity extends BaseActivity {
     private LinearLayout emptyState;
     private MaterialButton btnCreateEvent;
 
-    private List<Event> allEvents = new ArrayList<>();
+    // התיקון: אתחול כ-null כדי למנוע העלמה מוקדמת של ה-ProgressBar
+    private List<Event> allEvents = null;
+
     private String currentUserId;
     private CreateIndependentEventDialog currentCreateEventDialog;
 
@@ -359,12 +361,10 @@ public class EventsListActivity extends BaseActivity {
         databaseService.getAllIndependentEvents(new DatabaseService.DatabaseCallback<List<Event>>() {
             @Override
             public void onCompleted(List<Event> events) {
-                progressBar.setVisibility(View.GONE);
                 long currentTime = System.currentTimeMillis();
                 allEvents = new ArrayList<>();
                 if (events != null) {
                     for (Event event : events) {
-                        // התיקון: מסנן ומכניס לרשימה רק אירועים שעדיין לא הסתיימו
                         if (event.getEndTimestamp() >= currentTime) {
                             allEvents.add(event);
                         }
@@ -382,6 +382,8 @@ public class EventsListActivity extends BaseActivity {
     }
 
     private void updateListDisplay(List<Event> listToDisplay) {
+        // התיקון: מוודא שה-ProgressBar נעלם רק כשהרשימה מוכנה
+        progressBar.setVisibility(View.GONE);
         if (eventAdapter != null) eventAdapter.updateList(listToDisplay);
         tvEventCount.setText(MessageFormat.format("Showing {0} events", listToDisplay.size()));
         emptyState.setVisibility(listToDisplay.isEmpty() ? View.VISIBLE : View.GONE);

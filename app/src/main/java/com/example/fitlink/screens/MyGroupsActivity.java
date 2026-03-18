@@ -50,7 +50,8 @@ public class MyGroupsActivity extends BaseActivity {
     private LinearLayout emptyState;
     private RecyclerView rvMyGroups;
 
-    private List<Group> allMyGroups = new ArrayList<>();
+    // התיקון: האתחול מוגדר כ-null במקום כרשימה ריקה כדי לא להעלים את ה-ProgressBar מיד
+    private List<Group> allMyGroups = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -158,7 +159,6 @@ public class MyGroupsActivity extends BaseActivity {
 
             @Override
             public void onGroupClick(Group group) {
-                // התיקון: במקום לשמור את כל הקבוצה, אנחנו שולחים רק את ה-ID שלה!
                 Intent intent = new Intent(MyGroupsActivity.this, GroupDashboardActivity.class);
                 intent.putExtra("GROUP_ID", group.getId());
                 startActivity(intent);
@@ -213,7 +213,9 @@ public class MyGroupsActivity extends BaseActivity {
     }
 
     private void executeSearch() {
+        // מונע מהחיפוש להתבצע ולהעלים את ה-ProgressBar לפני שהנתונים נטענו
         if (allMyGroups == null) return;
+
         String searchType = spinnerSearchType.getSelectedItem() != null ? spinnerSearchType.getSelectedItem().toString() : "Name";
         List<Group> filteredList;
 

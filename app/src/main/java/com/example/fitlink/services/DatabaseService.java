@@ -497,6 +497,20 @@ public class DatabaseService {
     }
 
     /**
+     * User cancels their pending request to join a group.
+     */
+    public void cancelJoinRequest(@NotNull final String groupId, @NotNull final String userId, @Nullable final DatabaseCallback<Void> callback) {
+        databaseReference.child(GROUPS_PATH).child(groupId).child("pendingRequests").child(userId).removeValue()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        if (callback != null) callback.onCompleted(null);
+                    } else {
+                        if (callback != null) callback.onFailed(task.getException());
+                    }
+                });
+    }
+
+    /**
      * Manager approves a join request (moves from pending to members).
      */
     public void approveJoinRequest(@NotNull final String groupId, @NotNull final String userId, @Nullable final DatabaseCallback<Void> callback) {
@@ -828,12 +842,49 @@ public class DatabaseService {
             }
         });
     }
-    public void sendContactMessage(String name, String email, String message, @Nullable final DatabaseCallback<Void> callback) {
+
+    // שליפת כל הודעות צור קשר (מוצג מהחדש לישן)
+    public void getAllContactMessages(@NonNull final DatabaseCallback<List<com.example.fitlink.models.ContactMessage>> callback) {
+        databaseReference.child("contact_messages").orderByChild("timestamp")
+                .addValueEventListener(new com.google.firebase.database.ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull com.google.firebase.database.DataSnapshot snapshot) {
+                        List<com.example.fitlink.models.ContactMessage> messages = new ArrayList<>();
+                        for (com.google.firebase.database.DataSnapshot data : snapshot.getChildren()) {
+                            com.example.fitlink.models.ContactMessage msg = data.getValue(com.example.fitlink.models.ContactMessage.class);
+                            if (msg != null) {
+                                msg.setId(data.getKey()); // שמירת המזהה הייחודי
+                                messages.add(0, msg); // הוספה לתחילת הרשימה כדי שהחדשים יופיעו למעלה
+                            }
+                        }
+                        callback.onCompleted(messages);
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull com.google.firebase.database.DatabaseError error) {
+                        callback.onFailed(error.toException());
+                    }
+                });
+    }
+
+    // מחיקת הודעת צור קשר
+    public void deleteContactMessage(@NonNull String messageId, @Nullable final DatabaseCallback<Void> callback) {
+        databaseReference.child("contact_messages").child(messageId).removeValue()
+                .addOnCompleteListener(task -> {
+                    if (callback != null) {
+                        if (task.isSuccessful()) callback.onCompleted(null);
+                        else callback.onFailed(task.getException());
+                    }
+                });
+    }
+
+    public void sendContactMessage(String name, String email, String phone, String message, @Nullable final DatabaseCallback<Void> callback) {
         String messageId = generateNewId("contact_messages");
 
         Map<String, Object> messageData = new HashMap<>();
         messageData.put("name", name);
         messageData.put("email", email);
+        messageData.put("phone", phone);
         messageData.put("message", message);
         messageData.put("timestamp", System.currentTimeMillis());
 

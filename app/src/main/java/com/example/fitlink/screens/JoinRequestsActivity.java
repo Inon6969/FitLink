@@ -1,9 +1,11 @@
 package com.example.fitlink.screens;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -19,7 +21,7 @@ import com.example.fitlink.adapters.JoinRequestAdapter;
 import com.example.fitlink.models.Group;
 import com.example.fitlink.models.User;
 import com.example.fitlink.services.DatabaseService;
-import com.google.android.material.appbar.AppBarLayout; // <-- הוספנו את הייבוא הזה
+import com.google.android.material.appbar.AppBarLayout;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +32,7 @@ public class JoinRequestsActivity extends BaseActivity {
     private RecyclerView rvRequests;
     private ProgressBar progressBar;
     private LinearLayout layoutNoRequests;
+    private TextView tvRequestsCount; // הרפרנס לטקסט החדש
     private JoinRequestAdapter adapter;
 
     @Override
@@ -80,11 +83,8 @@ public class JoinRequestsActivity extends BaseActivity {
 
         ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-
-            // מרווח צדדים ותחתון למסך הראשי
             v.setPadding(systemBars.left, 0, systemBars.right, systemBars.bottom);
 
-            // מרווח עליון ל-AppBarLayout כדי להרחיק את סרגל הכלים מהסוללה והשעון
             if (appBarLayout != null) {
                 appBarLayout.setPadding(0, systemBars.top, 0, 0);
             }
@@ -92,12 +92,12 @@ public class JoinRequestsActivity extends BaseActivity {
             return insets;
         });
 
-        // מכריח חישוב מיידי של הריווחים
         root.post(() -> ViewCompat.requestApplyInsets(root));
 
         rvRequests = findViewById(R.id.rv_join_requests);
         progressBar = findViewById(R.id.progressBar_requests);
         layoutNoRequests = findViewById(R.id.layout_no_requests);
+        tvRequestsCount = findViewById(R.id.tv_requests_count); // קישור הרכיב מהעיצוב
     }
 
     private void setupToolbar() {
@@ -113,6 +113,14 @@ public class JoinRequestsActivity extends BaseActivity {
     private void setupRecyclerView() {
         rvRequests.setLayoutManager(new LinearLayoutManager(this));
         adapter = new JoinRequestAdapter(new ArrayList<>(), new JoinRequestAdapter.OnRequestClickListener() {
+
+            @Override
+            public void onUserClick(User user) {
+                Intent intent = new Intent(JoinRequestsActivity.this, UserProfileActivity.class);
+                intent.putExtra("USER_ID", user.getId());
+                startActivity(intent);
+            }
+
             @Override
             public void onApproveClick(User user) {
                 handleApprove(user);
@@ -126,9 +134,18 @@ public class JoinRequestsActivity extends BaseActivity {
         rvRequests.setAdapter(adapter);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (currentGroup != null) {
+            loadPendingRequests();
+        }
+    }
+
     private void loadPendingRequests() {
         progressBar.setVisibility(View.VISIBLE);
         layoutNoRequests.setVisibility(View.GONE);
+        tvRequestsCount.setVisibility(View.GONE); // מוסתר בזמן טעינה
 
         databaseService.getGroup(currentGroup.getId(), new DatabaseService.DatabaseCallback<Group>() {
             @Override
@@ -141,6 +158,7 @@ public class JoinRequestsActivity extends BaseActivity {
                     progressBar.setVisibility(View.GONE);
                     layoutNoRequests.setVisibility(View.VISIBLE);
                     rvRequests.setVisibility(View.GONE);
+                    tvRequestsCount.setVisibility(View.GONE);
                     return;
                 }
 
@@ -161,9 +179,15 @@ public class JoinRequestsActivity extends BaseActivity {
                         if (pendingUsers.isEmpty()) {
                             layoutNoRequests.setVisibility(View.VISIBLE);
                             rvRequests.setVisibility(View.GONE);
+                            tvRequestsCount.setVisibility(View.GONE);
                         } else {
                             layoutNoRequests.setVisibility(View.GONE);
                             rvRequests.setVisibility(View.VISIBLE);
+
+                            // מציגים את השורה ומעדכנים את המספר
+                            tvRequestsCount.setVisibility(View.VISIBLE);
+                            tvRequestsCount.setText("Total requests: " + pendingUsers.size());
+
                             adapter.updateList(pendingUsers);
                         }
                     }

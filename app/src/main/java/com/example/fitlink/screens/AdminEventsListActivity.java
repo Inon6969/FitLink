@@ -58,7 +58,8 @@ public class AdminEventsListActivity extends BaseActivity {
     private LinearLayout emptyState;
     private MaterialButton btnCreateEvent, btnCleanupEvents;
 
-    private List<Event> allEvents = new ArrayList<>();
+    // התיקון: אתחול כ-null כדי למנוע העלמה מוקדמת של ה-ProgressBar
+    private List<Event> allEvents = null;
     private String currentUserId;
     private CreateIndependentEventDialog currentCreateEventDialog;
 
@@ -434,7 +435,7 @@ public class AdminEventsListActivity extends BaseActivity {
         databaseService.getAllEvents(new DatabaseService.DatabaseCallback<List<Event>>() {
             @Override
             public void onCompleted(List<Event> events) {
-                progressBar.setVisibility(View.GONE);
+                // הסרנו את הסתרת ה-ProgressBar מכאן
                 allEvents = (events != null) ? events : new ArrayList<>();
                 executeSearch();
             }
@@ -448,6 +449,8 @@ public class AdminEventsListActivity extends BaseActivity {
     }
 
     private void updateListDisplay(List<Event> listToDisplay) {
+        // התיקון: מוודא שה-ProgressBar נעלם רק כשהרשימה מוכנה
+        progressBar.setVisibility(View.GONE);
         if (eventAdapter != null) eventAdapter.updateList(listToDisplay);
         tvEventCount.setText(MessageFormat.format("Total events: {0}", listToDisplay.size()));
         emptyState.setVisibility(listToDisplay.isEmpty() ? View.VISIBLE : View.GONE);

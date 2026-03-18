@@ -1,7 +1,7 @@
 package com.example.fitlink.adapters;
 
 import android.content.Context;
-import android.content.res.ColorStateList; // הייבוא החדש לטיפול בצבע
+import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -73,7 +73,7 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
         int sportIconRes = getSportIconResource(group.getSportType());
         holder.imgSportMini.setImageResource(sportIconRes);
 
-        // --- הלוגיקה המתוקנת של התמונה (כולל ביטול ה-Tint) ---
+        // --- הלוגיקה של התמונה (כולל ביטול ה-Tint) ---
         String base64Image = group.getGroupImage();
         Context context = holder.itemView.getContext();
 
@@ -142,10 +142,11 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
                     if (listener != null) listener.onLeaveClick(group);
                 });
             } else if (isPending) {
-                holder.btnJoin.setText("PENDING");
+                // התיקון: שינוי הטקסט והפעלת אירוע הלחיצה במקום Toast
+                holder.btnJoin.setText("CANCEL REQ");
                 holder.btnJoin.setTextColor(ContextCompat.getColor(context, R.color.fitlinkTextSecondary));
                 holder.btnJoin.setOnClickListener(v -> {
-                    Toast.makeText(context, "Your request is pending approval", Toast.LENGTH_SHORT).show();
+                    if (listener != null) listener.onJoinClick(group);
                 });
             } else {
                 holder.btnJoin.setText("JOIN");
@@ -163,7 +164,6 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
         });
     }
 
-    // מתודת העזר המעודכנת שמחזירה גם את הצבע (Tint) לאייקון
     private void setFallbackIcon(GroupViewHolder holder, int sportIconRes, Context context) {
         holder.imgIcon.setImageResource(sportIconRes);
         int padding = (int) (12 * context.getResources().getDisplayMetrics().density);

@@ -35,18 +35,22 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private final String currentUserId;
     private final String creatorId;
     private final Map<String, Boolean> managers;
-    private final OnMessageLongClickListener longClickListener;
 
-    public interface OnMessageLongClickListener {
+    // התיקון: הרחבנו את הממשק כדי שיתמוך בלחיצה על הודעה, שם ותמונה
+    private final OnMessageClickListener clickListener;
+
+    public interface OnMessageClickListener {
         void onMessageLongClick(ChatMessage message);
+        void onNameClick(ChatMessage message);
+        void onImageClick(ChatMessage message);
     }
 
-    public ChatAdapter(List<ChatMessage> messages, String currentUserId, String creatorId, Map<String, Boolean> managers, OnMessageLongClickListener longClickListener) {
+    public ChatAdapter(List<ChatMessage> messages, String currentUserId, String creatorId, Map<String, Boolean> managers, OnMessageClickListener clickListener) {
         this.messages = messages;
         this.currentUserId = currentUserId;
         this.creatorId = creatorId;
         this.managers = managers;
-        this.longClickListener = longClickListener;
+        this.clickListener = clickListener;
     }
 
     @Override
@@ -82,7 +86,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             sentHolder.tvTime.setText(timeText);
 
             sentHolder.itemView.setOnLongClickListener(v -> {
-                if(longClickListener != null) longClickListener.onMessageLongClick(message);
+                if(clickListener != null) clickListener.onMessageLongClick(message);
                 return true;
             });
 
@@ -91,7 +95,6 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             receivedHolder.tvMessage.setText(message.getText());
             receivedHolder.tvTime.setText(timeText);
 
-            // --- לוגיקת ההדגשה לפי תפקיד (Creator או Manager) ---
             if (creatorId != null && message.getSenderId().equals(creatorId)) {
                 receivedHolder.tvName.setText(message.getSenderName() + " (Creator)");
                 receivedHolder.tvName.setTextColor(Color.parseColor("#D32F2F"));
@@ -106,12 +109,20 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 receivedHolder.tvName.setTypeface(null, Typeface.NORMAL);
             }
 
-            // --- טיפול בתמונת הפרופיל ---
+            // --- הגדרת מאזיני הלחיצות החדשים ---
+            receivedHolder.tvName.setOnClickListener(v -> {
+                if (clickListener != null) clickListener.onNameClick(message);
+            });
+
+            receivedHolder.imgUserProfile.setOnClickListener(v -> {
+                if (clickListener != null) clickListener.onImageClick(message);
+            });
+            // -----------------------------------
+
             int primaryColor = ContextCompat.getColor(holder.itemView.getContext(), R.color.fitlinkPrimary);
             float density = holder.itemView.getContext().getResources().getDisplayMetrics().density;
-            int paddingPx = (int) (6 * density); // פדינג קצת יותר קטן לתמונה בצ'אט (6dp)
+            int paddingPx = (int) (6 * density);
 
-            // מצב ברירת מחדל
             receivedHolder.imgUserProfile.setImageResource(R.drawable.ic_user);
             receivedHolder.imgUserProfile.setPadding(paddingPx, paddingPx, paddingPx, paddingPx);
             receivedHolder.imgUserProfile.setColorFilter(primaryColor);
@@ -135,14 +146,12 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                     }
 
                     @Override
-                    public void onFailed(Exception e) {
-                        // נשארים עם תמונת ברירת המחדל
-                    }
+                    public void onFailed(Exception e) { }
                 });
             }
 
             receivedHolder.itemView.setOnLongClickListener(v -> {
-                if(longClickListener != null) longClickListener.onMessageLongClick(message);
+                if(clickListener != null) clickListener.onMessageLongClick(message);
                 return true;
             });
         }
@@ -171,14 +180,14 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     static class ReceivedMessageHolder extends RecyclerView.ViewHolder {
         TextView tvName, tvMessage, tvTime;
-        ImageView imgUserProfile; // נוסף: רפרנס לתמונת הפרופיל
+        ImageView imgUserProfile;
 
         ReceivedMessageHolder(View itemView) {
             super(itemView);
             tvName = itemView.findViewById(R.id.tv_chat_received_name);
             tvMessage = itemView.findViewById(R.id.tv_chat_received_message);
             tvTime = itemView.findViewById(R.id.tv_chat_received_time);
-            imgUserProfile = itemView.findViewById(R.id.img_chat_user_profile); // חיבור התמונה מ-XML
+            imgUserProfile = itemView.findViewById(R.id.img_chat_user_profile);
         }
     }
 }

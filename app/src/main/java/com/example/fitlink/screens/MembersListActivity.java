@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -21,7 +22,7 @@ import com.example.fitlink.models.Group;
 import com.example.fitlink.models.User;
 import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.SharedPreferencesUtil;
-import com.google.android.material.appbar.AppBarLayout; // <-- הוספנו את הייבוא הזה
+import com.google.android.material.appbar.AppBarLayout;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +33,7 @@ public class MembersListActivity extends BaseActivity {
     private RecyclerView rvMembers;
     private ProgressBar progressBar;
     private LinearLayout layoutNoMembers;
+    private TextView tvMembersCount; // הרפרנס לטקסט החדש
 
     private UserAdapter userAdapter;
     private String currentUserId;
@@ -109,6 +111,7 @@ public class MembersListActivity extends BaseActivity {
         rvMembers = findViewById(R.id.rv_members_list);
         progressBar = findViewById(R.id.progressBar_members);
         layoutNoMembers = findViewById(R.id.layout_no_members);
+        tvMembersCount = findViewById(R.id.tv_members_count); // קישור לרכיב העיצוב
     }
 
     private void setupToolbar() {
@@ -133,7 +136,7 @@ public class MembersListActivity extends BaseActivity {
             }
 
             @Override
-            public void onEditUser(User user) { } // לא רלוונטי לאירוע
+            public void onEditUser(User user) { }
 
             @Override
             public void onToggleAdmin(User user) {
@@ -153,6 +156,14 @@ public class MembersListActivity extends BaseActivity {
 
         userAdapter.setGroupMode(true, isGroupCreator, isGroupManager, currentGroup.getCreatorId(), currentGroup.getManagers());
         rvMembers.setAdapter(userAdapter);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (currentGroup != null) {
+            loadGroupMembers();
+        }
     }
 
     private void handleToggleManager(User user) {
@@ -178,6 +189,7 @@ public class MembersListActivity extends BaseActivity {
     private void loadGroupMembers() {
         progressBar.setVisibility(View.VISIBLE);
         layoutNoMembers.setVisibility(View.GONE);
+        tvMembersCount.setVisibility(View.GONE); // מוסתר בזמן הטעינה
 
         databaseService.getGroup(currentGroup.getId(), new DatabaseService.DatabaseCallback<Group>() {
             @Override
@@ -206,9 +218,15 @@ public class MembersListActivity extends BaseActivity {
                         if (groupMembers.isEmpty()) {
                             layoutNoMembers.setVisibility(View.VISIBLE);
                             rvMembers.setVisibility(View.GONE);
+                            tvMembersCount.setVisibility(View.GONE);
                         } else {
                             layoutNoMembers.setVisibility(View.GONE);
                             rvMembers.setVisibility(View.VISIBLE);
+
+                            // מציגים את השורה ומעדכנים את מספר המשתמשים
+                            tvMembersCount.setVisibility(View.VISIBLE);
+                            tvMembersCount.setText("Total members: " + groupMembers.size());
+
                             userAdapter.setUserList(groupMembers);
                         }
                     }
@@ -245,10 +263,6 @@ public class MembersListActivity extends BaseActivity {
             @Override
             public void onCompleted(Void object) {
                 Toast.makeText(MembersListActivity.this, "Member removed", Toast.LENGTH_SHORT).show();
-                currentGroup.getMembers().remove(user.getId());
-                if (currentGroup.getManagers() != null) {
-                    currentGroup.getManagers().remove(user.getId());
-                }
                 loadGroupMembers();
             }
 

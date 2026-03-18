@@ -51,8 +51,8 @@ public class AdminUsersListActivity extends BaseActivity {
     private LinearLayout emptyState;
     private MaterialButton btnAddUser;
 
-    // Data
-    private List<User> allUsers = new ArrayList<>();
+    // התיקון: אתחול כ-null כדי למנוע העלמה מוקדמת של ה-ProgressBar והופעת מצב ריק בטעות
+    private List<User> allUsers = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -150,6 +150,9 @@ public class AdminUsersListActivity extends BaseActivity {
     }
 
     private void filterUsers(String query) {
+        // מונע מהחיפוש לנסות לסנן רשימה שעדיין לא נטענה
+        if (allUsers == null) return;
+
         if (query.isEmpty()) {
             updateListDisplay(allUsers);
             return;
@@ -190,7 +193,7 @@ public class AdminUsersListActivity extends BaseActivity {
         databaseService.getUserList(new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(List<User> users) {
-                progressBar.setVisibility(View.GONE);
+                // הסרנו את הסתרת ה-ProgressBar מכאן
                 allUsers = (users != null) ? users : new ArrayList<>();
                 filterUsers(etSearch.getText().toString());
             }
@@ -205,6 +208,8 @@ public class AdminUsersListActivity extends BaseActivity {
     }
 
     private void updateListDisplay(List<User> listToDisplay) {
+        // התיקון: מוודא שה-ProgressBar נעלם רק כשהרשימה מוכנה לתצוגה
+        progressBar.setVisibility(View.GONE);
         userAdapter.setUserList(listToDisplay);
         tvUserCount.setText(MessageFormat.format("Total users: {0}", listToDisplay.size()));
 

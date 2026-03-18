@@ -1,6 +1,8 @@
 package com.example.fitlink.screens;
 
+import android.app.Dialog; // הוסף
 import android.content.Intent;
+import android.graphics.Bitmap; // הוסף
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
@@ -29,6 +31,7 @@ import com.example.fitlink.screens.dialogs.DeleteEventDialog;
 import com.example.fitlink.screens.dialogs.EditEventDialog;
 import com.example.fitlink.screens.dialogs.EditIndependentEventDialog;
 import com.example.fitlink.services.DatabaseService;
+import com.example.fitlink.utils.ImageUtil; // הוסף
 import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.google.android.material.button.MaterialButton;
 
@@ -114,7 +117,7 @@ public class EventDetailsActivity extends BaseActivity {
 
     private void continueInitialization() {
         currentUserId = SharedPreferencesUtil.getUserId(this);
-        isAdminMode = getIntent().getBooleanExtra("IS_ADMIN_MODE", false); // זיהוי אם מנהל
+        isAdminMode = getIntent().getBooleanExtra("IS_ADMIN_MODE", false);
 
         initViews();
         setupToolbar();
@@ -156,10 +159,8 @@ public class EventDetailsActivity extends BaseActivity {
         LinearLayout layoutLocation = findViewById(R.id.layout_location_click_area);
         LinearLayout layoutParticipants = findViewById(R.id.layout_participants_click_area);
 
-        // בודקים אם האירוע נמצא בעבר
         boolean isPastEvent = currentEvent.getEndTimestamp() < System.currentTimeMillis();
 
-        // המשתתפים תמיד לחיצים (כדי לראות מי היה באירוע)
         tvParticipants.setPaintFlags(tvParticipants.getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
         layoutParticipants.setOnClickListener(v -> {
             if (currentEvent != null) {
@@ -170,7 +171,6 @@ public class EventDetailsActivity extends BaseActivity {
         });
 
         if (!isPastEvent) {
-            // === אירוע עתידי: הכל פתוח ולחיץ ===
             tvDateTime.setPaintFlags(tvDateTime.getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
             tvLocation.setPaintFlags(tvLocation.getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
 
@@ -213,12 +213,9 @@ public class EventDetailsActivity extends BaseActivity {
                 }
             });
         } else {
-            // === אירוע עבר: מבטלים פעולות לא הגיוניות ===
-            // מורידים את הקו התחתון כדי שלא ייראה כמו קישור לחיץ
             tvDateTime.setPaintFlags(tvDateTime.getPaintFlags() & (~android.graphics.Paint.UNDERLINE_TEXT_FLAG));
             tvLocation.setPaintFlags(tvLocation.getPaintFlags() & (~android.graphics.Paint.UNDERLINE_TEXT_FLAG));
 
-            // מקפיצים הודעה למקרה שהמשתמש בכל זאת מנסה ללחוץ
             layoutLocation.setOnClickListener(v -> Toast.makeText(this, "Cannot navigate to a past event.", Toast.LENGTH_SHORT).show());
             layoutDatetime.setOnClickListener(v -> Toast.makeText(this, "Event has already ended.", Toast.LENGTH_SHORT).show());
         }
@@ -284,25 +281,19 @@ public class EventDetailsActivity extends BaseActivity {
         boolean isCreator = currentEvent.getCreatorId() != null && currentEvent.getCreatorId().equals(currentUserId);
         boolean isJoined = currentEvent.getParticipants() != null && currentEvent.getParticipants().containsKey(currentUserId);
         boolean isIndependent = currentEvent.isIndependent();
-
-        // המנהל מקבל הרשאות ניהול בדיוק כמו יוצר האירוע!
         boolean canManage = isCreator || isAdminMode;
-
         boolean isPastEvent = currentEvent.getEndTimestamp() < System.currentTimeMillis();
 
-        // איפוס מצב התחלתי
         btnMainAction.setVisibility(View.VISIBLE);
         btnSecondaryAction.setVisibility(View.GONE);
         btnTertiaryAction.setVisibility(View.GONE);
 
-        // 1. טיפול באירוע עבר
         if (isPastEvent) {
             btnMainAction.setText("Event Completed");
             btnMainAction.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getResources().getColor(android.R.color.darker_gray)));
             btnMainAction.setEnabled(false);
 
             if (canManage) {
-                // מחיקה תמיד בכפתור השלישי
                 btnTertiaryAction.setVisibility(View.VISIBLE);
                 btnTertiaryAction.setText("Delete Event");
                 btnTertiaryAction.setOnClickListener(v -> deleteEvent());
@@ -312,12 +303,9 @@ public class EventDetailsActivity extends BaseActivity {
 
         btnMainAction.setEnabled(true);
 
-        // 2. טיפול בכפתור הראשי (הצטרפות / עזיבה / הסתרה)
         if (isIndependent && isCreator) {
-            // יוצר של אירוע עצמאי לא צריך כפתור הצטרפות/עזיבה, לכן נסתיר אותו
             btnMainAction.setVisibility(View.GONE);
         } else {
-            // כל השאר מקבלים אפשרות הצטרפות או עזיבה בכפתור הראשי
             btnMainAction.setVisibility(View.VISIBLE);
             if (isJoined) {
                 btnMainAction.setText("Leave Event");
@@ -330,14 +318,11 @@ public class EventDetailsActivity extends BaseActivity {
             }
         }
 
-        // 3. טיפול בכפתורי הניהול (תמיד יופיעו באותו עיצוב למנהלים וליוצרים)
         if (canManage) {
-            // עריכה תמיד בכפתור המשני (Outlined)
             btnSecondaryAction.setVisibility(View.VISIBLE);
             btnSecondaryAction.setText("Edit Event");
             btnSecondaryAction.setOnClickListener(v -> editEvent());
 
-            // מחיקה תמיד בכפתור השלישי
             btnTertiaryAction.setVisibility(View.VISIBLE);
             btnTertiaryAction.setText("Delete Event");
             btnTertiaryAction.setOnClickListener(v -> deleteEvent());
@@ -438,22 +423,34 @@ public class EventDetailsActivity extends BaseActivity {
 
     private void setupComments() {
         rvComments.setLayoutManager(new LinearLayoutManager(this));
-        commentAdapter = new CommentAdapter(new ArrayList<>());
+
+        // התיקון: מעבירים את ה-Listener שמאזין ללחיצות מהתגובות
+        commentAdapter = new CommentAdapter(new ArrayList<>(), new CommentAdapter.OnCommentClickListener() {
+            @Override
+            public void onNameClick(String userId) {
+                Intent intent = new Intent(EventDetailsActivity.this, UserProfileActivity.class);
+                intent.putExtra("USER_ID", userId);
+                startActivity(intent);
+            }
+
+            @Override
+            public void onImageClick(String userId) {
+                showFullImageDialog(userId);
+            }
+        });
+
         rvComments.setAdapter(commentAdapter);
 
-        // חישוב מתי נועלים את התגובות (3 ימים = 3 * 24 * 60 * 60 * 1000 מילישניות)
         long THREE_DAYS_MILLIS = 3L * 24 * 60 * 60 * 1000;
         boolean isCommentsLocked = currentEvent.getEndTimestamp() + THREE_DAYS_MILLIS < System.currentTimeMillis();
 
         View commentBar = findViewById(R.id.layout_comment_bar);
 
         if (isCommentsLocked) {
-            // אם עברו 3 ימים מסיום האירוע - מסתירים לגמרי את שורת הקלדת התגובה!
             if (commentBar != null) {
                 commentBar.setVisibility(View.GONE);
             }
         } else {
-            // אם אנחנו עדיין בטווח הזמן המותר, מאפשרים לשלוח תגובות כרגיל
             if (commentBar != null) {
                 commentBar.setVisibility(View.VISIBLE);
             }
@@ -509,6 +506,46 @@ public class EventDetailsActivity extends BaseActivity {
             @Override
             public void onFailed(Exception e) {
                 Toast.makeText(EventDetailsActivity.this, "Failed to load comments", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    // התיקון: הפונקציה להצגת תמונת פרופיל בגודל מלא של המגיב
+    private void showFullImageDialog(String userId) {
+        if (userId == null) return;
+
+        DatabaseService.getInstance().getUser(userId, new DatabaseService.DatabaseCallback<User>() {
+            @Override
+            public void onCompleted(User user) {
+                if (user != null && user.getProfileImage() != null && !user.getProfileImage().isEmpty()) {
+                    Dialog dialog = new Dialog(EventDetailsActivity.this);
+                    dialog.setContentView(R.layout.dialog_full_image);
+                    if (dialog.getWindow() != null) {
+                        dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+                    }
+
+                    ImageView dialogImage = dialog.findViewById(R.id.dialogImage);
+                    Bitmap bmp = ImageUtil.convertFrom64base(user.getProfileImage());
+                    if (bmp != null) {
+                        dialogImage.setImageBitmap(bmp);
+                    } else {
+                        dialogImage.setImageResource(R.drawable.ic_user);
+                    }
+
+                    View btnClose = dialog.findViewById(R.id.card_close_full_image);
+                    if (btnClose != null) {
+                        btnClose.setOnClickListener(v -> dialog.dismiss());
+                    }
+
+                    dialog.show();
+                } else {
+                    Toast.makeText(EventDetailsActivity.this, "No profile image to display", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailed(Exception e) {
+                Toast.makeText(EventDetailsActivity.this, "Failed to load image", Toast.LENGTH_SHORT).show();
             }
         });
     }

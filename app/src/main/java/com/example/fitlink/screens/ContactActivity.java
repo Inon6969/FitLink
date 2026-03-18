@@ -127,7 +127,11 @@ public class ContactActivity extends BaseActivity {
         String name = currentUser.getFullName();
         String email = currentUser.getEmail();
 
-        databaseService.sendContactMessage(name, email, message, new DatabaseService.DatabaseCallback<Void>() {
+        // שליפת הטלפון - אם אין נשמור מחרוזת שאומרת שאין טלפון כדי למנוע קריסה
+        String phone = (currentUser.getPhone() != null && !currentUser.getPhone().isEmpty()) ? currentUser.getPhone() : "No phone provided";
+
+        // שליחת הטלפון יחד עם שאר הנתונים ל-DatabaseService
+        databaseService.sendContactMessage(name, email, phone, message, new DatabaseService.DatabaseCallback<Void>() {
             @Override
             public void onCompleted(Void object) {
                 Toast.makeText(ContactActivity.this, "Message sent successfully!", Toast.LENGTH_LONG).show();

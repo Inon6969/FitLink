@@ -1,28 +1,70 @@
 package com.example.fitlink.screens;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
+import android.os.Build;
 import android.os.Bundle;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 
 import com.example.fitlink.screens.dialogs.LogoutDialog;
+import com.example.fitlink.screens.dialogs.NoInternetDialog;
 import com.example.fitlink.services.AuthService;
 import com.example.fitlink.services.DatabaseService;
 
 public class BaseActivity extends AppCompatActivity {
 
     protected DatabaseService databaseService;
+    private ConnectivityManager.NetworkCallback networkCallback;
+    private NoInternetDialog customNoInternetDialog;
+
+    // משתנה סטטי ששומר האם המשתמש כבר אישר את מצב האופליין (תקף לכל המסכים)
+    private static boolean hasAcknowledgedOffline = false;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
-        //נועל את האפליקציה על theme בהיר
+        // נועל את האפליקציה על theme בהיר
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         super.onCreate(savedInstanceState);
-        /// get the instance of the database service
+
         databaseService = DatabaseService.getInstance();
+    }
+
+    // הוספנו onResume כדי להאזין לרשת רק כשהמסך באמת מוצג למשתמש
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerNetworkCallback();
+
+        // בדיקה יזומה ברגע שהמסך עולה - אם אנחנו באופליין והמשתמש עוד לא אישר את זה
+        if (!isNetworkAvailable() && !hasAcknowledgedOffline) {
+            showNoInternetDialog();
+        }
+    }
+
+    // העברנו את ביטול ההאזנה ל-onPause כדי שמסכים ברקע לא יקפיצו דיאלוגים
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (networkCallback != null) {
+            ConnectivityManager connectivityManager =
+                    (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+            if (connectivityManager != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                try {
+                    connectivityManager.unregisterNetworkCallback(networkCallback);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            networkCallback = null; // איפוס המאזין
+        }
     }
 
     protected void logout() {
@@ -37,5 +79,69 @@ public class BaseActivity extends AppCompatActivity {
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
         }).show();
+    }
+
+    protected void registerNetworkCallback() {
+        ConnectivityManager connectivityManager =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        if (connectivityManager != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            networkCallback = new ConnectivityManager.NetworkCallback() {
+                @Override
+                public void onAvailable(@NonNull Network network) {
+                    // האינטרנט חזר! נאפס את הזיכרון כדי שבפעם הבאה שיתנתק הדיאלוג יקפוץ שוב
+                    hasAcknowledgedOffline = false;
+
+                    runOnUiThread(() -> {
+                        if (customNoInternetDialog != null && customNoInternetDialog.isShowing()) {
+                            customNoInternetDialog.dismiss();
+                        }
+                    });
+                }
+
+                @Override
+                public void onLost(@NonNull Network network) {
+                    runOnUiThread(() -> showNoInternetDialog());
+                }
+            };
+            connectivityManager.registerDefaultNetworkCallback(networkCallback);
+        }
+    }
+
+    private void showNoInternetDialog() {
+        // אם המשתמש כבר אישר שהוא ממשיך באופליין, לא נציג שוב שום דבר
+        if (hasAcknowledgedOffline) {
+            return;
+        }
+
+        if (customNoInternetDialog != null && customNoInternetDialog.isShowing()) {
+            return;
+        }
+
+        customNoInternetDialog = new NoInternetDialog(this,
+                "Offline Mode",
+                "You have lost your internet connection.\nYou can continue using FitLink in offline mode. Some online features may be temporarily unavailable.",
+                "Continue Offline",
+                () -> {
+                    // ברגע שהמשתמש לחץ על המשך, אנחנו מסמנים שהוא יודע שהוא באופליין
+                    hasAcknowledgedOffline = true;
+                },
+                null,
+                null
+        );
+
+        customNoInternetDialog.show();
+    }
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivityManager != null) {
+            NetworkCapabilities capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.getActiveNetwork());
+            if (capabilities != null) {
+                return capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
+                        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR);
+            }
+        }
+        return false;
     }
 }

@@ -1,12 +1,13 @@
 package com.example.fitlink.screens;
 
-import android.app.Dialog; // <-- הוספנו את הייבוא הזה לדיאלוג
+import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -101,6 +102,26 @@ public class GroupDashboardActivity extends BaseActivity {
         });
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (currentGroup != null && currentGroup.getId() != null) {
+            DatabaseService.getInstance().getGroup(currentGroup.getId(), new DatabaseService.DatabaseCallback<Group>() {
+                @Override
+                public void onCompleted(Group updatedGroup) {
+                    if (updatedGroup != null) {
+                        currentGroup = updatedGroup;
+                    }
+                }
+
+                @Override
+                public void onFailed(Exception e) {
+                }
+            });
+        }
+    }
+
     private void initViews() {
         View root = findViewById(R.id.main_group_dashboard);
         AppBarLayout appBarLayout = findViewById(R.id.toolbar_group_dashboard).getParent() instanceof AppBarLayout
@@ -109,11 +130,8 @@ public class GroupDashboardActivity extends BaseActivity {
 
         ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-
-            // מרווח תחתון וצדדים למסך הראשי
             v.setPadding(systemBars.left, 0, systemBars.right, systemBars.bottom);
 
-            // התיקון: מרווח עליון ל-AppBarLayout כדי שסרגל הכלים לא יעלה על שורת הסטטוס
             if (appBarLayout != null) {
                 appBarLayout.setPadding(0, systemBars.top, 0, 0);
             }
@@ -121,7 +139,6 @@ public class GroupDashboardActivity extends BaseActivity {
             return insets;
         });
 
-        // מכריח חישוב מיידי של הריווחים
         root.post(() -> ViewCompat.requestApplyInsets(root));
 
         Toolbar toolbar = findViewById(R.id.toolbar_group_dashboard);
@@ -143,6 +160,39 @@ public class GroupDashboardActivity extends BaseActivity {
         } else {
             chipGroupLevel.setVisibility(View.GONE);
         }
+
+        // --- אזור המיקום החדש והלחיץ ---
+        LinearLayout layoutLocation = findViewById(R.id.layout_dashboard_location);
+        TextView tvLocation = findViewById(R.id.tv_dashboard_location);
+
+        // מוסיף קו תחתון כדי שהמשתמש יבין שזה לינק לחיץ
+        tvLocation.setPaintFlags(tvLocation.getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
+
+        if (currentGroup.getLocation() != null && currentGroup.getLocation().getAddress() != null && !currentGroup.getLocation().getAddress().isEmpty()) {
+            tvLocation.setText(currentGroup.getLocation().getAddress());
+            layoutLocation.setVisibility(View.VISIBLE);
+        } else {
+            layoutLocation.setVisibility(View.GONE);
+        }
+
+        // פתיחת המיקום במפות/Waze
+        layoutLocation.setOnClickListener(v -> {
+            if (currentGroup.getLocation() != null) {
+                String address = currentGroup.getLocation().getAddress();
+                double lat = currentGroup.getLocation().getLatitude();
+                double lng = currentGroup.getLocation().getLongitude();
+
+                android.net.Uri locationUri = android.net.Uri.parse("geo:0,0?q=" + lat + "," + lng + "(" + android.net.Uri.encode(address) + ")");
+                Intent mapIntent = new Intent(Intent.ACTION_VIEW, locationUri);
+                Intent chooser = Intent.createChooser(mapIntent, "Navigate to group location with...");
+                try {
+                    startActivity(chooser);
+                } catch (Exception e) {
+                    Toast.makeText(GroupDashboardActivity.this, "No navigation app found", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        // ---------------------------------
 
         TextView tvDescription = findViewById(R.id.tv_dashboard_description);
         if (currentGroup.getDescription() != null && !currentGroup.getDescription().trim().isEmpty()) {
@@ -179,13 +229,11 @@ public class GroupDashboardActivity extends BaseActivity {
             if (bmp != null) imgGroupPhoto.setImageBitmap(bmp);
         }
 
-        // --- הוספת מאזין לחיצה על תמונת הקבוצה לפתיחת הדיאלוג ---
         imgGroupPhoto.setOnClickListener(v -> {
             if (currentGroup != null && currentGroup.getGroupImage() != null && !currentGroup.getGroupImage().isEmpty()) {
                 showFullImageDialog();
             }
         });
-        // --------------------------------------------------------
 
         if (isCreator) {
             btnChangePhoto.setVisibility(View.VISIBLE);
@@ -234,6 +282,14 @@ public class GroupDashboardActivity extends BaseActivity {
                     chipGroupLevel.setVisibility(View.VISIBLE);
                 } else {
                     chipGroupLevel.setVisibility(View.GONE);
+                }
+
+                // עדכון מיקום גם אחרי העריכה
+                if (currentGroup.getLocation() != null && currentGroup.getLocation().getAddress() != null && !currentGroup.getLocation().getAddress().isEmpty()) {
+                    tvLocation.setText(currentGroup.getLocation().getAddress());
+                    layoutLocation.setVisibility(View.VISIBLE);
+                } else {
+                    layoutLocation.setVisibility(View.GONE);
                 }
 
                 if (currentGroup.getDescription() != null && !currentGroup.getDescription().trim().isEmpty()) {
@@ -304,7 +360,6 @@ public class GroupDashboardActivity extends BaseActivity {
         });
     }
 
-    // --- הפונקציה להצגת התמונה בגודל מלא ---
     private void showFullImageDialog() {
         Dialog dialog = new Dialog(this);
         dialog.setContentView(R.layout.dialog_full_image);
@@ -322,7 +377,6 @@ public class GroupDashboardActivity extends BaseActivity {
 
         dialog.show();
     }
-    // ---------------------------------------
 
     private void openImagePicker() {
         boolean hasImage = currentGroup.getGroupImage() != null && !currentGroup.getGroupImage().isEmpty();

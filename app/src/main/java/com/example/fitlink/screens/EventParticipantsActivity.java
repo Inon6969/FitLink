@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -24,7 +25,6 @@ import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.google.android.material.appbar.AppBarLayout;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 public class EventParticipantsActivity extends BaseActivity {
@@ -33,6 +33,7 @@ public class EventParticipantsActivity extends BaseActivity {
     private RecyclerView rvParticipants;
     private ProgressBar progressBar;
     private LinearLayout layoutNoParticipants;
+    private TextView tvParticipantsCount;
 
     private UserAdapter userAdapter;
     private String currentUserId;
@@ -50,7 +51,7 @@ public class EventParticipantsActivity extends BaseActivity {
             return;
         }
 
-        DatabaseService.getInstance().getEvent(eventId, new DatabaseService.DatabaseCallback<Event>() {
+        databaseService.getEvent(eventId, new DatabaseService.DatabaseCallback<Event>() {
             @Override
             public void onCompleted(Event event) {
                 if (event == null) {
@@ -92,6 +93,7 @@ public class EventParticipantsActivity extends BaseActivity {
             if (appBarLayout != null) {
                 appBarLayout.setPadding(0, systemBars.top, 0, 0);
             }
+
             return insets;
         });
 
@@ -100,6 +102,7 @@ public class EventParticipantsActivity extends BaseActivity {
         rvParticipants = findViewById(R.id.rv_event_participants);
         progressBar = findViewById(R.id.progressBar_participants);
         layoutNoParticipants = findViewById(R.id.layout_no_participants);
+        tvParticipantsCount = findViewById(R.id.tv_participants_count);
     }
 
     private void setupToolbar() {
@@ -107,7 +110,7 @@ public class EventParticipantsActivity extends BaseActivity {
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle(currentEvent.getTitle() + " Participants");
+            getSupportActionBar().setTitle("Participants");
             toolbar.setNavigationOnClickListener(v -> onBackPressed());
         }
     }
@@ -124,13 +127,20 @@ public class EventParticipantsActivity extends BaseActivity {
             }
 
             @Override
-            public void onEditUser(User user) { } // לא רלוונטי לאירוע
+            public void onEditUser(User user) {
+                // לא בשימוש במצב אירוע
+            }
 
             @Override
-            public void onToggleAdmin(User user) { } // לא רלוונטי לאירוע
+            public void onToggleAdmin(User user) {
+                // לא בשימוש במצב אירוע
+            }
 
             @Override
-            public void onDeleteUser(User user) { } // לא רלוונטי לאירוע בשלב זה
+            public void onDeleteUser(User user) {
+                // קריאה לפונקציית הסרת משתתף
+                removeParticipantFromEvent(user);
+            }
 
             @Override
             public boolean isCurrentUser(User user) {
@@ -138,47 +148,96 @@ public class EventParticipantsActivity extends BaseActivity {
             }
         });
 
-        // שימוש במצב "Group" לאדפטר כדי לקבל את תג ה-"Creator" אבל עם חסימת אפשרות למחיקה
-        userAdapter.setGroupMode(true, false, false, currentEvent.getCreatorId(), new HashMap<>());
         rvParticipants.setAdapter(userAdapter);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (currentEvent != null) {
+            loadParticipants();
+        }
+    }
+
     private void loadParticipants() {
-        progressBar.setVisibility(View.VISIBLE);
+        if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
         layoutNoParticipants.setVisibility(View.GONE);
+        tvParticipantsCount.setVisibility(View.GONE);
 
-        databaseService.getUserList(new DatabaseService.DatabaseCallback<List<User>>() {
+        databaseService.getEvent(currentEvent.getId(), new DatabaseService.DatabaseCallback<Event>() {
             @Override
-            public void onCompleted(List<User> allUsers) {
-                progressBar.setVisibility(View.GONE);
-                List<User> participantsList = new ArrayList<>();
+            public void onCompleted(Event updatedEvent) {
+                if (updatedEvent != null) {
+                    currentEvent = updatedEvent;
+                }
 
-                if (allUsers != null) {
-                    for (User user : allUsers) {
-                        // מוסיף את היוצר או משתמש שנמצא ברשימת המשתתפים
-                        boolean isParticipant = currentEvent.getParticipants() != null && currentEvent.getParticipants().containsKey(user.getId());
-                        boolean isCreator = currentEvent.getCreatorId() != null && currentEvent.getCreatorId().equals(user.getId());
+                databaseService.getUserList(new DatabaseService.DatabaseCallback<List<User>>() {
+                    @Override
+                    public void onCompleted(List<User> allUsers) {
+                        if (progressBar != null) progressBar.setVisibility(View.GONE);
+                        List<User> participantsList = new ArrayList<>();
 
-                        if (isParticipant || isCreator) {
-                            participantsList.add(user);
+                        if (allUsers != null) {
+                            for (User user : allUsers) {
+                                boolean isParticipant = currentEvent.getParticipants() != null && currentEvent.getParticipants().containsKey(user.getId());
+                                boolean isCreator = currentEvent.getCreatorId() != null && currentEvent.getCreatorId().equals(user.getId());
+
+                                if (isParticipant || isCreator) {
+                                    participantsList.add(user);
+                                }
+                            }
+                        }
+
+                        if (participantsList.isEmpty()) {
+                            layoutNoParticipants.setVisibility(View.VISIBLE);
+                            rvParticipants.setVisibility(View.GONE);
+                            tvParticipantsCount.setVisibility(View.GONE);
+                        } else {
+                            layoutNoParticipants.setVisibility(View.GONE);
+                            rvParticipants.setVisibility(View.VISIBLE);
+
+                            tvParticipantsCount.setVisibility(View.VISIBLE);
+                            tvParticipantsCount.setText("Total participants: " + participantsList.size());
+
+                            // הפעלת מצב אירוע (Event Mode) לפני העברת הרשימה לאדפטר
+                            boolean isCurrentUserCreator = currentEvent.getCreatorId() != null && currentEvent.getCreatorId().equals(currentUserId);
+                            userAdapter.setEventMode(true, isCurrentUserCreator, currentEvent.getCreatorId());
+
+                            userAdapter.setUserList(participantsList);
                         }
                     }
-                }
 
-                if (participantsList.isEmpty()) {
-                    layoutNoParticipants.setVisibility(View.VISIBLE);
-                    rvParticipants.setVisibility(View.GONE);
-                } else {
-                    layoutNoParticipants.setVisibility(View.GONE);
-                    rvParticipants.setVisibility(View.VISIBLE);
-                    userAdapter.setUserList(participantsList);
-                }
+                    @Override
+                    public void onFailed(Exception e) {
+                        if (progressBar != null) progressBar.setVisibility(View.GONE);
+                        Toast.makeText(EventParticipantsActivity.this, "Failed to load participants", Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
 
             @Override
             public void onFailed(Exception e) {
-                progressBar.setVisibility(View.GONE);
-                Toast.makeText(EventParticipantsActivity.this, "Failed to load participants", Toast.LENGTH_SHORT).show();
+                if (progressBar != null) progressBar.setVisibility(View.GONE);
+                Toast.makeText(EventParticipantsActivity.this, "Failed to sync event data", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    // הפונקציה להסרת משתתף מהאירוע באופן מיידי
+    private void removeParticipantFromEvent(User user) {
+        if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
+
+        databaseService.leaveEvent(currentEvent.getId(), user.getId(), new DatabaseService.DatabaseCallback<Void>() {
+            @Override
+            public void onCompleted(Void object) {
+                Toast.makeText(EventParticipantsActivity.this, user.getFullName() + " was removed", Toast.LENGTH_SHORT).show();
+                loadParticipants(); // טעינה מחדש של הרשימה כדי לרענן את התצוגה
+            }
+
+            @Override
+            public void onFailed(Exception e) {
+                if (progressBar != null) progressBar.setVisibility(View.GONE);
+                Toast.makeText(EventParticipantsActivity.this, "Failed to remove participant", Toast.LENGTH_SHORT).show();
             }
         });
     }

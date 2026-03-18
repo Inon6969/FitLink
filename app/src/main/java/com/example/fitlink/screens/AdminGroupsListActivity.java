@@ -29,6 +29,7 @@ import com.example.fitlink.adapters.GroupAdapter;
 import com.example.fitlink.models.DifficultyLevel;
 import com.example.fitlink.models.Group;
 import com.example.fitlink.models.SportType;
+import com.example.fitlink.screens.dialogs.CancelJoinRequestDialog;
 import com.example.fitlink.screens.dialogs.CreateGroupDialog;
 import com.example.fitlink.screens.dialogs.DeleteGroupDialog;
 import com.example.fitlink.screens.dialogs.EditGroupDialog;
@@ -56,9 +57,10 @@ public class AdminGroupsListActivity extends BaseActivity {
     private LinearLayout emptyState;
     private MaterialButton btnCreateGroup;
 
-    private List<Group> allGroups = new ArrayList<>();
+    // התיקון: אתחול כ-null כדי למנוע העלמה מוקדמת של ה-ProgressBar
+    private List<Group> allGroups = null;
     private CreateGroupDialog currentCreateGroupDialog;
-    private EditGroupDialog currentEditGroupDialog; // נוסף משתנה לדיאלוג עריכה
+    private EditGroupDialog currentEditGroupDialog;
     private String currentUserId;
 
     private final ActivityResultLauncher<Intent> mapPickerLauncher = registerForActivityResult(
@@ -126,7 +128,6 @@ public class AdminGroupsListActivity extends BaseActivity {
         RecyclerView rvGroups = findViewById(R.id.rv_admin_groups_list);
         rvGroups.setLayoutManager(new LinearLayoutManager(this));
 
-        // שימוש באדפטר הרגיל של קבוצות
         groupAdapter = new GroupAdapter(new ArrayList<>(), true, currentUserId, new GroupAdapter.OnGroupClickListener() {
             @Override
             public void onJoinClick(Group group) { handleJoinGroup(group); }
@@ -140,7 +141,6 @@ public class AdminGroupsListActivity extends BaseActivity {
                 new GroupDescriptionDialog(AdminGroupsListActivity.this, group, true, new GroupDescriptionDialog.AdminActionsListener() {
                     @Override
                     public void onEdit(Group g) {
-                        // פותח את דיאלוג העריכה
                         currentEditGroupDialog = new EditGroupDialog(AdminGroupsListActivity.this, g, updatedGroup -> {
                             loadGroups(); // מרענן את הרשימה אחרי עדכון מוצלח
                         });
@@ -162,8 +162,26 @@ public class AdminGroupsListActivity extends BaseActivity {
             Toast.makeText(this, "You are already a member of this group", Toast.LENGTH_SHORT).show();
             return;
         }
+
+        // --- הוספת דיאלוג ביטול הבקשה ---
         if (group.getPendingRequests() != null && group.getPendingRequests().containsKey(currentUserId)) {
-            Toast.makeText(this, "Your request is already pending", Toast.LENGTH_SHORT).show();
+            new CancelJoinRequestDialog(this, group, () -> {
+                progressBar.setVisibility(View.VISIBLE);
+                databaseService.cancelJoinRequest(group.getId(), Objects.requireNonNull(currentUserId), new DatabaseService.DatabaseCallback<Void>() {
+                    @Override
+                    public void onCompleted(Void object) {
+                        progressBar.setVisibility(View.GONE);
+                        Toast.makeText(AdminGroupsListActivity.this, "Join request cancelled", Toast.LENGTH_SHORT).show();
+                        loadGroups(); // רענון הרשימה לעדכון הכפתור
+                    }
+
+                    @Override
+                    public void onFailed(Exception e) {
+                        progressBar.setVisibility(View.GONE);
+                        Toast.makeText(AdminGroupsListActivity.this, "Failed to cancel request", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }).show();
             return;
         }
 
@@ -211,7 +229,6 @@ public class AdminGroupsListActivity extends BaseActivity {
     }
 
     private void handleDeleteGroup(Group group) {
-        // שימוש בדיאלוג המחיקה המעוצב במקום ה-AlertDialog הרגיל
         new DeleteGroupDialog(this, () -> {
             progressBar.setVisibility(View.VISIBLE);
             databaseService.deleteGroup(group.getId(), new DatabaseService.DatabaseCallback<Void>() {
@@ -339,7 +356,7 @@ public class AdminGroupsListActivity extends BaseActivity {
         databaseService.getAllGroups(new DatabaseService.DatabaseCallback<List<Group>>() {
             @Override
             public void onCompleted(List<Group> groups) {
-                progressBar.setVisibility(View.GONE);
+                // הסרנו את הסתרת ה-ProgressBar מכאן
                 allGroups = (groups != null) ? groups : new ArrayList<>();
                 executeSearch();
             }
@@ -352,6 +369,8 @@ public class AdminGroupsListActivity extends BaseActivity {
     }
 
     private void updateListDisplay(List<Group> listToDisplay) {
+        // התיקון: מוודא שה-ProgressBar נעלם רק כשהרשימה מוכנה
+        progressBar.setVisibility(View.GONE);
         if (groupAdapter != null) groupAdapter.updateList(listToDisplay);
         tvCount.setText(MessageFormat.format("Total groups: {0}", listToDisplay.size()));
         emptyState.setVisibility(listToDisplay.isEmpty() ? View.VISIBLE : View.GONE);

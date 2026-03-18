@@ -41,7 +41,10 @@ public class MyCalendarActivity extends BaseActivity {
     private ChipGroup chipGroupFilter;
 
     private EventAdapter eventAdapter;
-    private List<Event> allMyEvents = new ArrayList<>();
+
+    // התיקון: אתחול כ-null כדי למנוע סינון והעלמת ProgressBar לפני שהנתונים הגיעו
+    private List<Event> allMyEvents = null;
+
     private final Calendar selectedCalendar = Calendar.getInstance();
     private String currentUserId;
 
@@ -97,7 +100,7 @@ public class MyCalendarActivity extends BaseActivity {
 
         eventAdapter = new EventAdapter(new ArrayList<>(), currentUserId, event -> {
             Intent intent = new Intent(MyCalendarActivity.this, EventDetailsActivity.class);
-            // התיקון הקריטי: שולחים רק את ה-ID!
+            // הקפדה על שליחת ה-ID בלבד
             intent.putExtra("EVENT_ID", event.getId());
             startActivity(intent);
         });
@@ -145,8 +148,8 @@ public class MyCalendarActivity extends BaseActivity {
         databaseService.getAllEvents(new DatabaseService.DatabaseCallback<List<Event>>() {
             @Override
             public void onCompleted(List<Event> events) {
-                progressBar.setVisibility(View.GONE);
-                allMyEvents.clear();
+                // התיקון: הסרנו את הסתרת ה-ProgressBar מכאן
+                allMyEvents = new ArrayList<>();
 
                 if (events != null) {
                     for (Event event : events) {
@@ -181,6 +184,9 @@ public class MyCalendarActivity extends BaseActivity {
     }
 
     private void filterEvents() {
+        // התיקון: מונע מהפונקציה לפעול ולשנות את התצוגה לפני שהנתונים מוכנים
+        if (allMyEvents == null) return;
+
         List<Event> filteredEvents = new ArrayList<>();
         Calendar eventCal = Calendar.getInstance();
 
@@ -205,6 +211,8 @@ public class MyCalendarActivity extends BaseActivity {
             }
         }
 
+        // התיקון: מעלים את העיגול המסתובב רק כשהרשימה מוכנה
+        progressBar.setVisibility(View.GONE);
         eventAdapter.updateList(filteredEvents);
 
         if (filteredEvents.isEmpty()) {

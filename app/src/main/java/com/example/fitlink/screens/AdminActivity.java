@@ -14,7 +14,7 @@ import com.example.fitlink.R;
 
 public class AdminActivity extends BaseActivity {
 
-    LinearLayout cardUsers, cardGroups, cardEvents;
+    LinearLayout cardUsers, cardGroups, cardEvents, cardMessages;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +37,7 @@ public class AdminActivity extends BaseActivity {
         cardUsers = findViewById(R.id.card_users);
         cardGroups = findViewById(R.id.card_groups);
         cardEvents = findViewById(R.id.card_events);
+        cardMessages = findViewById(R.id.card_messages); // הכפתור החדש
     }
 
     private void setupToolbar() {
@@ -64,7 +65,13 @@ public class AdminActivity extends BaseActivity {
 
         // ניהול אירועים
         cardEvents.setOnClickListener(v -> {
-            Intent intent = new Intent(this, AdminEventsListActivity.class); // שינינו ל-AdminEventsListActivity
+            Intent intent = new Intent(this, AdminEventsListActivity.class);
+            startActivity(intent);
+        });
+
+        // צפייה בהודעות משתמשים (צור קשר)
+        cardMessages.setOnClickListener(v -> {
+            Intent intent = new Intent(this, AdminMessagesListActivity.class);
             startActivity(intent);
         });
     }

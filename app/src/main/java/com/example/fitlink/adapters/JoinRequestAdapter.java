@@ -23,6 +23,7 @@ public class JoinRequestAdapter extends RecyclerView.Adapter<JoinRequestAdapter.
     private final OnRequestClickListener listener;
 
     public interface OnRequestClickListener {
+        void onUserClick(User user); // <-- הוספנו את מתודת הלחיצה על המשתמש
         void onApproveClick(User user);
         void onDeclineClick(User user);
     }
@@ -62,6 +63,14 @@ public class JoinRequestAdapter extends RecyclerView.Adapter<JoinRequestAdapter.
             holder.imgProfile.setImageResource(R.drawable.ic_user);
         }
 
+        // --- הוספת מאזין הלחיצה על הפריט עצמו למעבר לפרופיל ---
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onUserClick(user);
+            }
+        });
+        // ------------------------------------------------------
+
         holder.btnApprove.setOnClickListener(v -> listener.onApproveClick(user));
         holder.btnDecline.setOnClickListener(v -> listener.onDeclineClick(user));
     }
@@ -78,7 +87,7 @@ public class JoinRequestAdapter extends RecyclerView.Adapter<JoinRequestAdapter.
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        final TextView tvName, tvEmail, tvPhone; // הוספנו את tvPhone
+        final TextView tvName, tvEmail, tvPhone;
         final ImageView imgProfile;
         final MaterialButton btnApprove, btnDecline;
 
@@ -86,7 +95,7 @@ public class JoinRequestAdapter extends RecyclerView.Adapter<JoinRequestAdapter.
             super(itemView);
             tvName = itemView.findViewById(R.id.tv_request_name);
             tvEmail = itemView.findViewById(R.id.tv_request_email);
-            tvPhone = itemView.findViewById(R.id.tv_request_phone); // קישור לשדה הטלפון ב-XML
+            tvPhone = itemView.findViewById(R.id.tv_request_phone);
             imgProfile = itemView.findViewById(R.id.img_request_profile);
             btnApprove = itemView.findViewById(R.id.btn_request_approve);
             btnDecline = itemView.findViewById(R.id.btn_request_decline);

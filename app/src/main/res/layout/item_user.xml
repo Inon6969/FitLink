@@ -72,30 +72,6 @@
                         android:layout_width="16dp"
                         android:layout_height="16dp"
                         android:layout_marginEnd="6dp"
-                        android:src="@android:drawable/ic_lock_idle_lock"
-                        app:tint="@color/fitlinkTextSecondary" />
-
-                    <TextView
-                        android:id="@+id/tv_item_user_password"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="@font/poppins_regular"
-                        android:text="Password: *****"
-                        android:textColor="@color/fitlinkTextSecondary"
-                        android:textSize="13sp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="2dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:layout_marginEnd="6dp"
                         android:src="@android:drawable/ic_dialog_email"
                         app:tint="@color/fitlinkTextSecondary" />
 
@@ -133,7 +109,33 @@
                         android:textSize="13sp"
                         tools:text="@tools:sample/us_phones" />
                 </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="2dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:layout_marginEnd="6dp"
+                        android:src="@android:drawable/ic_lock_idle_lock"
+                        app:tint="@color/fitlinkTextSecondary" />
+
+                    <TextView
+                        android:id="@+id/tv_item_user_password"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/poppins_regular"
+                        android:text="Password: *****"
+                        android:textColor="@color/fitlinkTextSecondary"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
             </LinearLayout>
+
         </LinearLayout>
 
         <LinearLayout
