@@ -4,6 +4,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import android.content.Context;
 
 import com.example.fitlink.models.ChatMessage;
 import com.example.fitlink.models.Comment;
@@ -26,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.UnaryOperator;
+import java.util.HashSet;
+import java.util.Set;
 
 
 /// a service to interact with the Firebase Realtime Database.
@@ -56,6 +59,8 @@ public class DatabaseService {
     /// @see DatabaseReference
     /// @see FirebaseDatabase#getReference()
     private final DatabaseReference databaseReference;
+    private final Set<String> notifiedRequests = new HashSet<>();
+    private boolean isFirstLoad = true;
 
     /// use getInstance() to get an instance of this class
     ///
@@ -278,7 +283,12 @@ public class DatabaseService {
      * מוחקת: משתמש, קבוצות שיצר (אם נבחר), אירועים עצמאיים שיצר, אירועים של הקבוצות שימחקו.
      * מסירה מהשתתפות: חברות בקבוצות אחרות, ניהול בקבוצות אחרות, השתתפות באירועים של אחרים.
      */
-    public void deleteUserCompletely(@NotNull final User userToDelete, boolean deleteCreatedGroups, @Nullable final DatabaseCallback<Void> callback) {
+    /**
+     * פונקציה למחיקה הרמטית של משתמש מכל רחבי האפליקציה בבת אחת (Atomic Update)
+     * מוחקת: משתמש, קבוצות שיצר, כל האירועים של הקבוצות שיצר, ואירועים עצמאיים שיצר.
+     * מסירה מהשתתפות: חברות בקבוצות אחרות, ניהול בקבוצות אחרות, השתתפות באירועים של אחרים.
+     */
+    public void deleteUserCompletely(@NotNull final User userToDelete, @Nullable final DatabaseCallback<Void> callback) {
         String userId = userToDelete.getId();
 
         getAllGroups(new DatabaseCallback<List<Group>>() {
@@ -300,7 +310,7 @@ public class DatabaseService {
                             for (Group group : allGroups) {
                                 boolean isCreator = group.getCreatorId() != null && group.getCreatorId().equals(userId);
 
-                                if (isCreator && deleteCreatedGroups) {
+                                if (isCreator) {
                                     // מחיקת הקבוצה שיצר וכל הצ'אטים שלה
                                     updates.put(GROUPS_PATH + "/" + group.getId(), null);
                                     updates.put(GROUP_CHATS_PATH + "/" + group.getId(), null);
@@ -314,7 +324,7 @@ public class DatabaseService {
                                         }
                                     }
                                 } else {
-                                    // המשתמש הוא לא היוצר (או שבחרנו לא למחוק קבוצות) - רק נסיר אותו מרשימות הקבוצה
+                                    // המשתמש הוא לא היוצר - נסיר אותו מרשימות הקבוצה
                                     updates.put(GROUPS_PATH + "/" + group.getId() + "/members/" + userId, null);
                                     updates.put(GROUPS_PATH + "/" + group.getId() + "/managers/" + userId, null);
                                     updates.put(GROUPS_PATH + "/" + group.getId() + "/pendingRequests/" + userId, null);
@@ -329,7 +339,7 @@ public class DatabaseService {
                                 // בודק האם הקבוצה של האירוע הזה כבר סומנה למחיקה בשלב הקודם
                                 boolean isGroupDeleted = event.getGroupId() != null && updates.containsKey(GROUPS_PATH + "/" + event.getGroupId());
 
-                                // מוחקים את האירוע רק אם הוא עצמאי והמשתמש יצר אותו, או אם הקבוצה שלו נמחקת
+                                // מוחקים את האירוע אם המשתמש יצר אותו וזה אירוע עצמאי, או אם הקבוצה שלו נמחקת
                                 if ((isCreator && event.isIndependent()) || isGroupDeleted) {
                                     updates.put(EVENTS_PATH + "/" + event.getId(), null);
                                     updates.put("event_comments/" + event.getId(), null);
@@ -469,6 +479,48 @@ public class DatabaseService {
                         if (callback != null) callback.onCompleted(null);
                     }
                 });
+    }
+
+    public void listenForNewJoinRequests(String currentUserId, Context context) {
+        databaseReference.child(GROUPS_PATH).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (DataSnapshot groupSnapshot : snapshot.getChildren()) {
+                    Group group = groupSnapshot.getValue(Group.class);
+                    if (group == null) continue;
+
+                    boolean isCreator = group.getCreatorId() != null && group.getCreatorId().equals(currentUserId);
+                    boolean isManager = group.getManagers() != null && group.getManagers().containsKey(currentUserId);
+
+                    if (isCreator || isManager) {
+                        if (group.getPendingRequests() != null) {
+                            for (String requesterId : group.getPendingRequests().keySet()) {
+                                // יצירת מזהה ייחודי לבקשה הזו (מזהה קבוצה + מזהה משתמש)
+                                String uniqueRequestId = group.getId() + "_" + requesterId;
+
+                                // אם עדיין לא התראנו על הבקשה הזו (ולא מדובר בטעינה ראשונית של כל הנתונים)
+                                if (!notifiedRequests.contains(uniqueRequestId)) {
+                                    notifiedRequests.add(uniqueRequestId);
+
+                                    // קופץ רק אם זו בקשה חדשה בזמן אמת (ולא מההיסטוריה כשהאפליקציה נפתחת)
+                                    if (!isFirstLoad) {
+                                        FitLinkNotificationService.getInstance(context)
+                                                .showJoinRequestNotification(group.getName(), requesterId);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                // אחרי הסריקה הראשונה, אנחנו מורידים את הדגל כדי שהתראות חדשות יקפצו
+                isFirstLoad = false;
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e(TAG, "Failed to listen for join requests", error.toException());
+            }
+        });
     }
 
     /**

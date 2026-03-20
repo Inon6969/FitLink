@@ -53,6 +53,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
+                app:cardBackgroundColor="@color/fitlinkBackground"
                 app:cardCornerRadius="24dp"
                 app:cardElevation="8dp">
 

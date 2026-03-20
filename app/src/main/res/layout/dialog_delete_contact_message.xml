@@ -23,41 +23,41 @@
             app:tint="#FF5252" />
 
         <TextView
-            android:id="@+id/txtDeleteUserTitle"
+            android:id="@+id/txtDeleteMessageTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_marginBottom="16dp"
             android:fontFamily="@font/poppins_bold"
-            android:text="Delete User"
+            android:text="Delete Message"
             android:textColor="@color/fitlinkPrimary"
             android:textSize="22sp" />
 
         <TextView
-            android:id="@+id/txtDeleteUserMessage"
+            android:id="@+id/txtDeleteMessageContent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
             android:fontFamily="@font/poppins_regular"
-            android:text="Are you sure you want to completely delete this user? All their created groups and events will also be removed."
+            android:text="Are you sure you want to completely delete this message from the system?"
             android:textAlignment="center"
             android:textColor="@color/fitlinkTextSecondary"
             android:textSize="16sp" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnConfirmDelete"
+            android:id="@+id/btnConfirmDeleteMessage"
             android:layout_width="match_parent"
             android:layout_height="55dp"
             android:layout_marginBottom="8dp"
             android:backgroundTint="#FF5252"
             android:fontFamily="@font/poppins_medium"
-            android:text="Delete Entirely"
+            android:text="Delete"
             android:textAllCaps="false"
             android:textColor="@color/white"
             app:cornerRadius="16dp" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnDeleteCancel"
+            android:id="@+id/btnDeleteMessageCancel"
             style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

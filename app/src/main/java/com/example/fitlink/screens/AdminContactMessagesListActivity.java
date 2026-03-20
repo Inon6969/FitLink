@@ -97,12 +97,12 @@ public class AdminContactMessagesListActivity extends BaseActivity {
 
             @Override
             public void onDeleteClick(ContactMessage message) {
-                new AlertDialog.Builder(AdminContactMessagesListActivity.this)
-                        .setTitle("Delete Message")
-                        .setMessage("Are you sure you want to delete this message?")
-                        .setPositiveButton("Delete", (dialog, which) -> deleteMessage(message.getId()))
-                        .setNegativeButton("Cancel", null)
-                        .show();
+                // קריאה לדיאלוג המעוצב החדש שלנו במקום ה-AlertDialog הרגיל
+                new com.example.fitlink.screens.dialogs.DeleteContactMessageDialog(
+                        AdminContactMessagesListActivity.this,
+                        message,
+                        () -> deleteMessage(message.getId())
+                ).show();
             }
         });
 

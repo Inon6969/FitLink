@@ -135,7 +135,9 @@
                 <FrameLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:background="@color/fitlinkBackground"
                     android:padding="5dp">
+
 
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/rv_users_list"

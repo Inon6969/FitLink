@@ -218,7 +218,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
-                app:cardBackgroundColor="@color/white"
+                app:cardBackgroundColor="@color/fitlinkBackground"
                 app:cardCornerRadius="30dp"
                 app:cardElevation="6dp">
 
@@ -253,6 +253,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="24dp"
                         android:hint="How can we help you?"
+                        app:boxBackgroundMode="outline"
                         app:boxCornerRadiusBottomEnd="12dp"
                         app:boxCornerRadiusBottomStart="12dp"
                         app:boxCornerRadiusTopEnd="12dp"

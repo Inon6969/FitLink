@@ -24,6 +24,7 @@
         android:layout_alignParentTop="true"
         android:layout_marginHorizontal="16dp"
         android:layout_marginTop="40dp"
+        app:cardBackgroundColor="@color/fitlinkBackground"
         app:cardCornerRadius="16dp"
         app:cardElevation="8dp">
 
@@ -63,6 +64,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_margin="16dp"
+        app:cardBackgroundColor="@color/fitlinkBackground"
         app:cardCornerRadius="24dp"
         app:cardElevation="12dp">
 

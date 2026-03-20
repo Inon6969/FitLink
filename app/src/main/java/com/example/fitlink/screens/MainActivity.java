@@ -1,6 +1,9 @@
 package com.example.fitlink.screens;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -12,6 +15,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.fitlink.R;
 import com.example.fitlink.models.User;
+import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.google.android.material.button.MaterialButton;
 
@@ -70,6 +74,19 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             findViewById(R.id.admin_card).setVisibility(View.VISIBLE);
         } else {
             findViewById(R.id.admin_card).setVisibility(View.GONE);
+        }
+
+        // מבקש הרשאת התראות באנדרואיד 13+ (אם עדיין אין)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 101);
+            }
+        }
+
+        // הפעלת ההאזנה לבקשות הצטרפות
+        String currentUserId = SharedPreferencesUtil.getUserId(this);
+        if (currentUserId != null) {
+            DatabaseService.getInstance().listenForNewJoinRequests(currentUserId, this);
         }
     }
 

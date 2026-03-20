@@ -7,7 +7,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import com.example.fitlink.R;
 import com.example.fitlink.models.User;
-import com.google.android.material.button.MaterialButton;
 
 public class DeleteUserDialog extends Dialog {
 
@@ -33,15 +32,11 @@ public class DeleteUserDialog extends Dialog {
         }
 
         TextView txtMessage = findViewById(R.id.txtDeleteUserMessage);
-        txtMessage.setText("You are about to delete " + user.getFullName() + ".\nDo you also want to delete their groups?");
+        txtMessage.setText("You are about to entirely delete " + user.getFullName() + ".\nAll their created groups and events will be permanently removed. Are you sure?");
 
-        findViewById(R.id.btnDeleteUserAndGroups).setOnClickListener(v -> {
+        // מעביר תמיד true כדי לבצע מחיקה הרמטית של המשתמש והקבוצות שלו
+        findViewById(R.id.btnConfirmDelete).setOnClickListener(v -> {
             listener.onDeleteOption(true);
-            dismiss();
-        });
-
-        findViewById(R.id.btnDeleteUserOnly).setOnClickListener(v -> {
-            listener.onDeleteOption(false);
             dismiss();
         });
 

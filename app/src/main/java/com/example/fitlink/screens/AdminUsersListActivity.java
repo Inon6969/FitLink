@@ -51,7 +51,7 @@ public class AdminUsersListActivity extends BaseActivity {
     private LinearLayout emptyState;
     private MaterialButton btnAddUser;
 
-    // התיקון: אתחול כ-null כדי למנוע העלמה מוקדמת של ה-ProgressBar והופעת מצב ריק בטעות
+    // אתחול כ-null כדי למנוע העלמה מוקדמת של ה-ProgressBar והופעת מצב ריק בטעות
     private List<User> allUsers = null;
 
     @Override
@@ -193,7 +193,6 @@ public class AdminUsersListActivity extends BaseActivity {
         databaseService.getUserList(new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(List<User> users) {
-                // הסרנו את הסתרת ה-ProgressBar מכאן
                 allUsers = (users != null) ? users : new ArrayList<>();
                 filterUsers(etSearch.getText().toString());
             }
@@ -208,7 +207,7 @@ public class AdminUsersListActivity extends BaseActivity {
     }
 
     private void updateListDisplay(List<User> listToDisplay) {
-        // התיקון: מוודא שה-ProgressBar נעלם רק כשהרשימה מוכנה לתצוגה
+        // מוודא שה-ProgressBar נעלם רק כשהרשימה מוכנה לתצוגה
         progressBar.setVisibility(View.GONE);
         userAdapter.setUserList(listToDisplay);
         tvUserCount.setText(MessageFormat.format("Total users: {0}", listToDisplay.size()));
@@ -239,16 +238,17 @@ public class AdminUsersListActivity extends BaseActivity {
     private void handleDeleteUser(User user) {
         boolean isSelf = user.getId().equals(SharedPreferencesUtil.getUserId(this));
 
+        // הדיאלוג עדיין מחזיר ערך (true תמיד), ולכן נשאיר את הלמבדה כמו שהיא כדי לעמוד בממשק
         new DeleteUserDialog(this, user, deleteGroups -> {
-            executeUserDeletion(user, isSelf, deleteGroups);
+            executeUserDeletion(user, isSelf);
         }).show();
     }
 
-    private void executeUserDeletion(User user, boolean isSelf, boolean deleteGroups) {
+    private void executeUserDeletion(User user, boolean isSelf) {
         progressBar.setVisibility(View.VISIBLE);
 
-        // קוראים לפונקציה החדשה שעושה את כל העבודה בצורה אטומית ובטוחה
-        databaseService.deleteUserCompletely(user, deleteGroups, new DatabaseService.DatabaseCallback<Void>() {
+        // הקריאה מעודכנת - ללא הפרמטר הבוליאני שמעיד על מחיקת קבוצות
+        databaseService.deleteUserCompletely(user, new DatabaseService.DatabaseCallback<Void>() {
             @Override
             public void onCompleted(Void object) {
                 progressBar.setVisibility(View.GONE);

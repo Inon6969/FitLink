@@ -72,154 +72,62 @@
                 app:iconSize="25dp"
                 app:iconTint="@color/fitlinkBackground" />
 
-            <com.google.android.material.card.MaterialCardView
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
-                app:cardCornerRadius="24dp"
-                app:cardElevation="6dp">
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/layout_search_text"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="20dp">
+                    android:layout_weight="1"
+                    android:layout_marginEnd="12dp"
+                    android:hint="Search events by title..."
+                    app:boxBackgroundMode="outline"
+                    app:boxCornerRadiusBottomEnd="16dp"
+                    app:boxCornerRadiusBottomStart="16dp"
+                    app:boxCornerRadiusTopEnd="16dp"
+                    app:boxCornerRadiusTopStart="16dp"
+                    app:boxStrokeColor="@color/fitlinkPrimary"
+                    app:hintTextColor="@color/fitlinkPrimary"
+                    app:startIconDrawable="@android:drawable/ic_menu_search"
+                    app:endIconMode="clear_text">
 
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/edit_EventsList_search"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="12dp"
-                        android:fontFamily="@font/poppins_medium"
-                        android:text="Search Events"
-                        android:textColor="@color/fitlinkPrimary"
-                        android:textSize="20sp" />
+                        android:fontFamily="@font/poppins_regular"
+                        android:inputType="text"
+                        android:imeOptions="actionSearch"
+                        android:maxLines="1"
+                        android:paddingTop="14dp"
+                        android:paddingBottom="14dp"
+                        android:textSize="16sp" />
+                </com.google.android.material.textfield.TextInputLayout>
 
-                    <Spinner
-                        android:id="@+id/spinner_events_search_type"
-                        android:layout_width="match_parent"
-                        android:layout_height="55dp"
-                        android:layout_marginBottom="12dp" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_filter_events"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:insetLeft="0dp"
+                    android:insetTop="0dp"
+                    android:insetRight="0dp"
+                    android:insetBottom="0dp"
+                    android:layout_marginTop="3dp"
+                    android:backgroundTint="@color/fitlinkPrimary"
+                    android:contentDescription="Filter events"
+                    app:cornerRadius="16dp"
+                    app:icon="@drawable/ic_filter"
+                    app:iconGravity="textStart"
+                    app:iconPadding="0dp"
+                    app:iconSize="24dp"
+                    app:iconTint="@color/fitlinkBackground" />
 
-                    <FrameLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/layout_search_text"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:hint="Type to search..."
-                            app:boxBackgroundMode="outline"
-                            app:boxCornerRadiusBottomEnd="16dp"
-                            app:boxCornerRadiusBottomStart="16dp"
-                            app:boxCornerRadiusTopEnd="16dp"
-                            app:boxCornerRadiusTopStart="16dp"
-                            app:startIconDrawable="@android:drawable/ic_menu_search">
-
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/edit_EventsList_search"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:fontFamily="@font/poppins_regular"
-                                android:textSize="16sp" />
-                        </com.google.android.material.textfield.TextInputLayout>
-
-                        <Spinner
-                            android:id="@+id/spinner_events_search_options"
-                            android:layout_width="match_parent"
-                            android:layout_height="55dp"
-                            android:visibility="gone" />
-
-                        <LinearLayout
-                            android:id="@+id/layout_range_picker"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:visibility="gone">
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btn_range_start"
-                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                                android:layout_width="0dp"
-                                android:layout_height="55dp"
-                                android:layout_marginEnd="4dp"
-                                android:layout_weight="1"
-                                android:fontFamily="@font/poppins_medium"
-                                android:text="Start"
-                                android:textAllCaps="false"
-                                android:textColor="@color/fitlinkPrimary"
-                                app:cornerRadius="12dp"
-                                app:strokeColor="@color/fitlinkPrimary" />
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btn_range_end"
-                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                                android:layout_width="0dp"
-                                android:layout_height="55dp"
-                                android:layout_marginStart="4dp"
-                                android:layout_weight="1"
-                                android:fontFamily="@font/poppins_medium"
-                                android:text="End"
-                                android:textAllCaps="false"
-                                android:textColor="@color/fitlinkPrimary"
-                                app:cornerRadius="12dp"
-                                app:strokeColor="@color/fitlinkPrimary" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:id="@+id/layout_duration_picker"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:baselineAligned="false"
-                            android:orientation="horizontal"
-                            android:visibility="gone">
-
-                            <com.google.android.material.textfield.TextInputLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_marginEnd="4dp"
-                                android:layout_weight="1"
-                                android:hint="Min Mins"
-                                app:boxBackgroundMode="outline"
-                                app:boxCornerRadiusBottomEnd="16dp"
-                                app:boxCornerRadiusBottomStart="16dp"
-                                app:boxCornerRadiusTopEnd="16dp"
-                                app:boxCornerRadiusTopStart="16dp">
-
-                                <com.google.android.material.textfield.TextInputEditText
-                                    android:id="@+id/et_duration_min"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:fontFamily="@font/poppins_regular"
-                                    android:inputType="number"
-                                    android:textSize="16sp" />
-                            </com.google.android.material.textfield.TextInputLayout>
-
-                            <com.google.android.material.textfield.TextInputLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="4dp"
-                                android:layout_weight="1"
-                                android:hint="Max Mins"
-                                app:boxBackgroundMode="outline"
-                                app:boxCornerRadiusBottomEnd="16dp"
-                                app:boxCornerRadiusBottomStart="16dp"
-                                app:boxCornerRadiusTopEnd="16dp"
-                                app:boxCornerRadiusTopStart="16dp">
-
-                                <com.google.android.material.textfield.TextInputEditText
-                                    android:id="@+id/et_duration_max"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:fontFamily="@font/poppins_regular"
-                                    android:inputType="number"
-                                    android:textSize="16sp" />
-                            </com.google.android.material.textfield.TextInputLayout>
-                        </LinearLayout>
-                    </FrameLayout>
-
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -230,6 +138,7 @@
                 <FrameLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:background="@color/fitlinkBackground"
                     android:padding="5dp">
 
                     <androidx.recyclerview.widget.RecyclerView

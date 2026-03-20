@@ -1,18 +1,13 @@
 package com.example.fitlink.screens;
 
-import android.app.DatePickerDialog;
-import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,14 +27,13 @@ import com.example.fitlink.models.DifficultyLevel;
 import com.example.fitlink.models.Event;
 import com.example.fitlink.models.SportType;
 import com.example.fitlink.screens.dialogs.CreateIndependentEventDialog;
+import com.example.fitlink.screens.dialogs.EventFilterDialog;
 import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.textfield.TextInputLayout;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -47,25 +41,23 @@ public class EventsListActivity extends BaseActivity {
 
     private EventAdapter eventAdapter;
     private TextView tvEventCount;
-    private EditText etSearch, etDurationMin, etDurationMax;
-    private Spinner spinnerSearchType, spinnerSearchOptions;
-    private TextInputLayout layoutSearchText;
-    private LinearLayout layoutRangePicker, layoutDurationPicker;
-    private MaterialButton btnRangeStart, btnRangeEnd;
+    private EditText etSearch;
+    private MaterialButton btnFilterEvents, btnCreateEvent;
     private ProgressBar progressBar;
     private LinearLayout emptyState;
-    private MaterialButton btnCreateEvent;
 
-    // התיקון: אתחול כ-null כדי למנוע העלמה מוקדמת של ה-ProgressBar
     private List<Event> allEvents = null;
-
     private String currentUserId;
     private CreateIndependentEventDialog currentCreateEventDialog;
 
-    private Long filterStartDate = null;
-    private Long filterEndDate = null;
-    private Integer filterStartTimeMins = null;
-    private Integer filterEndTimeMins = null;
+    // משתני מצב לשמירת הסינון הנוכחי (כמו בקבוצות)
+    private SportType activeSportFilter = null;
+    private DifficultyLevel activeLevelFilter = null;
+    private String activeLocationFilter = "";
+    private Long activeStartDate = null;
+    private Long activeEndDate = null;
+    private Integer activeMinDuration = null;
+    private Integer activeMaxDuration = null;
 
     private final ActivityResultLauncher<Intent> mapPickerLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -107,18 +99,7 @@ public class EventsListActivity extends BaseActivity {
 
         tvEventCount = findViewById(R.id.tv_event_count);
         etSearch = findViewById(R.id.edit_EventsList_search);
-        spinnerSearchType = findViewById(R.id.spinner_events_search_type);
-        spinnerSearchOptions = findViewById(R.id.spinner_events_search_options);
-        layoutSearchText = findViewById(R.id.layout_search_text);
-
-        layoutRangePicker = findViewById(R.id.layout_range_picker);
-        btnRangeStart = findViewById(R.id.btn_range_start);
-        btnRangeEnd = findViewById(R.id.btn_range_end);
-
-        layoutDurationPicker = findViewById(R.id.layout_duration_picker);
-        etDurationMin = findViewById(R.id.et_duration_min);
-        etDurationMax = findViewById(R.id.et_duration_max);
-
+        btnFilterEvents = findViewById(R.id.btn_filter_events);
         progressBar = findViewById(R.id.events_progress_bar);
         emptyState = findViewById(R.id.events_empty_state);
         btnCreateEvent = findViewById(R.id.btn_EventsList_create_event);
@@ -149,193 +130,79 @@ public class EventsListActivity extends BaseActivity {
     }
 
     private void setupSearchLogic() {
-        String[] searchOptions = {"Title", "Sport Type", "Level", "Location", "Date", "Time", "Duration"};
-        spinnerSearchType.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, searchOptions));
-
-        DifficultyLevel[] levels = DifficultyLevel.values();
-        String[] levelNames = new String[levels.length];
-        for(int i=0; i<levels.length; i++) levelNames[i] = levels[i].getDisplayName();
-        ArrayAdapter<String> levelAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, levelNames);
-
-        SportType[] sports = SportType.values();
-        String[] sportNames = new String[sports.length];
-        for(int i=0; i<sports.length; i++) sportNames[i] = sports[i].getDisplayName();
-        ArrayAdapter<String> sportAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, sportNames);
-
-        spinnerSearchType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String selectedType = searchOptions[position];
-
-                filterStartDate = null; filterEndDate = null;
-                filterStartTimeMins = null; filterEndTimeMins = null;
-                btnRangeStart.setText("Start " + selectedType);
-                btnRangeEnd.setText("End " + selectedType);
-
-                if (selectedType.equals("Level")) {
-                    layoutSearchText.setVisibility(View.GONE);
-                    layoutRangePicker.setVisibility(View.GONE);
-                    layoutDurationPicker.setVisibility(View.GONE);
-                    spinnerSearchOptions.setVisibility(View.VISIBLE);
-                    spinnerSearchOptions.setAdapter(levelAdapter);
-                } else if (selectedType.equals("Sport Type")) {
-                    layoutSearchText.setVisibility(View.GONE);
-                    layoutRangePicker.setVisibility(View.GONE);
-                    layoutDurationPicker.setVisibility(View.GONE);
-                    spinnerSearchOptions.setVisibility(View.VISIBLE);
-                    spinnerSearchOptions.setAdapter(sportAdapter);
-                } else if (selectedType.equals("Duration")) {
-                    layoutSearchText.setVisibility(View.GONE);
-                    layoutRangePicker.setVisibility(View.GONE);
-                    spinnerSearchOptions.setVisibility(View.GONE);
-                    layoutDurationPicker.setVisibility(View.VISIBLE);
-                } else if (selectedType.equals("Date") || selectedType.equals("Time")) {
-                    layoutSearchText.setVisibility(View.GONE);
-                    spinnerSearchOptions.setVisibility(View.GONE);
-                    layoutDurationPicker.setVisibility(View.GONE);
-                    layoutRangePicker.setVisibility(View.VISIBLE);
-                } else {
-                    layoutSearchText.setVisibility(View.VISIBLE);
-                    spinnerSearchOptions.setVisibility(View.GONE);
-                    layoutRangePicker.setVisibility(View.GONE);
-                    layoutDurationPicker.setVisibility(View.GONE);
-                    layoutSearchText.setHint("Type to search...");
-                }
-                executeSearch();
-            }
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
-        });
-
-        spinnerSearchOptions.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) { executeSearch(); }
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
-        });
-
-        TextWatcher textWatcher = new TextWatcher() {
+        // חיפוש טקסטואלי מהיר בשורת החיפוש הכללית (לפי שם אירוע)
+        etSearch.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) { executeSearch(); }
             @Override
             public void afterTextChanged(Editable s) {}
-        };
+        });
 
-        etSearch.addTextChangedListener(textWatcher);
-        etDurationMin.addTextChangedListener(textWatcher);
-        etDurationMax.addTextChangedListener(textWatcher);
+        // פתיחת חלון הסינון המתקדם
+        btnFilterEvents.setOnClickListener(v -> {
+            EventFilterDialog dialog = new EventFilterDialog(this,
+                    activeSportFilter, activeLevelFilter, activeLocationFilter,
+                    activeStartDate, activeEndDate, activeMinDuration, activeMaxDuration,
+                    (sportType, level, location, startDate, endDate, minDur, maxDur) -> {
+                        // שמירת בחירות המשתמש
+                        activeSportFilter = sportType;
+                        activeLevelFilter = level;
+                        activeLocationFilter = (location != null) ? location : "";
+                        activeStartDate = startDate;
+                        activeEndDate = endDate;
+                        activeMinDuration = minDur;
+                        activeMaxDuration = maxDur;
 
-        btnRangeStart.setOnClickListener(v -> showPickerForStart(spinnerSearchType.getSelectedItem().toString()));
-        btnRangeEnd.setOnClickListener(v -> showPickerForEnd(spinnerSearchType.getSelectedItem().toString()));
-    }
-
-    private void showPickerForStart(String type) {
-        if (type.equals("Date")) {
-            Calendar c = Calendar.getInstance();
-            if (filterStartDate != null) c.setTimeInMillis(filterStartDate);
-            new DatePickerDialog(this, (view, year, month, day) -> {
-                Calendar selected = Calendar.getInstance();
-                selected.set(year, month, day, 0, 0, 0);
-                filterStartDate = selected.getTimeInMillis();
-                btnRangeStart.setText(String.format("%02d/%02d/%d", day, month + 1, year));
-                executeSearch();
-            }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show();
-        } else if (type.equals("Time")) {
-            int h = 12, m = 0;
-            if (filterStartTimeMins != null) { h = filterStartTimeMins / 60; m = filterStartTimeMins % 60; }
-            new TimePickerDialog(this, (view, hour, minute) -> {
-                filterStartTimeMins = hour * 60 + minute;
-                btnRangeStart.setText(String.format("%02d:%02d", hour, minute));
-                executeSearch();
-            }, h, m, true).show();
-        }
-    }
-
-    private void showPickerForEnd(String type) {
-        if (type.equals("Date")) {
-            Calendar c = Calendar.getInstance();
-            if (filterEndDate != null) c.setTimeInMillis(filterEndDate);
-            new DatePickerDialog(this, (view, year, month, day) -> {
-                Calendar selected = Calendar.getInstance();
-                selected.set(year, month, day, 23, 59, 59);
-                filterEndDate = selected.getTimeInMillis();
-                btnRangeEnd.setText(String.format("%02d/%02d/%d", day, month + 1, year));
-                executeSearch();
-            }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show();
-        } else if (type.equals("Time")) {
-            int h = 12, m = 0;
-            if (filterEndTimeMins != null) { h = filterEndTimeMins / 60; m = filterEndTimeMins % 60; }
-            new TimePickerDialog(this, (view, hour, minute) -> {
-                filterEndTimeMins = hour * 60 + minute;
-                btnRangeEnd.setText(String.format("%02d:%02d", hour, minute));
-                executeSearch();
-            }, h, m, true).show();
-        }
+                        // הפעלת סינון
+                        executeSearch();
+                    });
+            dialog.show();
+        });
     }
 
     private void executeSearch() {
         if (allEvents == null) return;
-        String searchType = spinnerSearchType.getSelectedItem() != null ? spinnerSearchType.getSelectedItem().toString() : "Title";
-        List<Event> filteredList;
 
-        if (searchType.equals("Level")) {
-            if (spinnerSearchOptions.getSelectedItem() == null) return;
-            String selectedLvl = spinnerSearchOptions.getSelectedItem().toString();
-            filteredList = allEvents.stream()
-                    .filter(e -> e.getLevel() != null && e.getLevel().getDisplayName().equals(selectedLvl))
-                    .collect(Collectors.toList());
-        } else if (searchType.equals("Sport Type")) {
-            if (spinnerSearchOptions.getSelectedItem() == null) return;
-            String selectedSport = spinnerSearchOptions.getSelectedItem().toString();
-            filteredList = allEvents.stream()
-                    .filter(e -> e.getSportType() != null && e.getSportType().getDisplayName().equals(selectedSport))
-                    .collect(Collectors.toList());
-        } else if (searchType.equals("Duration")) {
-            String minStr = etDurationMin.getText().toString().trim();
-            String maxStr = etDurationMax.getText().toString().trim();
+        String nameQuery = etSearch.getText().toString().toLowerCase().trim();
 
-            long minMins = minStr.isEmpty() ? 0 : Long.parseLong(minStr);
-            long maxMins = maxStr.isEmpty() ? Long.MAX_VALUE : Long.parseLong(maxStr);
+        List<Event> filteredList = allEvents.stream().filter(event -> {
+            // 1. סינון לפי שם
+            boolean matchesName = nameQuery.isEmpty() ||
+                    (event.getTitle() != null && event.getTitle().toLowerCase().contains(nameQuery));
 
-            filteredList = allEvents.stream()
-                    .filter(e -> {
-                        long durationInMins = e.getDurationMillis() / (60 * 1000L);
-                        return durationInMins >= minMins && durationInMins <= maxMins;
-                    })
-                    .collect(Collectors.toList());
-        } else if (searchType.equals("Date")) {
-            filteredList = allEvents.stream().filter(e -> {
-                long start = e.getStartTimestamp();
-                boolean pass = true;
-                if (filterStartDate != null) pass = pass && (start >= filterStartDate);
-                if (filterEndDate != null) pass = pass && (start <= filterEndDate);
-                return pass;
-            }).collect(Collectors.toList());
-        } else if (searchType.equals("Time")) {
-            filteredList = allEvents.stream().filter(e -> {
-                Calendar c = Calendar.getInstance();
-                c.setTimeInMillis(e.getStartTimestamp());
-                int mins = c.get(Calendar.HOUR_OF_DAY) * 60 + c.get(Calendar.MINUTE);
-                boolean pass = true;
-                if (filterStartTimeMins != null) pass = pass && (mins >= filterStartTimeMins);
-                if (filterEndTimeMins != null) pass = pass && (mins <= filterEndTimeMins);
-                return pass;
-            }).collect(Collectors.toList());
-        } else {
-            String query = etSearch.getText().toString().toLowerCase().trim();
-            if (query.isEmpty()) {
-                updateListDisplay(allEvents);
-                return;
+            // 2. סינון ספורט
+            boolean matchesSport = activeSportFilter == null ||
+                    (event.getSportType() != null && event.getSportType() == activeSportFilter);
+
+            // 3. סינון רמה
+            boolean matchesLevel = activeLevelFilter == null ||
+                    (event.getLevel() != null && event.getLevel() == activeLevelFilter);
+
+            // 4. סינון מיקום
+            boolean matchesLocation = activeLocationFilter.isEmpty() ||
+                    (event.getLocation() != null && event.getLocation().getAddress() != null &&
+                            event.getLocation().getAddress().toLowerCase().contains(activeLocationFilter.toLowerCase()));
+
+            // 5. סינון תאריכים
+            boolean matchesDate = true;
+            if (activeStartDate != null && event.getStartTimestamp() < activeStartDate) matchesDate = false;
+            if (activeEndDate != null && event.getStartTimestamp() > activeEndDate) matchesDate = false;
+
+            // 6. סינון משך זמן
+            boolean matchesDuration = true;
+            if (activeMinDuration != null || activeMaxDuration != null) {
+                long durationMins = event.getDurationMillis() / (60 * 1000L);
+                if (activeMinDuration != null && durationMins < activeMinDuration) matchesDuration = false;
+                if (activeMaxDuration != null && durationMins > activeMaxDuration) matchesDuration = false;
             }
 
-            filteredList = allEvents.stream().filter(event -> {
-                if (searchType.equals("Title")) return event.getTitle() != null && event.getTitle().toLowerCase().contains(query);
-                if (searchType.equals("Location")) return event.getLocation() != null && event.getLocation().getAddress() != null && event.getLocation().getAddress().toLowerCase().contains(query);
-                return false;
-            }).collect(Collectors.toList());
-        }
+            // אירוע יוצג רק אם עמד בכל הקריטריונים (AND)
+            return matchesName && matchesSport && matchesLevel && matchesLocation && matchesDate && matchesDuration;
+
+        }).collect(Collectors.toList());
+
         updateListDisplay(filteredList);
     }
 
@@ -382,7 +249,6 @@ public class EventsListActivity extends BaseActivity {
     }
 
     private void updateListDisplay(List<Event> listToDisplay) {
-        // התיקון: מוודא שה-ProgressBar נעלם רק כשהרשימה מוכנה
         progressBar.setVisibility(View.GONE);
         if (eventAdapter != null) eventAdapter.updateList(listToDisplay);
         tvEventCount.setText(MessageFormat.format("Showing {0} events", listToDisplay.size()));

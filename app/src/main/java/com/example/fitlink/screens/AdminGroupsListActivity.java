@@ -5,12 +5,9 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -34,11 +31,11 @@ import com.example.fitlink.screens.dialogs.CreateGroupDialog;
 import com.example.fitlink.screens.dialogs.DeleteGroupDialog;
 import com.example.fitlink.screens.dialogs.EditGroupDialog;
 import com.example.fitlink.screens.dialogs.GroupDescriptionDialog;
+import com.example.fitlink.screens.dialogs.GroupFilterDialog;
 import com.example.fitlink.screens.dialogs.LeaveGroupDialog;
 import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.textfield.TextInputLayout;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -51,17 +48,20 @@ public class AdminGroupsListActivity extends BaseActivity {
     private GroupAdapter groupAdapter;
     private TextView tvCount;
     private EditText etSearch;
-    private Spinner spinnerSearchType, spinnerSearchOptions;
-    private TextInputLayout layoutSearchText;
+    private MaterialButton btnFilter;
     private ProgressBar progressBar;
     private LinearLayout emptyState;
     private MaterialButton btnCreateGroup;
 
-    // התיקון: אתחול כ-null כדי למנוע העלמה מוקדמת של ה-ProgressBar
     private List<Group> allGroups = null;
     private CreateGroupDialog currentCreateGroupDialog;
     private EditGroupDialog currentEditGroupDialog;
     private String currentUserId;
+
+    // משתנים לשמירת המצב הנוכחי של הסינון
+    private SportType activeSportFilter = null;
+    private DifficultyLevel activeLevelFilter = null;
+    private String activeLocationFilter = "";
 
     private final ActivityResultLauncher<Intent> mapPickerLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -107,9 +107,7 @@ public class AdminGroupsListActivity extends BaseActivity {
 
         tvCount = findViewById(R.id.tv_admin_group_count);
         etSearch = findViewById(R.id.edit_admin_groups_search);
-        spinnerSearchType = findViewById(R.id.spinner_admin_groups_search_type);
-        spinnerSearchOptions = findViewById(R.id.spinner_admin_search_options);
-        layoutSearchText = findViewById(R.id.layout_admin_search_text);
+        btnFilter = findViewById(R.id.btn_filter_admin_groups);
         progressBar = findViewById(R.id.admin_groups_progress_bar);
         emptyState = findViewById(R.id.admin_groups_empty_state);
         btnCreateGroup = findViewById(R.id.btn_admin_create_group);
@@ -249,88 +247,62 @@ public class AdminGroupsListActivity extends BaseActivity {
     }
 
     private void setupSearchLogic() {
-        String[] searchOptions = {"Name", "Sport Type", "Level", "Location"};
-        spinnerSearchType.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, searchOptions));
-
-        DifficultyLevel[] levels = DifficultyLevel.values();
-        String[] levelNames = new String[levels.length];
-        for(int i=0; i<levels.length; i++) levelNames[i] = levels[i].getDisplayName();
-        ArrayAdapter<String> levelAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, levelNames);
-
-        SportType[] sports = SportType.values();
-        String[] sportNames = new String[sports.length];
-        for(int i=0; i<sports.length; i++) sportNames[i] = sports[i].getDisplayName();
-        ArrayAdapter<String> sportAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, sportNames);
-
-        spinnerSearchType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String selectedType = searchOptions[position];
-
-                if (selectedType.equals("Level")) {
-                    layoutSearchText.setVisibility(View.GONE);
-                    spinnerSearchOptions.setVisibility(View.VISIBLE);
-                    spinnerSearchOptions.setAdapter(levelAdapter);
-                } else if (selectedType.equals("Sport Type")) {
-                    layoutSearchText.setVisibility(View.GONE);
-                    spinnerSearchOptions.setVisibility(View.VISIBLE);
-                    spinnerSearchOptions.setAdapter(sportAdapter);
-                } else {
-                    layoutSearchText.setVisibility(View.VISIBLE);
-                    spinnerSearchOptions.setVisibility(View.GONE);
-                }
-                executeSearch();
-            }
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
-        });
-
-        spinnerSearchOptions.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) { executeSearch(); }
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
-        });
-
+        // חיפוש טקסטואלי מהיר בשורת החיפוש הכללית (לפי שם קבוצה)
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) { executeSearch(); }
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                executeSearch();
+            }
+
             @Override
             public void afterTextChanged(Editable s) {}
+        });
+
+        // פתיחת חלון הסינון המתקדם
+        btnFilter.setOnClickListener(v -> {
+            GroupFilterDialog dialog = new GroupFilterDialog(this, activeSportFilter, activeLevelFilter, activeLocationFilter,
+                    (sportType, level, location) -> {
+                        // שומרים את בחירות המשתמש
+                        activeSportFilter = sportType;
+                        activeLevelFilter = level;
+                        activeLocationFilter = (location != null) ? location : "";
+
+                        // מריצים סינון מחדש
+                        executeSearch();
+                    });
+            dialog.show();
         });
     }
 
     private void executeSearch() {
         if (allGroups == null) return;
-        String searchType = spinnerSearchType.getSelectedItem() != null ? spinnerSearchType.getSelectedItem().toString() : "Name";
-        List<Group> filteredList;
 
-        if (searchType.equals("Level")) {
-            if (spinnerSearchOptions.getSelectedItem() == null) return;
-            String selectedLvl = spinnerSearchOptions.getSelectedItem().toString();
-            filteredList = allGroups.stream()
-                    .filter(g -> g.getLevel() != null && g.getLevel().getDisplayName().equals(selectedLvl))
-                    .collect(Collectors.toList());
-        } else if (searchType.equals("Sport Type")) {
-            if (spinnerSearchOptions.getSelectedItem() == null) return;
-            String selectedSport = spinnerSearchOptions.getSelectedItem().toString();
-            filteredList = allGroups.stream()
-                    .filter(g -> g.getSportType() != null && g.getSportType().getDisplayName().equals(selectedSport))
-                    .collect(Collectors.toList());
-        } else {
-            String query = etSearch.getText().toString().toLowerCase().trim();
-            if (query.isEmpty()) {
-                updateListDisplay(allGroups);
-                return;
-            }
-            filteredList = allGroups.stream().filter(group -> {
-                if (searchType.equals("Name")) return group.getName() != null && group.getName().toLowerCase().contains(query);
-                if (searchType.equals("Location")) return group.getLocation() != null && group.getLocation().getAddress() != null && group.getLocation().getAddress().toLowerCase().contains(query);
-                return false;
-            }).collect(Collectors.toList());
-        }
+        String nameQuery = etSearch.getText().toString().toLowerCase().trim();
+
+        List<Group> filteredList = allGroups.stream().filter(group -> {
+            // 1. סינון לפי שם
+            boolean matchesName = nameQuery.isEmpty() ||
+                    (group.getName() != null && group.getName().toLowerCase().contains(nameQuery));
+
+            // 2. סינון לפי ספורט
+            boolean matchesSport = activeSportFilter == null ||
+                    (group.getSportType() != null && group.getSportType() == activeSportFilter);
+
+            // 3. סינון לפי רמה
+            boolean matchesLevel = activeLevelFilter == null ||
+                    (group.getLevel() != null && group.getLevel() == activeLevelFilter);
+
+            // 4. סינון לפי מיקום
+            boolean matchesLocation = activeLocationFilter.isEmpty() ||
+                    (group.getLocation() != null && group.getLocation().getAddress() != null &&
+                            group.getLocation().getAddress().toLowerCase().contains(activeLocationFilter.toLowerCase()));
+
+            return matchesName && matchesSport && matchesLevel && matchesLocation;
+        }).collect(Collectors.toList());
+
         updateListDisplay(filteredList);
     }
 
@@ -356,7 +328,6 @@ public class AdminGroupsListActivity extends BaseActivity {
         databaseService.getAllGroups(new DatabaseService.DatabaseCallback<List<Group>>() {
             @Override
             public void onCompleted(List<Group> groups) {
-                // הסרנו את הסתרת ה-ProgressBar מכאן
                 allGroups = (groups != null) ? groups : new ArrayList<>();
                 executeSearch();
             }
@@ -369,7 +340,6 @@ public class AdminGroupsListActivity extends BaseActivity {
     }
 
     private void updateListDisplay(List<Group> listToDisplay) {
-        // התיקון: מוודא שה-ProgressBar נעלם רק כשהרשימה מוכנה
         progressBar.setVisibility(View.GONE);
         if (groupAdapter != null) groupAdapter.updateList(listToDisplay);
         tvCount.setText(MessageFormat.format("Total groups: {0}", listToDisplay.size()));
