@@ -6,11 +6,9 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -24,11 +22,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.fitlink.R;
 import com.example.fitlink.adapters.UserAdapter;
-import com.example.fitlink.models.Group;
 import com.example.fitlink.models.User;
 import com.example.fitlink.screens.dialogs.AddUserDialog;
 import com.example.fitlink.screens.dialogs.DeleteUserDialog;
 import com.example.fitlink.screens.dialogs.EditUserDialog;
+import com.example.fitlink.screens.dialogs.UserFilterDialog;
 import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.google.android.material.button.MaterialButton;
@@ -46,13 +44,18 @@ public class AdminUsersListActivity extends BaseActivity {
     private UserAdapter userAdapter;
     private TextView tvUserCount;
     private EditText etSearch;
-    private Spinner spinnerSearchType;
+    private MaterialButton btnFilterUsers;
     private ProgressBar progressBar;
     private LinearLayout emptyState;
     private MaterialButton btnAddUser;
 
-    // אתחול כ-null כדי למנוע העלמה מוקדמת של ה-ProgressBar והופעת מצב ריק בטעות
+    // Data Elements
     private List<User> allUsers = null;
+
+    // שמירת קריטריוני הסינון הנוכחיים מהדיאלוג
+    private String currentFilterRole = null;
+    private String currentFilterEmail = "";
+    private String currentFilterPhone = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,7 +79,7 @@ public class AdminUsersListActivity extends BaseActivity {
 
         tvUserCount = findViewById(R.id.tv_user_count);
         etSearch = findViewById(R.id.edit_UsersTable_search);
-        spinnerSearchType = findViewById(R.id.spinner_UsersTable_search_type);
+        btnFilterUsers = findViewById(R.id.btn_filter_admin_users);
         progressBar = findViewById(R.id.progress_bar);
         emptyState = findViewById(R.id.empty_state);
         btnAddUser = findViewById(R.id.btn_UsersTable_add_user);
@@ -98,7 +101,6 @@ public class AdminUsersListActivity extends BaseActivity {
         userAdapter = new UserAdapter(new UserAdapter.OnUserClickListener() {
             @Override
             public void onUserClick(User user) {
-                // לחיצה על כל הפריט מעבירה לפרופיל המשתמש
                 Intent intent = new Intent(AdminUsersListActivity.this, UserProfileActivity.class);
                 intent.putExtra("USER_ID", user.getId());
                 startActivity(intent);
@@ -106,7 +108,6 @@ public class AdminUsersListActivity extends BaseActivity {
 
             @Override
             public void onEditUser(User user) {
-                // לחיצה על כפתור העריכה פותחת את דיאלוג העריכה
                 new EditUserDialog(AdminUsersListActivity.this, user, () -> loadUsers()).show();
             }
 
@@ -129,50 +130,80 @@ public class AdminUsersListActivity extends BaseActivity {
     }
 
     private void setupSearchLogic() {
-        String[] searchOptions = {"Name", "Email", "Phone"};
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, searchOptions);
-        spinnerSearchType.setAdapter(adapter);
-
+        // האזנה להקלדה בשורת החיפוש (מחפש רק לפי שם)
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                filterUsers(s.toString());
+                applyFullFilter();
             }
 
             @Override
-            public void afterTextChanged(Editable s) {
-            }
+            public void afterTextChanged(Editable s) {}
+        });
+
+        // פתיחת דיאלוג הסינון המתקדם
+        btnFilterUsers.setOnClickListener(v -> {
+            UserFilterDialog filterDialog = new UserFilterDialog(this);
+            // העברת הקריטריונים הנוכחיים
+            filterDialog.setInitialCriteria(currentFilterRole, currentFilterEmail, currentFilterPhone);
+
+            filterDialog.setListener((role, email, phone) -> {
+                currentFilterRole = role;
+                currentFilterEmail = email;
+                currentFilterPhone = phone;
+
+                // הפעלת הסינון המלא
+                applyFullFilter();
+            });
+            filterDialog.show();
         });
     }
 
-    private void filterUsers(String query) {
-        // מונע מהחיפוש לנסות לסנן רשימה שעדיין לא נטענה
+    // פונקציה שאוספת את כל פרמטרי הסינון ומריצה אותם
+    private void applyFullFilter() {
+        String query = etSearch.getText().toString();
+        filterUsers(query, currentFilterRole, currentFilterEmail, currentFilterPhone);
+    }
+
+    private void filterUsers(String query, String role, String filterEmail, String filterPhone) {
         if (allUsers == null) return;
 
-        if (query.isEmpty()) {
-            updateListDisplay(allUsers);
-            return;
-        }
+        List<User> filteredList = allUsers.stream().filter(user -> {
 
-        String searchType = spinnerSearchType.getSelectedItem().toString();
-        List<User> filteredList;
-
-        filteredList = allUsers.stream().filter(user -> {
-            String q = query.toLowerCase();
-            switch (searchType) {
-                case "Name":
-                    return user.getFullName().toLowerCase().contains(q);
-                case "Email":
-                    return user.getEmail().toLowerCase().contains(q);
-                case "Phone":
-                    return user.getPhone() != null && user.getPhone().contains(q);
-                default:
-                    return false;
+            // 1. סינון לפי תפקיד (Role)
+            if (role != null) {
+                boolean isAdmin = user.getIsAdmin();
+                if (role.equals("Admin") && !isAdmin) return false;
+                if (role.equals("Regular") && isAdmin) return false;
             }
+
+            // 2. סינון לפי אימייל (מהדיאלוג)
+            if (!filterEmail.isEmpty()) {
+                if (user.getEmail() == null || !user.getEmail().toLowerCase().contains(filterEmail.toLowerCase())) {
+                    return false;
+                }
+            }
+
+            // 3. סינון לפי טלפון (מהדיאלוג)
+            if (!filterPhone.isEmpty()) {
+                if (user.getPhone() == null || !user.getPhone().contains(filterPhone)) {
+                    return false;
+                }
+            }
+
+            // 4. סינון לפי טקסט חופשי (חיפוש גלובלי - כעת רק לפי שם המשתמש)
+            if (!query.trim().isEmpty()) {
+                String q = query.toLowerCase().trim();
+                if (user.getFullName() == null || !user.getFullName().toLowerCase().contains(q)) {
+                    return false;
+                }
+            }
+
+            // אם המשתמש עבר את כל הסינונים בהצלחה
+            return true;
         }).collect(Collectors.toList());
 
         updateListDisplay(filteredList);
@@ -194,7 +225,8 @@ public class AdminUsersListActivity extends BaseActivity {
             @Override
             public void onCompleted(List<User> users) {
                 allUsers = (users != null) ? users : new ArrayList<>();
-                filterUsers(etSearch.getText().toString());
+                // מריץ את כל הסינונים כדי לשמור על המצב הקודם גם אחרי רענון הרשימה
+                applyFullFilter();
             }
 
             @Override
@@ -207,7 +239,6 @@ public class AdminUsersListActivity extends BaseActivity {
     }
 
     private void updateListDisplay(List<User> listToDisplay) {
-        // מוודא שה-ProgressBar נעלם רק כשהרשימה מוכנה לתצוגה
         progressBar.setVisibility(View.GONE);
         userAdapter.setUserList(listToDisplay);
         tvUserCount.setText(MessageFormat.format("Total users: {0}", listToDisplay.size()));
@@ -238,7 +269,6 @@ public class AdminUsersListActivity extends BaseActivity {
     private void handleDeleteUser(User user) {
         boolean isSelf = user.getId().equals(SharedPreferencesUtil.getUserId(this));
 
-        // הדיאלוג עדיין מחזיר ערך (true תמיד), ולכן נשאיר את הלמבדה כמו שהיא כדי לעמוד בממשק
         new DeleteUserDialog(this, user, deleteGroups -> {
             executeUserDeletion(user, isSelf);
         }).show();
@@ -247,13 +277,11 @@ public class AdminUsersListActivity extends BaseActivity {
     private void executeUserDeletion(User user, boolean isSelf) {
         progressBar.setVisibility(View.VISIBLE);
 
-        // הקריאה מעודכנת - ללא הפרמטר הבוליאני שמעיד על מחיקת קבוצות
         databaseService.deleteUserCompletely(user, new DatabaseService.DatabaseCallback<Void>() {
             @Override
             public void onCompleted(Void object) {
                 progressBar.setVisibility(View.GONE);
 
-                // אם האדמין מחק את עצמו (בטעות או בכוונה), ננתק אותו מהאפליקציה
                 if (isSelf) {
                     SharedPreferencesUtil.signOutUser(AdminUsersListActivity.this);
                     Intent intent = new Intent(AdminUsersListActivity.this, LoginActivity.class);

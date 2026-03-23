@@ -163,6 +163,18 @@
                             android:text="Join some groups to see them here."
                             android:textColor="@color/fitlinkTextSecondary"
                             android:textSize="14sp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_explore_groups"
+                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:fontFamily="@font/poppins_bold"
+                            android:text="Explore Groups ➔"
+                            android:textAllCaps="false"
+                            android:textColor="@color/fitlinkPrimary"
+                            android:textSize="16sp" />
                     </LinearLayout>
 
                     <ProgressBar

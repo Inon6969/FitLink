@@ -1,32 +1,43 @@
 package com.example.fitlink.screens;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.widget.Button;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
+import androidx.core.view.GravityCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.example.fitlink.R;
 import com.example.fitlink.models.User;
 import com.example.fitlink.services.DatabaseService;
+import com.example.fitlink.utils.ImageUtil;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.Objects;
 
-public class ContactActivity extends BaseActivity {
+public class ContactActivity extends BaseActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private TextInputEditText etMessage;
     private TextView tvSendingAs;
     private User currentUser;
+    private DrawerLayout drawerLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,7 +49,7 @@ public class ContactActivity extends BaseActivity {
         currentUser = SharedPreferencesUtil.getUser(this);
 
         initViews();
-        setupNavigation();
+        setupNavigationDrawer(currentUser);
         setupClickListeners();
 
         // Display who the message will be sent as
@@ -49,10 +60,29 @@ public class ContactActivity extends BaseActivity {
         }
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // מוודא שהתפריט מסמן את "Contact Us" בכל פעם שחוזרים למסך הזה
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        if (navigationView != null) {
+            navigationView.setCheckedItem(R.id.nav_contact);
+        }
+    }
+
     private void initViews() {
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_contact_layout), (v, insets) -> {
+        // מאזין לכל ה-DrawerLayout כדי שנוכל לשלוט בריווח ה-Status Bar
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.drawer_layout), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+
+            // מחיל על המסך המרכזי
+            findViewById(R.id.main_contact_layout).setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+
+            // מחיל על תפריט הצד
+            View navView = findViewById(R.id.nav_view);
+            if (navView != null) {
+                navView.setPadding(0, systemBars.top, 0, systemBars.bottom);
+            }
             return insets;
         });
 
@@ -60,24 +90,97 @@ public class ContactActivity extends BaseActivity {
         tvSendingAs = findViewById(R.id.tv_contact_sending_as);
     }
 
-    private void setupNavigation() {
-        Button btnToMain = findViewById(R.id.btn_contact_to_main);
-        Button btnToAccount = findViewById(R.id.btn_contact_to_DetailsAboutUser);
-        Button btnToExit = findViewById(R.id.btn_contact_to_exit);
+    private void setupNavigationDrawer(User user) {
+        Toolbar toolbar = findViewById(R.id.toolbar_contact);
+        setSupportActionBar(toolbar);
 
-        btnToMain.setOnClickListener(v -> {
+        drawerLayout = findViewById(R.id.drawer_layout);
+        NavigationView navigationView = findViewById(R.id.nav_view);
+
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawerLayout, toolbar,
+                R.string.navigation_drawer_open,
+                R.string.navigation_drawer_close
+        );
+        drawerLayout.addDrawerListener(toggle);
+        toggle.syncState();
+
+        navigationView.setNavigationItemSelectedListener(this);
+
+        // סימון מסך יצירת הקשר בתפריט
+        navigationView.setCheckedItem(R.id.nav_contact);
+
+        // קריאה לפונקציה שמעדכנת את תצוגת המשתמש ב-Header של התפריט
+        updateNavHeader(user, navigationView);
+
+        // צביעת כפתור ה-Log Out באדום
+        android.view.Menu menu = navigationView.getMenu();
+        android.view.MenuItem logoutItem = menu.findItem(R.id.nav_logout);
+
+        if (logoutItem != null) {
+            android.text.SpannableString s = new android.text.SpannableString(logoutItem.getTitle());
+            s.setSpan(new android.text.style.ForegroundColorSpan(android.graphics.Color.parseColor("#FF4C4C")), 0, s.length(), 0);
+            logoutItem.setTitle(s);
+        }
+    }
+
+    private void updateNavHeader(User user, NavigationView navigationView) {
+        if (user == null) return;
+
+        View headerView = navigationView.getHeaderView(0);
+        ImageView imgProfile = headerView.findViewById(R.id.img_header_logo);
+        TextView tvName = headerView.findViewById(R.id.tv_header_title);
+        TextView tvEmail = headerView.findViewById(R.id.tv_header_subtitle);
+
+        if (user.getFullName() != null && !user.getFullName().isEmpty()) {
+            tvName.setText(user.getFullName());
+        }
+        if (user.getEmail() != null && !user.getEmail().isEmpty()) {
+            tvEmail.setText(user.getEmail());
+        }
+
+        String base64Image = user.getProfileImage();
+        if (base64Image != null && !base64Image.isEmpty()) {
+            Bitmap bmp = ImageUtil.convertFrom64base(base64Image);
+            if (bmp != null) {
+                imgProfile.setImageBitmap(bmp);
+            } else {
+                imgProfile.setImageResource(R.drawable.ic_user);
+            }
+        } else {
+            imgProfile.setImageResource(R.drawable.ic_user);
+        }
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.nav_home) {
             Intent intent = new Intent(this, MainActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             startActivity(intent);
-        });
-
-        btnToAccount.setOnClickListener(v -> {
+        } else if (id == R.id.nav_account) {
             Intent intent = new Intent(this, UserProfileActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             startActivity(intent);
-        });
+        } else if (id == R.id.nav_contact) {
+            // כבר נמצאים במסך צור קשר
+        } else if (id == R.id.nav_logout) {
+            logout();
+        }
 
-        btnToExit.setOnClickListener(v -> logout());
+        drawerLayout.closeDrawer(GravityCompat.START);
+        return true;
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (drawerLayout != null && drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
     }
 
     private void setupClickListeners() {
@@ -123,14 +226,11 @@ public class ContactActivity extends BaseActivity {
             return;
         }
 
-        // Get the identity dynamically from the SharedPreferences
-        String userId = currentUser.getId(); // שליפת ה-ID
+        String userId = currentUser.getId();
         String name = currentUser.getFullName();
         String email = currentUser.getEmail();
-
         String phone = (currentUser.getPhone() != null && !currentUser.getPhone().isEmpty()) ? currentUser.getPhone() : "No phone provided";
 
-        // העברת ה-userId כפרמטר הראשון
         databaseService.sendContactMessage(userId, name, email, phone, message, new DatabaseService.DatabaseCallback<Void>() {
             @Override
             public void onCompleted(Void object) {

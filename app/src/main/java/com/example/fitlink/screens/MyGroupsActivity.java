@@ -79,6 +79,12 @@ public class MyGroupsActivity extends BaseActivity {
         progressBar = findViewById(R.id.my_groups_progress_bar);
         emptyState = findViewById(R.id.my_groups_empty_state);
         rvMyGroups = findViewById(R.id.rv_my_groups_list);
+
+        MaterialButton btnExploreGroups = findViewById(R.id.btn_explore_groups);
+        btnExploreGroups.setOnClickListener(v -> {
+            Intent intent = new Intent(MyGroupsActivity.this, GroupsListActivity.class);
+            startActivity(intent);
+        });
     }
 
     private void setupToolbar() {

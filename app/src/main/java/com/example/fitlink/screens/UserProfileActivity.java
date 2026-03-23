@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.text.method.HideReturnsTransformationMethod;
 import android.text.method.PasswordTransformationMethod;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -15,9 +16,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
+import androidx.core.view.GravityCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.example.fitlink.R;
 import com.example.fitlink.models.Event;
@@ -27,18 +33,21 @@ import com.example.fitlink.screens.dialogs.ProfileImageDialog;
 import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.ImageUtil;
 import com.example.fitlink.utils.SharedPreferencesUtil;
+import com.google.android.material.navigation.NavigationView;
 
 import java.util.List;
 import java.util.Objects;
 
-public class UserProfileActivity extends BaseActivity {
+public class UserProfileActivity extends BaseActivity implements NavigationView.OnNavigationItemSelectedListener {
     private static final int REQ_CAMERA = 100;
     private static final int REQ_GALLERY = 200;
 
     private TextView txtTitle, txtRank, txtFirstName, txtLastName, txtEmail, txtPhone, txtPassword;
     private TextView txtStatGroups, txtStatUpcoming, txtStatCompleted;
     private ImageView imgUserProfile, imgTogglePassword;
-    private Button btnEditUser, btnChangePhoto, btnToExit, btnToMain, btnToContact;
+    private Button btnEditUser, btnChangePhoto;
+
+    private DrawerLayout drawerLayout;
 
     private User user;
     private String viewedUserId;
@@ -62,18 +71,39 @@ public class UserProfileActivity extends BaseActivity {
 
         initViews();
         loadUserData();
+
+        // קביעת התפריט על בסיס המשתמש שמחובר לאפליקציה (כדי שהפרטים בתפריט יהיו תמיד שלך)
+        User loggedInUser = SharedPreferencesUtil.getUser(this);
+        setupNavigationDrawer(loggedInUser);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        // מסמן את "Account" רק אם זה הפרופיל של המשתמש המחובר
+        if (navigationView != null && isCurrentUser) {
+            navigationView.setCheckedItem(R.id.nav_account);
+        }
     }
 
     private void initViews() {
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.detailsAboutUserPage), (v, insets) -> {
+        // מאזין לכל ה-DrawerLayout כדי לשלוט בריווח ה-Status Bar
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.drawer_layout), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+
+            // מחיל על המסך המרכזי
+            findViewById(R.id.detailsAboutUserPage).setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+
+            // מחיל על התפריט צד
+            View navView = findViewById(R.id.nav_view);
+            if (navView != null) {
+                navView.setPadding(0, systemBars.top, 0, systemBars.bottom);
+            }
+
             return insets;
         });
 
-        btnToMain = findViewById(R.id.btn_DetailsAboutUser_to_main);
-        btnToContact = findViewById(R.id.btn_DetailsAboutUser_to_contact);
-        btnToExit = findViewById(R.id.btn_DetailsAboutUser_to_exit);
         btnEditUser = findViewById(R.id.btn_DetailsAboutUser_edit_user);
         btnChangePhoto = findViewById(R.id.btn_DetailsAboutUser_change_photo);
 
@@ -95,18 +125,9 @@ public class UserProfileActivity extends BaseActivity {
         LinearLayout layoutPasswordContainer = findViewById(R.id.layout_DetailsAboutUser_password_container);
 
         if (!isCurrentUser) {
-            btnToExit.setVisibility(View.GONE);
             btnEditUser.setVisibility(View.GONE);
             btnChangePhoto.setVisibility(View.GONE);
             layoutPasswordContainer.setVisibility(View.GONE);
-
-            btnToMain.setText("Back");
-            btnToMain.setOnClickListener(v -> onBackPressed());
-
-            btnToContact.setOnClickListener(v -> {
-                Intent intent = new Intent(this, ContactActivity.class);
-                startActivity(intent);
-            });
 
             // --- טיפול במספר הטלפון ---
             txtPhone.setPaintFlags(txtPhone.getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
@@ -137,21 +158,8 @@ public class UserProfileActivity extends BaseActivity {
             });
 
         } else {
-            btnToExit.setOnClickListener(v -> logout());
             btnEditUser.setOnClickListener(v -> openEditDialog());
             btnChangePhoto.setOnClickListener(v -> openImagePicker());
-
-            btnToMain.setOnClickListener(v -> {
-                Intent intent = new Intent(this, MainActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                startActivity(intent);
-            });
-
-            btnToContact.setOnClickListener(v -> {
-                Intent intent = new Intent(this, ContactActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                startActivity(intent);
-            });
 
             txtPassword.setTransformationMethod(PasswordTransformationMethod.getInstance());
             imgTogglePassword.setOnClickListener(v -> {
@@ -171,6 +179,106 @@ public class UserProfileActivity extends BaseActivity {
                 showFullImageDialog();
             }
         });
+    }
+
+    private void setupNavigationDrawer(User loggedInUser) {
+        Toolbar toolbar = findViewById(R.id.toolbar_user_profile);
+        setSupportActionBar(toolbar);
+
+        drawerLayout = findViewById(R.id.drawer_layout);
+        NavigationView navigationView = findViewById(R.id.nav_view);
+
+        if (!isCurrentUser) {
+            // אם המשתמש צופה בפרופיל של מישהו אחר: אין תפריט, רק כפתור "חזור"
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+                getSupportActionBar().setDisplayShowHomeEnabled(true);
+            }
+            toolbar.setNavigationOnClickListener(v -> onBackPressed());
+            drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED); // נועל את התפריט
+        } else {
+            // אם זה הפרופיל שלך: מציג את ההמבורגר והתפריט המלא
+            ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                    this, drawerLayout, toolbar,
+                    R.string.navigation_drawer_open,
+                    R.string.navigation_drawer_close
+            );
+            drawerLayout.addDrawerListener(toggle);
+            toggle.syncState();
+
+            navigationView.setNavigationItemSelectedListener(this);
+            navigationView.setCheckedItem(R.id.nav_account);
+            updateNavHeader(loggedInUser, navigationView);
+
+            // צביעת כפתור ההתנתקות באדום
+            android.view.Menu menu = navigationView.getMenu();
+            android.view.MenuItem logoutItem = menu.findItem(R.id.nav_logout);
+
+            if (logoutItem != null) {
+                android.text.SpannableString s = new android.text.SpannableString(logoutItem.getTitle());
+                s.setSpan(new android.text.style.ForegroundColorSpan(android.graphics.Color.parseColor("#FF4C4C")), 0, s.length(), 0);
+                logoutItem.setTitle(s);
+            }
+        }
+    }
+
+    private void updateNavHeader(User user, NavigationView navigationView) {
+        if (user == null) return;
+
+        View headerView = navigationView.getHeaderView(0);
+        ImageView imgProfile = headerView.findViewById(R.id.img_header_logo);
+        TextView tvName = headerView.findViewById(R.id.tv_header_title);
+        TextView tvEmail = headerView.findViewById(R.id.tv_header_subtitle);
+
+        if (user.getFullName() != null && !user.getFullName().isEmpty()) {
+            tvName.setText(user.getFullName());
+        }
+        if (user.getEmail() != null && !user.getEmail().isEmpty()) {
+            tvEmail.setText(user.getEmail());
+        }
+
+        String base64Image = user.getProfileImage();
+        if (base64Image != null && !base64Image.isEmpty()) {
+            Bitmap bmp = ImageUtil.convertFrom64base(base64Image);
+            if (bmp != null) {
+                imgProfile.setImageBitmap(bmp);
+            } else {
+                imgProfile.setImageResource(R.drawable.ic_user);
+            }
+        } else {
+            imgProfile.setImageResource(R.drawable.ic_user);
+        }
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.nav_home) {
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+        } else if (id == R.id.nav_account) {
+            // כבר נמצאים כאן
+        } else if (id == R.id.nav_contact) {
+            Intent intent = new Intent(this, ContactActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+        } else if (id == R.id.nav_logout) {
+            logout();
+        }
+
+        drawerLayout.closeDrawer(GravityCompat.START);
+        return true;
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (drawerLayout != null && drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
     }
 
     private void loadUserData() {
@@ -215,6 +323,15 @@ public class UserProfileActivity extends BaseActivity {
     private void updateUI() {
         if (user == null) return;
 
+        if (getSupportActionBar() != null) {
+            if (isCurrentUser) {
+                getSupportActionBar().setTitle("My Profile");
+            } else {
+                // מציג את השם הפרטי של המשתמש + Profile (לדוגמה: "Inon's Profile")
+                getSupportActionBar().setTitle(user.getFirstName() + "'s Profile");
+            }
+        }
+
         txtTitle.setText(user.getFullName());
         txtFirstName.setText(user.getFirstName());
         txtLastName.setText(user.getLastName());
@@ -239,7 +356,6 @@ public class UserProfileActivity extends BaseActivity {
         loadUserStats();
     }
 
-    // הפונקציה שמחשבת את נתוני הגיימיפיקציה
     private void loadUserStats() {
         int groupsCount = user.getGroupIds() != null ? user.getGroupIds().size() : 0;
         txtStatGroups.setText(String.valueOf(groupsCount));
@@ -248,13 +364,11 @@ public class UserProfileActivity extends BaseActivity {
             @Override
             public void onCompleted(List<Event> events) {
                 int upcomingCount = 0;
-                // מתחילים מהמונה השמור (כדי לא לאבד היסטוריה אחרי ניקוי דאטהבייס)
                 int completedCount = user.getPastEventsCount();
                 long currentTime = System.currentTimeMillis();
 
                 if (events != null) {
                     for (Event event : events) {
-                        // בודקים אם המשתמש משתתף באירוע
                         if (event.getParticipants() != null && event.getParticipants().containsKey(user.getId())) {
                             if (event.getEndTimestamp() < currentTime) {
                                 completedCount++;
@@ -268,7 +382,6 @@ public class UserProfileActivity extends BaseActivity {
                 txtStatUpcoming.setText(String.valueOf(upcomingCount));
                 txtStatCompleted.setText(String.valueOf(completedCount));
 
-                // עדכון הדרגה (Rank) לפי כמות אירועי העבר
                 updateUserRank(completedCount);
             }
 
