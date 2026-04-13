@@ -23,6 +23,7 @@ import com.example.fitlink.models.User;
 import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.google.android.material.appbar.AppBarLayout;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,12 +34,14 @@ public class MembersListActivity extends BaseActivity {
     private RecyclerView rvMembers;
     private ProgressBar progressBar;
     private LinearLayout layoutNoMembers;
-    private TextView tvMembersCount; // הרפרנס לטקסט החדש
+    private TextView tvMembersCount;
 
     private UserAdapter userAdapter;
     private String currentUserId;
     private boolean isGroupCreator = false;
     private boolean isGroupManager = false;
+
+    private ValueEventListener groupListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,16 +56,39 @@ public class MembersListActivity extends BaseActivity {
             return;
         }
 
-        DatabaseService.getInstance().getGroup(groupId, new DatabaseService.DatabaseCallback<Group>() {
+        currentUserId = SharedPreferencesUtil.getUserId(this);
+
+        // האזנה בזמן אמת לקבוצה
+        groupListener = DatabaseService.getInstance().listenToGroup(groupId, new DatabaseService.DatabaseCallback<Group>() {
             @Override
             public void onCompleted(Group group) {
                 if (group == null) {
-                    Toast.makeText(MembersListActivity.this, "Group not found", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MembersListActivity.this, "Group was deleted.", Toast.LENGTH_SHORT).show();
                     finish();
                     return;
                 }
+
+                // העפה מיידית אם המשתמש כבר לא חלק מהקבוצה
+                if (group.getMembers() == null || !group.getMembers().containsKey(currentUserId)) {
+                    Toast.makeText(MembersListActivity.this, "You are no longer a member of this group.", Toast.LENGTH_LONG).show();
+                    finish();
+                    return;
+                }
+
                 currentGroup = group;
-                continueInitialization();
+                isGroupCreator = currentGroup.getCreatorId() != null && currentGroup.getCreatorId().equals(currentUserId);
+                isGroupManager = currentGroup.getManagers() != null && currentGroup.getManagers().containsKey(currentUserId);
+
+                if (rvMembers == null) {
+                    // פעם ראשונה שהנתונים נטענו
+                    continueInitialization();
+                } else {
+                    // עדכון התרחש בזמן שהמשתמש במסך
+                    if (userAdapter != null) {
+                        userAdapter.setGroupMode(true, isGroupCreator, isGroupManager, currentGroup.getCreatorId(), currentGroup.getManagers());
+                    }
+                    loadGroupMembers(); // משיכת חברי הקבוצה המעודכנים
+                }
             }
 
             @Override
@@ -73,12 +99,16 @@ public class MembersListActivity extends BaseActivity {
         });
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        String groupId = getIntent().getStringExtra("GROUP_ID");
+        if (groupId != null && groupListener != null) {
+            DatabaseService.getInstance().removeGroupListener(groupId, groupListener);
+        }
+    }
+
     private void continueInitialization() {
-        currentUserId = SharedPreferencesUtil.getUserId(this);
-
-        isGroupCreator = currentGroup.getCreatorId() != null && currentGroup.getCreatorId().equals(currentUserId);
-        isGroupManager = currentGroup.getManagers() != null && currentGroup.getManagers().containsKey(currentUserId);
-
         initViews();
         setupToolbar();
         setupRecyclerView();
@@ -93,25 +123,19 @@ public class MembersListActivity extends BaseActivity {
 
         ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-
-            // מרווח צדדים ותחתון למסך הראשי
             v.setPadding(systemBars.left, 0, systemBars.right, systemBars.bottom);
-
-            // מרווח עליון ל-AppBarLayout כדי להרחיק את סרגל הכלים מהסוללה והשעון
             if (appBarLayout != null) {
                 appBarLayout.setPadding(0, systemBars.top, 0, 0);
             }
-
             return insets;
         });
 
-        // מכריח חישוב מיידי של הריווחים
         root.post(() -> ViewCompat.requestApplyInsets(root));
 
         rvMembers = findViewById(R.id.rv_members_list);
         progressBar = findViewById(R.id.progressBar_members);
         layoutNoMembers = findViewById(R.id.layout_no_members);
-        tvMembersCount = findViewById(R.id.tv_members_count); // קישור לרכיב העיצוב
+        tvMembersCount = findViewById(R.id.tv_members_count);
     }
 
     private void setupToolbar() {
@@ -158,14 +182,6 @@ public class MembersListActivity extends BaseActivity {
         rvMembers.setAdapter(userAdapter);
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (currentGroup != null) {
-            loadGroupMembers();
-        }
-    }
-
     private void handleToggleManager(User user) {
         boolean isCurrentlyManager = currentGroup.getManagers() != null && currentGroup.getManagers().containsKey(user.getId());
         boolean newStatus = !isCurrentlyManager;
@@ -175,7 +191,7 @@ public class MembersListActivity extends BaseActivity {
             @Override
             public void onCompleted(Void object) {
                 Toast.makeText(MembersListActivity.this, newStatus ? "Manager added" : "Manager removed", Toast.LENGTH_SHORT).show();
-                loadGroupMembers();
+                // הנתונים יתרעננו מעצמם בגלל ה-Listener
             }
 
             @Override
@@ -186,63 +202,43 @@ public class MembersListActivity extends BaseActivity {
         });
     }
 
+    // ה-Listener דואג לעדכון הקבוצה, אז כאן אנחנו שואבים רק את רשימת המשתמשים כדי לסננן מתוכה את החברים
     private void loadGroupMembers() {
         progressBar.setVisibility(View.VISIBLE);
         layoutNoMembers.setVisibility(View.GONE);
-        tvMembersCount.setVisibility(View.GONE); // מוסתר בזמן הטעינה
+        tvMembersCount.setVisibility(View.GONE);
 
-        databaseService.getGroup(currentGroup.getId(), new DatabaseService.DatabaseCallback<Group>() {
+        databaseService.getUserList(new DatabaseService.DatabaseCallback<List<User>>() {
             @Override
-            public void onCompleted(Group updatedGroup) {
-                if (updatedGroup != null) {
-                    currentGroup = updatedGroup;
-                    isGroupCreator = currentGroup.getCreatorId() != null && currentGroup.getCreatorId().equals(currentUserId);
-                    isGroupManager = currentGroup.getManagers() != null && currentGroup.getManagers().containsKey(currentUserId);
-                    userAdapter.setGroupMode(true, isGroupCreator, isGroupManager, currentGroup.getCreatorId(), currentGroup.getManagers());
+            public void onCompleted(List<User> allUsers) {
+                progressBar.setVisibility(View.GONE);
+                List<User> groupMembers = new ArrayList<>();
+
+                if (allUsers != null && currentGroup.getMembers() != null) {
+                    for (User user : allUsers) {
+                        if (currentGroup.getMembers().containsKey(user.getId())) {
+                            groupMembers.add(user);
+                        }
+                    }
                 }
 
-                databaseService.getUserList(new DatabaseService.DatabaseCallback<List<User>>() {
-                    @Override
-                    public void onCompleted(List<User> allUsers) {
-                        progressBar.setVisibility(View.GONE);
-                        List<User> groupMembers = new ArrayList<>();
-
-                        if (allUsers != null && currentGroup.getMembers() != null) {
-                            for (User user : allUsers) {
-                                if (currentGroup.getMembers().containsKey(user.getId())) {
-                                    groupMembers.add(user);
-                                }
-                            }
-                        }
-
-                        if (groupMembers.isEmpty()) {
-                            layoutNoMembers.setVisibility(View.VISIBLE);
-                            rvMembers.setVisibility(View.GONE);
-                            tvMembersCount.setVisibility(View.GONE);
-                        } else {
-                            layoutNoMembers.setVisibility(View.GONE);
-                            rvMembers.setVisibility(View.VISIBLE);
-
-                            // מציגים את השורה ומעדכנים את מספר המשתמשים
-                            tvMembersCount.setVisibility(View.VISIBLE);
-                            tvMembersCount.setText("Total members: " + groupMembers.size());
-
-                            userAdapter.setUserList(groupMembers);
-                        }
-                    }
-
-                    @Override
-                    public void onFailed(Exception e) {
-                        progressBar.setVisibility(View.GONE);
-                        Toast.makeText(MembersListActivity.this, "Failed to load members", Toast.LENGTH_SHORT).show();
-                    }
-                });
+                if (groupMembers.isEmpty()) {
+                    layoutNoMembers.setVisibility(View.VISIBLE);
+                    rvMembers.setVisibility(View.GONE);
+                    tvMembersCount.setVisibility(View.GONE);
+                } else {
+                    layoutNoMembers.setVisibility(View.GONE);
+                    rvMembers.setVisibility(View.VISIBLE);
+                    tvMembersCount.setVisibility(View.VISIBLE);
+                    tvMembersCount.setText("Total members: " + groupMembers.size());
+                    userAdapter.setUserList(groupMembers);
+                }
             }
 
             @Override
             public void onFailed(Exception e) {
                 progressBar.setVisibility(View.GONE);
-                Toast.makeText(MembersListActivity.this, "Failed to sync group data", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MembersListActivity.this, "Failed to load members", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -263,7 +259,7 @@ public class MembersListActivity extends BaseActivity {
             @Override
             public void onCompleted(Void object) {
                 Toast.makeText(MembersListActivity.this, "Member removed", Toast.LENGTH_SHORT).show();
-                loadGroupMembers();
+                // הנתונים יתרעננו מעצמם בגלל ה-Listener
             }
 
             @Override

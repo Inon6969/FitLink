@@ -33,6 +33,7 @@ import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.chip.Chip;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.Objects;
 
@@ -46,6 +47,9 @@ public class GroupDashboardActivity extends BaseActivity {
     private Chip chipGroupLevel;
     private CreateEventDialog currentCreateEventDialog;
     private EditGroupDialog currentEditGroupDialog;
+
+    private ValueEventListener groupListener;
+    private boolean isInitialized = false;
 
     private final ActivityResultLauncher<Intent> mapPickerLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -82,16 +86,56 @@ public class GroupDashboardActivity extends BaseActivity {
             return;
         }
 
-        DatabaseService.getInstance().getGroup(groupId, new DatabaseService.DatabaseCallback<Group>() {
+        String currentUserId = SharedPreferencesUtil.getUserId(this);
+
+        // האזנה בזמן אמת לשינויים בקבוצה (כולל הדחה של המשתמש מהקבוצה)
+        groupListener = DatabaseService.getInstance().listenToGroup(groupId, new DatabaseService.DatabaseCallback<Group>() {
             @Override
             public void onCompleted(Group group) {
                 if (group == null) {
-                    Toast.makeText(GroupDashboardActivity.this, "Group not found", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(GroupDashboardActivity.this, "This group no longer exists.", Toast.LENGTH_SHORT).show();
                     finish();
                     return;
                 }
+
+                // העפה מיידית אם המשתמש כבר לא ברשימת המשתתפים
+                if (group.getMembers() == null || !group.getMembers().containsKey(currentUserId)) {
+                    Toast.makeText(GroupDashboardActivity.this, "You are no longer a member of this group.", Toast.LENGTH_LONG).show();
+                    finish();
+                    return;
+                }
+
                 currentGroup = group;
-                initViews();
+
+                // --- תוספת אבטחה: סגירת דיאלוגים אם איבדנו הרשאות ניהול ---
+                boolean isCreator = currentGroup.getCreatorId() != null && currentGroup.getCreatorId().equals(currentUserId);
+                boolean isManager = currentGroup.getManagers() != null && currentGroup.getManagers().containsKey(currentUserId);
+
+                if (!isCreator && !isManager) {
+                    // אם הוא לא יוצר ולא מנהל, נסגור לו את דיאלוג יצירת האירוע אם פתוח
+                    if (currentCreateEventDialog != null && currentCreateEventDialog.isShowing()) {
+                        // בהנחה שיש לדיאלוג פונקציית dismiss()
+                        currentCreateEventDialog.dismiss();
+                        Toast.makeText(GroupDashboardActivity.this, "Your manager permissions were removed.", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                if (!isCreator) {
+                    // רק היוצר יכול לערוך קבוצה, נסגור אם פתוח והוא כבר לא היוצר
+                    if (currentEditGroupDialog != null && currentEditGroupDialog.isShowing()) {
+                        currentEditGroupDialog.dismiss();
+                        Toast.makeText(GroupDashboardActivity.this, "You no longer have permission to edit.", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                // ------------------------------------------------------------
+
+                if (!isInitialized) {
+                    initViews();
+                    isInitialized = true;
+                } else {
+                    // הנתונים השתנו - נעדכן את המסך
+                    updateUI();
+                }
             }
 
             @Override
@@ -103,22 +147,20 @@ public class GroupDashboardActivity extends BaseActivity {
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
+    protected void onDestroy() {
+        super.onDestroy();
 
-        if (currentGroup != null && currentGroup.getId() != null) {
-            DatabaseService.getInstance().getGroup(currentGroup.getId(), new DatabaseService.DatabaseCallback<Group>() {
-                @Override
-                public void onCompleted(Group updatedGroup) {
-                    if (updatedGroup != null) {
-                        currentGroup = updatedGroup;
-                    }
-                }
+        // סגירת דיאלוגים פתוחים כדי למנוע דליפות זיכרון (WindowLeaked)
+        if (currentCreateEventDialog != null && currentCreateEventDialog.isShowing()) {
+            currentCreateEventDialog.dismiss();
+        }
+        if (currentEditGroupDialog != null && currentEditGroupDialog.isShowing()) {
+            currentEditGroupDialog.dismiss();
+        }
 
-                @Override
-                public void onFailed(Exception e) {
-                }
-            });
+        // הסרת המאזין מהרשת
+        if (currentGroup != null && groupListener != null && currentGroup.getId() != null) {
+            DatabaseService.getInstance().removeGroupListener(currentGroup.getId(), groupListener);
         }
     }
 
@@ -145,37 +187,16 @@ public class GroupDashboardActivity extends BaseActivity {
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle(currentGroup.getName());
             toolbar.setNavigationOnClickListener(v -> onBackPressed());
         }
 
-        TextView tvTitle = findViewById(R.id.tv_dashboard_title);
-        tvTitle.setText(currentGroup.getName());
-
+        imgGroupPhoto = findViewById(R.id.img_dashboard_group_photo);
         chipGroupLevel = findViewById(R.id.chip_dashboard_level);
 
-        if (currentGroup.getLevel() != null) {
-            chipGroupLevel.setText(currentGroup.getLevel().getDisplayName());
-            chipGroupLevel.setVisibility(View.VISIBLE);
-        } else {
-            chipGroupLevel.setVisibility(View.GONE);
-        }
-
-        // --- אזור המיקום החדש והלחיץ ---
         LinearLayout layoutLocation = findViewById(R.id.layout_dashboard_location);
         TextView tvLocation = findViewById(R.id.tv_dashboard_location);
-
-        // מוסיף קו תחתון כדי שהמשתמש יבין שזה לינק לחיץ
         tvLocation.setPaintFlags(tvLocation.getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
 
-        if (currentGroup.getLocation() != null && currentGroup.getLocation().getAddress() != null && !currentGroup.getLocation().getAddress().isEmpty()) {
-            tvLocation.setText(currentGroup.getLocation().getAddress());
-            layoutLocation.setVisibility(View.VISIBLE);
-        } else {
-            layoutLocation.setVisibility(View.GONE);
-        }
-
-        // פתיחת המיקום במפות/Waze
         layoutLocation.setOnClickListener(v -> {
             if (currentGroup.getLocation() != null) {
                 String address = currentGroup.getLocation().getAddress();
@@ -192,42 +213,6 @@ public class GroupDashboardActivity extends BaseActivity {
                 }
             }
         });
-        // ---------------------------------
-
-        TextView tvDescription = findViewById(R.id.tv_dashboard_description);
-        if (currentGroup.getDescription() != null && !currentGroup.getDescription().trim().isEmpty()) {
-            tvDescription.setText(currentGroup.getDescription());
-        } else {
-            tvDescription.setText("No description provided for this group.");
-        }
-
-        imgGroupPhoto = findViewById(R.id.img_dashboard_group_photo);
-        MaterialButton btnChangePhoto = findViewById(R.id.btn_dashboard_change_photo);
-
-        MaterialButton btnMembers = findViewById(R.id.btn_dashboard_members);
-        MaterialButton btnChat = findViewById(R.id.btn_dashboard_chat);
-        MaterialButton btnCalendar = findViewById(R.id.btn_dashboard_calendar);
-
-        MaterialCardView cardRequests = findViewById(R.id.card_dashboard_requests);
-        MaterialButton btnRequests = findViewById(R.id.btn_dashboard_requests);
-
-        MaterialCardView cardSchedule = findViewById(R.id.card_dashboard_schedule);
-        MaterialButton btnSchedule = findViewById(R.id.btn_dashboard_schedule);
-
-        MaterialCardView cardEdit = findViewById(R.id.card_dashboard_edit);
-        MaterialButton btnEdit = findViewById(R.id.btn_dashboard_edit);
-        MaterialButton btnDelete = findViewById(R.id.btn_dashboard_delete);
-        MaterialButton btnLeave = findViewById(R.id.btn_dashboard_leave);
-
-        String currentUserId = SharedPreferencesUtil.getUserId(this);
-
-        boolean isCreator = currentGroup.getCreatorId() != null && currentGroup.getCreatorId().equals(currentUserId);
-        boolean isManager = currentGroup.getManagers() != null && currentGroup.getManagers().containsKey(currentUserId);
-
-        if (currentGroup.getGroupImage() != null && !currentGroup.getGroupImage().isEmpty()) {
-            Bitmap bmp = ImageUtil.convertFrom64base(currentGroup.getGroupImage());
-            if (bmp != null) imgGroupPhoto.setImageBitmap(bmp);
-        }
 
         imgGroupPhoto.setOnClickListener(v -> {
             if (currentGroup != null && currentGroup.getGroupImage() != null && !currentGroup.getGroupImage().isEmpty()) {
@@ -235,73 +220,27 @@ public class GroupDashboardActivity extends BaseActivity {
             }
         });
 
-        if (isCreator) {
-            btnChangePhoto.setVisibility(View.VISIBLE);
-            btnChangePhoto.setOnClickListener(v -> openImagePicker());
-        } else {
-            btnChangePhoto.setVisibility(View.GONE);
-        }
+        findViewById(R.id.btn_dashboard_change_photo).setOnClickListener(v -> openImagePicker());
 
-        if (isCreator || isManager) {
-            cardSchedule.setVisibility(View.VISIBLE);
-            cardRequests.setVisibility(View.VISIBLE);
-        } else {
-            cardSchedule.setVisibility(View.GONE);
-            cardRequests.setVisibility(View.GONE);
-        }
-
-        if (isCreator) {
-            cardEdit.setVisibility(View.VISIBLE);
-            btnDelete.setVisibility(View.VISIBLE);
-            btnLeave.setVisibility(View.VISIBLE);
-        } else {
-            cardEdit.setVisibility(View.GONE);
-            btnDelete.setVisibility(View.GONE);
-            btnLeave.setVisibility(View.VISIBLE);
-        }
-
-        btnRequests.setOnClickListener(v -> {
+        findViewById(R.id.btn_dashboard_requests).setOnClickListener(v -> {
             Intent intent = new Intent(GroupDashboardActivity.this, JoinRequestsActivity.class);
             intent.putExtra("GROUP_ID", currentGroup.getId());
             startActivity(intent);
         });
 
-        btnSchedule.setOnClickListener(v -> {
+        findViewById(R.id.btn_dashboard_schedule).setOnClickListener(v -> {
             currentCreateEventDialog = new CreateEventDialog(this, currentGroup);
             currentCreateEventDialog.show();
         });
 
-        btnEdit.setOnClickListener(v -> {
+        findViewById(R.id.btn_dashboard_edit).setOnClickListener(v -> {
             currentEditGroupDialog = new EditGroupDialog(this, currentGroup, updatedGroup -> {
-                currentGroup = updatedGroup;
-                if (getSupportActionBar() != null) getSupportActionBar().setTitle(currentGroup.getName());
-                tvTitle.setText(currentGroup.getName());
-
-                if (currentGroup.getLevel() != null) {
-                    chipGroupLevel.setText(currentGroup.getLevel().getDisplayName());
-                    chipGroupLevel.setVisibility(View.VISIBLE);
-                } else {
-                    chipGroupLevel.setVisibility(View.GONE);
-                }
-
-                // עדכון מיקום גם אחרי העריכה
-                if (currentGroup.getLocation() != null && currentGroup.getLocation().getAddress() != null && !currentGroup.getLocation().getAddress().isEmpty()) {
-                    tvLocation.setText(currentGroup.getLocation().getAddress());
-                    layoutLocation.setVisibility(View.VISIBLE);
-                } else {
-                    layoutLocation.setVisibility(View.GONE);
-                }
-
-                if (currentGroup.getDescription() != null && !currentGroup.getDescription().trim().isEmpty()) {
-                    tvDescription.setText(currentGroup.getDescription());
-                } else {
-                    tvDescription.setText("No description provided for this group.");
-                }
+                // המאזין מעדכן את המסך באופן אוטומטי, לכן הקולבק כאן יכול להישאר ריק
             });
             currentEditGroupDialog.show();
         });
 
-        btnDelete.setOnClickListener(v -> {
+        findViewById(R.id.btn_dashboard_delete).setOnClickListener(v -> {
             new DeleteGroupDialog(this, () -> {
                 Toast.makeText(this, "Deleting group...", Toast.LENGTH_SHORT).show();
                 DatabaseService.getInstance().deleteGroup(currentGroup.getId(), new DatabaseService.DatabaseCallback<Void>() {
@@ -319,7 +258,9 @@ public class GroupDashboardActivity extends BaseActivity {
             }).show();
         });
 
-        btnLeave.setOnClickListener(v -> {
+        findViewById(R.id.btn_dashboard_leave).setOnClickListener(v -> {
+            String currentUserId = SharedPreferencesUtil.getUserId(this);
+            boolean isCreator = currentGroup.getCreatorId() != null && currentGroup.getCreatorId().equals(currentUserId);
             if (isCreator && (currentGroup.getManagers() == null || currentGroup.getManagers().isEmpty())) {
                 Toast.makeText(this, "You must appoint at least one Manager before leaving the group.", Toast.LENGTH_LONG).show();
                 return;
@@ -341,23 +282,83 @@ public class GroupDashboardActivity extends BaseActivity {
             }).show();
         });
 
-        btnMembers.setOnClickListener(v -> {
+        findViewById(R.id.btn_dashboard_members).setOnClickListener(v -> {
             Intent intent = new Intent(GroupDashboardActivity.this, MembersListActivity.class);
             intent.putExtra("GROUP_ID", currentGroup.getId());
             startActivity(intent);
         });
 
-        btnChat.setOnClickListener(v -> {
+        findViewById(R.id.btn_dashboard_chat).setOnClickListener(v -> {
             Intent intent = new Intent(GroupDashboardActivity.this, GroupChatActivity.class);
             intent.putExtra("GROUP_ID", currentGroup.getId());
             startActivity(intent);
         });
 
-        btnCalendar.setOnClickListener(v -> {
+        findViewById(R.id.btn_dashboard_calendar).setOnClickListener(v -> {
             Intent intent = new Intent(GroupDashboardActivity.this, GroupCalendarActivity.class);
             intent.putExtra("GROUP_ID", currentGroup.getId());
             startActivity(intent);
         });
+
+        updateUI();
+    }
+
+    private void updateUI() {
+        if (getSupportActionBar() != null) getSupportActionBar().setTitle(currentGroup.getName());
+        TextView tvTitle = findViewById(R.id.tv_dashboard_title);
+        tvTitle.setText(currentGroup.getName());
+
+        if (currentGroup.getLevel() != null) {
+            chipGroupLevel.setText(currentGroup.getLevel().getDisplayName());
+            chipGroupLevel.setVisibility(View.VISIBLE);
+        } else {
+            chipGroupLevel.setVisibility(View.GONE);
+        }
+
+        LinearLayout layoutLocation = findViewById(R.id.layout_dashboard_location);
+        TextView tvLocation = findViewById(R.id.tv_dashboard_location);
+        if (currentGroup.getLocation() != null && currentGroup.getLocation().getAddress() != null && !currentGroup.getLocation().getAddress().isEmpty()) {
+            tvLocation.setText(currentGroup.getLocation().getAddress());
+            layoutLocation.setVisibility(View.VISIBLE);
+        } else {
+            layoutLocation.setVisibility(View.GONE);
+        }
+
+        TextView tvDescription = findViewById(R.id.tv_dashboard_description);
+        if (currentGroup.getDescription() != null && !currentGroup.getDescription().trim().isEmpty()) {
+            tvDescription.setText(currentGroup.getDescription());
+        } else {
+            tvDescription.setText("No description provided for this group.");
+        }
+
+        if (currentGroup.getGroupImage() != null && !currentGroup.getGroupImage().isEmpty()) {
+            Bitmap bmp = ImageUtil.convertFrom64base(currentGroup.getGroupImage());
+            if (bmp != null) imgGroupPhoto.setImageBitmap(bmp);
+        } else {
+            imgGroupPhoto.setImageResource(R.drawable.ic_sport);
+        }
+
+        String currentUserId = SharedPreferencesUtil.getUserId(this);
+        boolean isCreator = currentGroup.getCreatorId() != null && currentGroup.getCreatorId().equals(currentUserId);
+        boolean isManager = currentGroup.getManagers() != null && currentGroup.getManagers().containsKey(currentUserId);
+
+        findViewById(R.id.btn_dashboard_change_photo).setVisibility(isCreator ? View.VISIBLE : View.GONE);
+        findViewById(R.id.card_dashboard_schedule).setVisibility((isCreator || isManager) ? View.VISIBLE : View.GONE);
+        findViewById(R.id.card_dashboard_requests).setVisibility((isCreator || isManager) ? View.VISIBLE : View.GONE);
+
+        MaterialCardView cardEdit = findViewById(R.id.card_dashboard_edit);
+        MaterialButton btnDelete = findViewById(R.id.btn_dashboard_delete);
+        MaterialButton btnLeave = findViewById(R.id.btn_dashboard_leave);
+
+        if (isCreator) {
+            cardEdit.setVisibility(View.VISIBLE);
+            btnDelete.setVisibility(View.VISIBLE);
+            btnLeave.setVisibility(View.VISIBLE);
+        } else {
+            cardEdit.setVisibility(View.GONE);
+            btnDelete.setVisibility(View.GONE);
+            btnLeave.setVisibility(View.VISIBLE);
+        }
     }
 
     private void showFullImageDialog() {

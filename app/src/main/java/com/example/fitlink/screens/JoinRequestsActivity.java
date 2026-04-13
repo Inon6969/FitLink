@@ -21,7 +21,9 @@ import com.example.fitlink.adapters.JoinRequestAdapter;
 import com.example.fitlink.models.Group;
 import com.example.fitlink.models.User;
 import com.example.fitlink.services.DatabaseService;
+import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.google.android.material.appbar.AppBarLayout;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,8 +34,12 @@ public class JoinRequestsActivity extends BaseActivity {
     private RecyclerView rvRequests;
     private ProgressBar progressBar;
     private LinearLayout layoutNoRequests;
-    private TextView tvRequestsCount; // הרפרנס לטקסט החדש
+    private TextView tvRequestsCount;
     private JoinRequestAdapter adapter;
+
+    private String currentUserId;
+    private ValueEventListener groupListener;
+    private boolean isInitialized = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,16 +54,37 @@ public class JoinRequestsActivity extends BaseActivity {
             return;
         }
 
-        DatabaseService.getInstance().getGroup(groupId, new DatabaseService.DatabaseCallback<Group>() {
+        currentUserId = SharedPreferencesUtil.getUserId(this);
+
+        // מאזין זמן אמת לקבוצה - מתעדכן אוטומטית ומעיף את המשתמש אם איבד הרשאות
+        groupListener = DatabaseService.getInstance().listenToGroup(groupId, new DatabaseService.DatabaseCallback<Group>() {
             @Override
             public void onCompleted(Group group) {
                 if (group == null) {
-                    Toast.makeText(JoinRequestsActivity.this, "Group not found", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(JoinRequestsActivity.this, "This group no longer exists.", Toast.LENGTH_SHORT).show();
                     finish();
                     return;
                 }
+
+                // בדיקת הרשאות: רק יוצר הקבוצה ומנהלים מורשים לראות את המסך הזה
+                boolean isCreator = group.getCreatorId() != null && group.getCreatorId().equals(currentUserId);
+                boolean isManager = group.getManagers() != null && group.getManagers().containsKey(currentUserId);
+
+                if (!isCreator && !isManager) {
+                    Toast.makeText(JoinRequestsActivity.this, "You no longer have permission to view requests.", Toast.LENGTH_LONG).show();
+                    finish();
+                    return;
+                }
+
                 currentGroup = group;
-                continueInitialization();
+
+                if (!isInitialized) {
+                    isInitialized = true;
+                    continueInitialization();
+                } else {
+                    // הנתונים השתנו (למשל נוספה בקשה חדשה) - נרענן את הרשימה
+                    loadPendingRequests();
+                }
             }
 
             @Override
@@ -66,6 +93,15 @@ public class JoinRequestsActivity extends BaseActivity {
                 finish();
             }
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        String groupId = getIntent().getStringExtra("GROUP_ID");
+        if (groupId != null && groupListener != null) {
+            DatabaseService.getInstance().removeGroupListener(groupId, groupListener);
+        }
     }
 
     private void continueInitialization() {
@@ -97,7 +133,7 @@ public class JoinRequestsActivity extends BaseActivity {
         rvRequests = findViewById(R.id.rv_join_requests);
         progressBar = findViewById(R.id.progressBar_requests);
         layoutNoRequests = findViewById(R.id.layout_no_requests);
-        tvRequestsCount = findViewById(R.id.tv_requests_count); // קישור הרכיב מהעיצוב
+        tvRequestsCount = findViewById(R.id.tv_requests_count);
     }
 
     private void setupToolbar() {
@@ -134,76 +170,53 @@ public class JoinRequestsActivity extends BaseActivity {
         rvRequests.setAdapter(adapter);
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (currentGroup != null) {
-            loadPendingRequests();
-        }
-    }
-
+    // הפונקציה קוצרה ויועלה מכיוון ש-currentGroup כבר מעודכן תמיד בזכות ה-Listener
     private void loadPendingRequests() {
         progressBar.setVisibility(View.VISIBLE);
         layoutNoRequests.setVisibility(View.GONE);
-        tvRequestsCount.setVisibility(View.GONE); // מוסתר בזמן טעינה
+        tvRequestsCount.setVisibility(View.GONE);
 
-        databaseService.getGroup(currentGroup.getId(), new DatabaseService.DatabaseCallback<Group>() {
+        if (currentGroup.getPendingRequests() == null || currentGroup.getPendingRequests().isEmpty()) {
+            progressBar.setVisibility(View.GONE);
+            layoutNoRequests.setVisibility(View.VISIBLE);
+            rvRequests.setVisibility(View.GONE);
+            tvRequestsCount.setVisibility(View.GONE);
+            return;
+        }
+
+        databaseService.getUserList(new DatabaseService.DatabaseCallback<List<User>>() {
             @Override
-            public void onCompleted(Group updatedGroup) {
-                if (updatedGroup != null) {
-                    currentGroup = updatedGroup;
+            public void onCompleted(List<User> allUsers) {
+                progressBar.setVisibility(View.GONE);
+                List<User> pendingUsers = new ArrayList<>();
+
+                if (allUsers != null) {
+                    for (User user : allUsers) {
+                        if (currentGroup.getPendingRequests().containsKey(user.getId())) {
+                            pendingUsers.add(user);
+                        }
+                    }
                 }
 
-                if (currentGroup.getPendingRequests() == null || currentGroup.getPendingRequests().isEmpty()) {
-                    progressBar.setVisibility(View.GONE);
+                if (pendingUsers.isEmpty()) {
                     layoutNoRequests.setVisibility(View.VISIBLE);
                     rvRequests.setVisibility(View.GONE);
                     tvRequestsCount.setVisibility(View.GONE);
-                    return;
+                } else {
+                    layoutNoRequests.setVisibility(View.GONE);
+                    rvRequests.setVisibility(View.VISIBLE);
+
+                    tvRequestsCount.setVisibility(View.VISIBLE);
+                    tvRequestsCount.setText("Total requests: " + pendingUsers.size());
+
+                    adapter.updateList(pendingUsers);
                 }
-
-                databaseService.getUserList(new DatabaseService.DatabaseCallback<List<User>>() {
-                    @Override
-                    public void onCompleted(List<User> allUsers) {
-                        progressBar.setVisibility(View.GONE);
-                        List<User> pendingUsers = new ArrayList<>();
-
-                        if (allUsers != null) {
-                            for (User user : allUsers) {
-                                if (currentGroup.getPendingRequests().containsKey(user.getId())) {
-                                    pendingUsers.add(user);
-                                }
-                            }
-                        }
-
-                        if (pendingUsers.isEmpty()) {
-                            layoutNoRequests.setVisibility(View.VISIBLE);
-                            rvRequests.setVisibility(View.GONE);
-                            tvRequestsCount.setVisibility(View.GONE);
-                        } else {
-                            layoutNoRequests.setVisibility(View.GONE);
-                            rvRequests.setVisibility(View.VISIBLE);
-
-                            // מציגים את השורה ומעדכנים את המספר
-                            tvRequestsCount.setVisibility(View.VISIBLE);
-                            tvRequestsCount.setText("Total requests: " + pendingUsers.size());
-
-                            adapter.updateList(pendingUsers);
-                        }
-                    }
-
-                    @Override
-                    public void onFailed(Exception e) {
-                        progressBar.setVisibility(View.GONE);
-                        Toast.makeText(JoinRequestsActivity.this, "Failed to load users", Toast.LENGTH_SHORT).show();
-                    }
-                });
             }
 
             @Override
             public void onFailed(Exception e) {
                 progressBar.setVisibility(View.GONE);
-                Toast.makeText(JoinRequestsActivity.this, "Failed to fetch group data", Toast.LENGTH_SHORT).show();
+                Toast.makeText(JoinRequestsActivity.this, "Failed to load users", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -214,7 +227,7 @@ public class JoinRequestsActivity extends BaseActivity {
             @Override
             public void onCompleted(Void object) {
                 Toast.makeText(JoinRequestsActivity.this, "Request approved", Toast.LENGTH_SHORT).show();
-                loadPendingRequests();
+                // אין צורך לקרוא ל-loadPendingRequests() ידנית, ה-Listener יזהה את השינוי וירענן אוטומטית
             }
 
             @Override
@@ -231,7 +244,7 @@ public class JoinRequestsActivity extends BaseActivity {
             @Override
             public void onCompleted(Void object) {
                 Toast.makeText(JoinRequestsActivity.this, "Request declined", Toast.LENGTH_SHORT).show();
-                loadPendingRequests();
+                // ה-Listener ירענן את הרשימה באופן אוטומטי
             }
 
             @Override

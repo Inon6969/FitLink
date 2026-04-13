@@ -14,10 +14,13 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 
+import com.example.fitlink.models.User;
 import com.example.fitlink.screens.dialogs.LogoutDialog;
 import com.example.fitlink.screens.dialogs.NoInternetDialog;
 import com.example.fitlink.services.AuthService;
 import com.example.fitlink.services.DatabaseService;
+import com.example.fitlink.utils.SharedPreferencesUtil;
+import com.google.firebase.database.ValueEventListener;
 
 public class BaseActivity extends AppCompatActivity {
 
@@ -28,6 +31,10 @@ public class BaseActivity extends AppCompatActivity {
     // משתנה סטטי ששומר האם המשתמש כבר אישר את מצב האופליין (תקף לכל המסכים)
     private static boolean hasAcknowledgedOffline = false;
 
+    // מאזינים לשינויים בזמן אמת במשתמש (למקרה של מחיקה)
+    private ValueEventListener currentUserListener;
+    private String currentUserId;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         // נועל את האפליקציה על theme בהיר
@@ -35,6 +42,38 @@ public class BaseActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         databaseService = DatabaseService.getInstance();
+        currentUserId = SharedPreferencesUtil.getUserId(this);
+
+        // אם יש לנו משתמש מחובר, נתחיל להאזין לו בזמן אמת
+        if (currentUserId != null && !currentUserId.isEmpty()) {
+            startListeningToUserStatus();
+        }
+    }
+
+    private void startListeningToUserStatus() {
+        currentUserListener = databaseService.listenToUser(currentUserId, new DatabaseService.DatabaseCallback<User>() {
+            @Override
+            public void onCompleted(User user) {
+                // המשתמש נמחק מ-Firebase! (על ידי מנהל או על ידי עצמו)
+                if (user == null) {
+                    Toast.makeText(BaseActivity.this, "Your account has been deleted by an admin.", Toast.LENGTH_LONG).show();
+
+                    // מחיקת נתוני ההתחברות המקומיים
+                    SharedPreferencesUtil.signOutUser(BaseActivity.this);
+
+                    // העברה מיידית למסך ההתחברות וניקוי כל היסטוריית המסכים (Back Stack)
+                    Intent intent = new Intent(BaseActivity.this, LoginActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finish();
+                }
+            }
+
+            @Override
+            public void onFailed(Exception e) {
+                // מתעלמים משגיאות כאן (למשל ניתוק מהרשת) כדי לא להפריע למשתמש
+            }
+        });
     }
 
     // הוספנו onResume כדי להאזין לרשת רק כשהמסך באמת מוצג למשתמש
@@ -64,6 +103,15 @@ public class BaseActivity extends AppCompatActivity {
                 }
             }
             networkCallback = null; // איפוס המאזין
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // ניקוי מאזין המשתמש כשהמסך נסגר למניעת זליגות זיכרון (Memory Leaks)
+        if (currentUserId != null && currentUserListener != null) {
+            databaseService.removeUserListener(currentUserId, currentUserListener);
         }
     }
 

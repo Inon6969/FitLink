@@ -23,8 +23,9 @@ import com.example.fitlink.models.Event;
 import com.example.fitlink.models.Group;
 import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.SharedPreferencesUtil;
-import com.google.android.material.appbar.AppBarLayout; // <-- הוספנו את הייבוא הזה
+import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.card.MaterialCardView;
+import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -45,6 +46,9 @@ public class GroupCalendarActivity extends BaseActivity {
     private List<Event> allGroupEvents = new ArrayList<>();
     private final Calendar selectedCalendar = Calendar.getInstance();
 
+    private ValueEventListener groupListener;
+    private boolean isInitialized = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,16 +62,30 @@ public class GroupCalendarActivity extends BaseActivity {
             return;
         }
 
-        DatabaseService.getInstance().getGroup(groupId, new DatabaseService.DatabaseCallback<Group>() {
+        String currentUserId = SharedPreferencesUtil.getUserId(this);
+
+        // מאזין זמן אמת לקבוצה - מעיף את המשתמש אם הוא מוסר
+        groupListener = DatabaseService.getInstance().listenToGroup(groupId, new DatabaseService.DatabaseCallback<Group>() {
             @Override
             public void onCompleted(Group group) {
                 if (group == null) {
-                    Toast.makeText(GroupCalendarActivity.this, "Group not found", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(GroupCalendarActivity.this, "This group no longer exists.", Toast.LENGTH_SHORT).show();
                     finish();
                     return;
                 }
+
+                if (group.getMembers() == null || !group.getMembers().containsKey(currentUserId)) {
+                    Toast.makeText(GroupCalendarActivity.this, "You are no longer a member of this group.", Toast.LENGTH_LONG).show();
+                    finish();
+                    return;
+                }
+
                 currentGroup = group;
-                continueInitialization();
+
+                if (!isInitialized) {
+                    isInitialized = true;
+                    continueInitialization();
+                }
             }
 
             @Override
@@ -76,6 +94,15 @@ public class GroupCalendarActivity extends BaseActivity {
                 finish();
             }
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        String groupId = getIntent().getStringExtra("GROUP_ID");
+        if (groupId != null && groupListener != null) {
+            DatabaseService.getInstance().removeGroupListener(groupId, groupListener);
+        }
     }
 
     private void continueInitialization() {
@@ -94,19 +121,13 @@ public class GroupCalendarActivity extends BaseActivity {
 
         ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-
-            // מרווח צדדים ותחתון למסך הראשי
             v.setPadding(systemBars.left, 0, systemBars.right, systemBars.bottom);
-
-            // מרווח עליון ל-AppBarLayout כדי להרחיק את סרגל הכלים מהסוללה והשעון
             if (appBarLayout != null) {
                 appBarLayout.setPadding(0, systemBars.top, 0, 0);
             }
-
             return insets;
         });
 
-        // מכריח חישוב מיידי של הריווחים
         root.post(() -> ViewCompat.requestApplyInsets(root));
 
         calendarView = findViewById(R.id.calendarView_events);

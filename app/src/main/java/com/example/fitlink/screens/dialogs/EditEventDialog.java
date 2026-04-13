@@ -1,14 +1,17 @@
 package com.example.fitlink.screens.dialogs;
 
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.widget.NumberPicker;
 import android.widget.Toast;
 
 import com.example.fitlink.R;
 import com.example.fitlink.models.Event;
+import com.example.fitlink.models.Group;
 import com.example.fitlink.models.Location;
 import com.example.fitlink.screens.EventDetailsActivity;
 import com.example.fitlink.screens.GroupDashboardActivity;
@@ -29,13 +32,14 @@ public class EditEventDialog extends Dialog {
     private final DatabaseService databaseService;
     private final OnEventUpdatedListener listener;
 
-    private MaterialButton btnDate, btnTime, btnDuration, btnLocation;
-    private TextInputEditText inputTitle, inputDescription, inputMaxParticipants;
+    private MaterialButton btnDate, btnTime, btnDuration, btnLocation, btnMaxParticipants;
+    private TextInputEditText inputTitle, inputDescription;
 
     private final Calendar eventCalendar = Calendar.getInstance();
     private boolean isDateSet = true;
     private boolean isTimeSet = true;
     private long selectedDurationMillis = 0;
+    private int selectedMaxParticipants = 0; // משתנה לשמירת כמות המשתתפים
 
     private String selectedAddress = "";
     private double selectedLat = 0;
@@ -61,12 +65,12 @@ public class EditEventDialog extends Dialog {
 
         inputTitle = findViewById(R.id.inputEditGroupEventTitle);
         inputDescription = findViewById(R.id.inputEditGroupEventDescription);
-        inputMaxParticipants = findViewById(R.id.inputEditGroupEventMaxParticipants);
 
         btnDate = findViewById(R.id.btnEditGroupEventDate);
         btnTime = findViewById(R.id.btnEditGroupEventTime);
         btnDuration = findViewById(R.id.btnEditGroupEventDuration);
         btnLocation = findViewById(R.id.btnEditGroupEventLocation);
+        btnMaxParticipants = findViewById(R.id.btnEditGroupEventMaxParticipants);
 
         MaterialButton btnSave = findViewById(R.id.btnEditGroupEventSave);
         MaterialButton btnCancel = findViewById(R.id.btnEditGroupEventCancel);
@@ -90,7 +94,13 @@ public class EditEventDialog extends Dialog {
     private void prefillData() {
         inputTitle.setText(currentEvent.getTitle());
         inputDescription.setText(currentEvent.getDescription() != null ? currentEvent.getDescription() : "");
-        inputMaxParticipants.setText(String.valueOf(currentEvent.getMaxParticipants()));
+
+        selectedMaxParticipants = currentEvent.getMaxParticipants();
+        if (selectedMaxParticipants == 0) {
+            btnMaxParticipants.setText("Participants: Any");
+        } else {
+            btnMaxParticipants.setText("Participants: " + selectedMaxParticipants);
+        }
 
         if (currentEvent.getStartTimestamp() > 0) {
             eventCalendar.setTimeInMillis(currentEvent.getStartTimestamp());
@@ -170,12 +180,85 @@ public class EditEventDialog extends Dialog {
             durationPicker.setTitle("Select Duration");
             durationPicker.show();
         });
+
+        // כפתור בחירת כמות משתתפים
+        btnMaxParticipants.setOnClickListener(v -> {
+            String groupId = currentEvent.getGroupId();
+
+            // אם לאירוע יש קבוצה משוייכת, נשלוף את מספר החברים מהדאטה-בייס
+            if (groupId != null && !groupId.isEmpty()) {
+                databaseService.getGroup(groupId, new DatabaseService.DatabaseCallback<Group>() {
+                    @Override
+                    public void onCompleted(Group group) {
+                        int maxMembers = (group != null && group.getMembers() != null) ? group.getMembers().size() : 20;
+                        showNumberPicker(maxMembers);
+                    }
+
+                    @Override
+                    public void onFailed(Exception e) {
+                        showNumberPicker(20); // ברירת מחדל במקרה של שגיאה
+                    }
+                });
+            } else {
+                // אירוע עצמאי (ללא קבוצה) - ניתן לו גבול גבוה הגיוני
+                showNumberPicker(100);
+            }
+        });
+    }
+
+    // פונקציית עזר להצגת חלון בחירת מספר המשתתפים (NumberPicker)
+    private void showNumberPicker(int maxMembers) {
+        if (maxMembers < 1) maxMembers = 1;
+
+        NumberPicker numberPicker = new NumberPicker(context);
+        numberPicker.setMinValue(0);
+        numberPicker.setMaxValue(maxMembers);
+
+        // מוודא שאם הערך הנוכחי גדול ממה שמותר (למשל חברים עזבו), זה לא יקרוס
+        if (selectedMaxParticipants > maxMembers) {
+            numberPicker.setValue(maxMembers);
+        } else {
+            numberPicker.setValue(selectedMaxParticipants);
+        }
+        numberPicker.setWrapSelectorWheel(true);
+
+        // תצוגה מותאמת אישית לערך 0 - מוצג כ-"Any"
+        String[] displayedValues = new String[maxMembers + 1];
+        displayedValues[0] = "Any";
+        for (int i = 1; i <= maxMembers; i++) {
+            displayedValues[i] = String.valueOf(i);
+        }
+        numberPicker.setDisplayedValues(displayedValues);
+
+        // עיצוב מרווח לגלגלת בעזרת FrameLayout
+        android.widget.FrameLayout container = new android.widget.FrameLayout(context);
+        android.widget.FrameLayout.LayoutParams params = new android.widget.FrameLayout.LayoutParams(
+                android.widget.FrameLayout.LayoutParams.WRAP_CONTENT,
+                android.widget.FrameLayout.LayoutParams.WRAP_CONTENT
+        );
+        params.gravity = android.view.Gravity.CENTER;
+        params.setMargins(0, 50, 0, 50);
+        numberPicker.setLayoutParams(params);
+        container.addView(numberPicker);
+
+        new AlertDialog.Builder(context)
+                .setTitle("Max Participants")
+                .setView(container)
+                .setPositiveButton("OK", (dialog, which) -> {
+                    selectedMaxParticipants = numberPicker.getValue();
+                    if (selectedMaxParticipants == 0) {
+                        btnMaxParticipants.setText("Participants: Any");
+                    } else {
+                        btnMaxParticipants.setText("Participants: " + selectedMaxParticipants);
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
     private void saveEvent() {
         String title = Objects.requireNonNull(inputTitle.getText()).toString().trim();
         String description = Objects.requireNonNull(inputDescription.getText()).toString().trim();
-        String maxPartStr = Objects.requireNonNull(inputMaxParticipants.getText()).toString().trim();
 
         if (title.isEmpty()) {
             inputTitle.setError("Title is required");
@@ -201,16 +284,15 @@ public class EditEventDialog extends Dialog {
             return;
         }
 
-        int maxParticipants = maxPartStr.isEmpty() ? 0 : Integer.parseInt(maxPartStr);
         Location location = new Location(selectedAddress, selectedLat, selectedLng);
 
-        // עדכון האובייקט הקיים (שומרים על סוג הספורט והרמה שהיו)
+        // עדכון האובייקט הקיים
         currentEvent.setTitle(title);
         currentEvent.setDescription(description);
         currentEvent.setStartTimestamp(startTimestamp);
         currentEvent.setDurationMillis(selectedDurationMillis);
         currentEvent.setLocation(location);
-        currentEvent.setMaxParticipants(maxParticipants);
+        currentEvent.setMaxParticipants(selectedMaxParticipants); // עדכון כמות המשתתפים החדשה
 
         databaseService.updateEvent(currentEvent, new DatabaseService.DatabaseCallback<Void>() {
             @Override

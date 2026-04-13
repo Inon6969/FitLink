@@ -28,6 +28,7 @@ import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.ImageUtil;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +44,9 @@ public class GroupChatActivity extends BaseActivity {
     private String currentUserId;
     private String currentUserName = "Unknown";
 
+    private ValueEventListener groupListener;
+    private boolean isInitialized = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,16 +60,36 @@ public class GroupChatActivity extends BaseActivity {
             return;
         }
 
-        DatabaseService.getInstance().getGroup(groupId, new DatabaseService.DatabaseCallback<Group>() {
+        currentUserId = SharedPreferencesUtil.getUserId(this);
+
+        // מאזין זמן אמת לקבוצה - אם המשתמש מוסר, הוא נזרק מהצ'אט
+        groupListener = DatabaseService.getInstance().listenToGroup(groupId, new DatabaseService.DatabaseCallback<Group>() {
             @Override
             public void onCompleted(Group group) {
                 if (group == null) {
-                    Toast.makeText(GroupChatActivity.this, "Group not found", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(GroupChatActivity.this, "This group no longer exists.", Toast.LENGTH_SHORT).show();
                     finish();
                     return;
                 }
+
+                // העפה מיידית אם המשתמש כבר לא ברשימת המשתתפים
+                if (group.getMembers() == null || !group.getMembers().containsKey(currentUserId)) {
+                    Toast.makeText(GroupChatActivity.this, "You are no longer a member of this group.", Toast.LENGTH_LONG).show();
+                    finish();
+                    return;
+                }
+
                 currentGroup = group;
-                continueInitialization();
+
+                if (!isInitialized) {
+                    isInitialized = true;
+                    continueInitialization();
+                } else {
+                    // עדכון הרשאות דינמי בזמן אמת (למקרה שמישהו מונה או הוסר מניהול בזמן שהוא בצ'אט)
+                    if (adapter != null) {
+                        adapter.updateGroupManagers(currentGroup.getManagers());
+                    }
+                }
             }
 
             @Override
@@ -76,10 +100,17 @@ public class GroupChatActivity extends BaseActivity {
         });
     }
 
-    private void continueInitialization() {
-        currentUserId = SharedPreferencesUtil.getUserId(this);
-        messageList = new ArrayList<>();
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        String groupId = getIntent().getStringExtra("GROUP_ID");
+        if (groupId != null && groupListener != null) {
+            DatabaseService.getInstance().removeGroupListener(groupId, groupListener);
+        }
+    }
 
+    private void continueInitialization() {
+        messageList = new ArrayList<>();
         initViews();
         fetchUserDetailsAndListenToChat();
     }
@@ -114,11 +145,14 @@ public class GroupChatActivity extends BaseActivity {
         boolean isCreator = currentGroup.getCreatorId() != null && currentGroup.getCreatorId().equals(currentUserId);
         boolean isManager = currentGroup.getManagers() != null && currentGroup.getManagers().containsKey(currentUserId);
 
-        // --- הוספת המאזינים ללחיצה על תמונה ולחיצה על שם ---
         adapter = new ChatAdapter(messageList, currentUserId, currentGroup.getCreatorId(), currentGroup.getManagers(), new ChatAdapter.OnMessageClickListener() {
             @Override
             public void onMessageLongClick(ChatMessage message) {
-                if (isCreator || isManager) {
+                // בדיקה מחודשת של הרשאות בעת לחיצה, למקרה שהשתנו
+                boolean currentIsCreator = currentGroup.getCreatorId() != null && currentGroup.getCreatorId().equals(currentUserId);
+                boolean currentIsManager = currentGroup.getManagers() != null && currentGroup.getManagers().containsKey(currentUserId);
+
+                if (currentIsCreator || currentIsManager) {
                     new AlertDialog.Builder(GroupChatActivity.this)
                             .setTitle("Delete Message")
                             .setMessage("Are you sure you want to delete this message?")
@@ -214,7 +248,6 @@ public class GroupChatActivity extends BaseActivity {
         });
     }
 
-    // --- הפונקציה החדשה להצגת תמונת פרופיל בגודל מלא בהתבסס על dialog_full_image ---
     private void showFullImageDialog(String userId) {
         if (userId == null) return;
 

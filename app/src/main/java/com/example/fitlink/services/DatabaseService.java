@@ -403,68 +403,72 @@ public class DatabaseService {
     ///                                                                                                                                                          if the operation fails, the callback will receive an exception
     /// @see DatabaseCallback
     /// @see User
+    /// get a user by email and password
+    /// get a user by email and password
     public void getUserByEmailAndPassword(@NotNull final String email, @NotNull final String password, @NotNull final DatabaseCallback<User> callback) {
-        getUserList(new DatabaseCallback<>() {
-            @Override
-            public void onCompleted(List<User> users) {
-                for (User user : users) {
-                    if (Objects.equals(user.getEmail(), email) && Objects.equals(user.getPassword(), password)) {
-                        callback.onCompleted(user);
-                        return;
+        // ביצוע שאילתה ישירה בשרת במקום להוריד את כל המשתמשים
+        databaseReference.child(USERS_PATH).orderByChild("email").equalTo(email)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.exists()) {
+                            // snapshot עשוי להכיל מספר תוצאות (למרות שאימייל אמור להיות ייחודי), נרוץ על הילדים
+                            for (DataSnapshot userSnapshot : snapshot.getChildren()) {
+                                User user = userSnapshot.getValue(User.class);
+                                if (user != null && Objects.equals(user.getPassword(), password)) {
+                                    callback.onCompleted(user);
+                                    return;
+                                }
+                            }
+                        }
+                        // אם הגענו לכאן - לא נמצא משתמש או שהסיסמה שגויה
+                        callback.onCompleted(null);
                     }
-                }
-                callback.onCompleted(null);
-            }
 
-            @Override
-            public void onFailed(Exception e) {
-
-            }
-        });
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        callback.onFailed(error.toException());
+                    }
+                });
     }
-
     /// check if an email already exists in the database
-    ///
-    /// @param email    the email to check
-    /// @param callback the callback to call when the operation is completed
+    /// check if an email already exists in the database
     public void checkIfEmailExists(@NotNull final String email, @NotNull final DatabaseCallback<Boolean> callback) {
-        getUserList(new DatabaseCallback<>() {
-            @Override
-            public void onCompleted(List<User> users) {
-                for (User user : users) {
-                    if (Objects.equals(user.getEmail(), email)) {
-                        callback.onCompleted(true);
-                        return;
+        // ביצוע שאילתה ישירה בשרת במקום להוריד את כל המשתמשים
+        databaseReference.child(USERS_PATH).orderByChild("email").equalTo(email)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        // אם יש תוצאה, האימייל קיים
+                        callback.onCompleted(snapshot.exists());
                     }
-                }
-                callback.onCompleted(false);
-            }
 
-            @Override
-            public void onFailed(Exception e) {
-
-            }
-        });
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        callback.onFailed(error.toException());
+                    }
+                });
     }
 
     public void updateUser(@NotNull final User user, @Nullable final DatabaseCallback<Void> callback) {
-        runTransaction(USERS_PATH + "/" + user.getId(), User.class, currentUser -> user, new DatabaseCallback<>() {
-            @Override
-            public void onCompleted(User object) {
-                if (callback != null) {
-                    callback.onCompleted(null);
-                }
-            }
+        // ניצור מפה של השדות שאנחנו רוצים לעדכן בלבד, כדי לא לדרוס רשימות כמו eventIds/groupIds
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("firstName", user.getFirstName());
+        updates.put("lastName", user.getLastName());
+        updates.put("phone", user.getPhone());
+        updates.put("profileImage", user.getProfileImage());
+        updates.put("email", user.getEmail());
+        updates.put("password", user.getPassword());
 
-            @Override
-            public void onFailed(Exception e) {
-                if (callback != null) {
-                    callback.onFailed(e);
-                }
-            }
-        });
+        databaseReference.child(USERS_PATH).child(user.getId()).updateChildren(updates)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        if (callback != null) callback.onCompleted(null);
+                    } else {
+                        if (callback != null) callback.onFailed(task.getException());
+                    }
+                });
     }
-
     /// update only the admin status of a user
     ///
     /// @param uid      user id
@@ -482,47 +486,63 @@ public class DatabaseService {
     }
 
     public void listenForNewJoinRequests(String currentUserId, Context context) {
-        databaseReference.child(GROUPS_PATH).addValueEventListener(new ValueEventListener() {
+        // קודם נשלוף את פרטי המשתמש כדי לדעת באילו קבוצות הוא נמצא
+        getUser(currentUserId, new DatabaseCallback<User>() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                for (DataSnapshot groupSnapshot : snapshot.getChildren()) {
-                    Group group = groupSnapshot.getValue(Group.class);
-                    if (group == null) continue;
+            public void onCompleted(User user) {
+                if (user == null || user.getGroupIds() == null || user.getGroupIds().isEmpty()) {
+                    isFirstLoad = false;
+                    return;
+                }
 
-                    boolean isCreator = group.getCreatorId() != null && group.getCreatorId().equals(currentUserId);
-                    boolean isManager = group.getManagers() != null && group.getManagers().containsKey(currentUserId);
+                // נעבור על כל הקבוצות של המשתמש ונאזין *אך ורק* להן!
+                for (String groupId : user.getGroupIds().keySet()) {
+                    databaseReference.child(GROUPS_PATH).child(groupId)
+                            .addValueEventListener(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                    Group group = snapshot.getValue(Group.class);
+                                    if (group == null) return;
 
-                    if (isCreator || isManager) {
-                        if (group.getPendingRequests() != null) {
-                            for (String requesterId : group.getPendingRequests().keySet()) {
-                                // יצירת מזהה ייחודי לבקשה הזו (מזהה קבוצה + מזהה משתמש)
-                                String uniqueRequestId = group.getId() + "_" + requesterId;
+                                    boolean isCreator = group.getCreatorId() != null && group.getCreatorId().equals(currentUserId);
+                                    boolean isManager = group.getManagers() != null && group.getManagers().containsKey(currentUserId);
 
-                                // אם עדיין לא התראנו על הבקשה הזו (ולא מדובר בטעינה ראשונית של כל הנתונים)
-                                if (!notifiedRequests.contains(uniqueRequestId)) {
-                                    notifiedRequests.add(uniqueRequestId);
+                                    // מציג התראות רק למנהלים או ליוצר הקבוצה
+                                    if (isCreator || isManager) {
+                                        if (group.getPendingRequests() != null) {
+                                            for (String requesterId : group.getPendingRequests().keySet()) {
+                                                String uniqueRequestId = group.getId() + "_" + requesterId;
 
-                                    // קופץ רק אם זו בקשה חדשה בזמן אמת (ולא מההיסטוריה כשהאפליקציה נפתחת)
-                                    if (!isFirstLoad) {
-                                        FitLinkNotificationService.getInstance(context)
-                                                .showJoinRequestNotification(group.getName(), requesterId);
+                                                if (!notifiedRequests.contains(uniqueRequestId)) {
+                                                    notifiedRequests.add(uniqueRequestId);
+
+                                                    if (!isFirstLoad) {
+                                                        FitLinkNotificationService.getInstance(context)
+                                                                .showJoinRequestNotification(group.getName(), requesterId);
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                 }
-                            }
-                        }
-                    }
+
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError error) {
+                                    Log.e(TAG, "Failed to listen to group requests", error.toException());
+                                }
+                            });
                 }
-                // אחרי הסריקה הראשונה, אנחנו מורידים את הדגל כדי שהתראות חדשות יקפצו
-                isFirstLoad = false;
+
+                // מורידים את דגל הטעינה הראשונית אחרי השהייה קלה כדי לא להקפיץ התראות מהעבר
+                new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> isFirstLoad = false, 2000);
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.e(TAG, "Failed to listen for join requests", error.toException());
+            public void onFailed(Exception e) {
+                Log.e(TAG, "Failed to fetch user for join requests", e);
             }
         });
     }
-
     /**
      * Creates a new sports group and updates the creator's user record.
      */
@@ -607,10 +627,19 @@ public class DatabaseService {
         });
     }
     /**
-     * Updates an existing group in the database.
+     * Updates an existing group in the database without overwriting members/managers.
      */
     public void updateGroup(@NotNull final Group group, @Nullable final DatabaseCallback<Void> callback) {
-        databaseReference.child(GROUPS_PATH).child(group.getId()).setValue(group)
+        // ניצור מפה של השדות שאנחנו באמת רוצים לעדכן, כדי לא לדרוס את רשימות המשתמשים
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("name", group.getName());
+        updates.put("description", group.getDescription());
+        updates.put("sportType", group.getSportType());
+        updates.put("level", group.getLevel());
+        updates.put("location", group.getLocation());
+        updates.put("groupImage", group.getGroupImage());
+
+        databaseReference.child(GROUPS_PATH).child(group.getId()).updateChildren(updates)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         if (callback != null) callback.onCompleted(null);
@@ -739,10 +768,21 @@ public class DatabaseService {
         });
     }
     /**
-     * Updates an existing event in the database.
+     * Updates an existing event in the database without overwriting participants.
      */
     public void updateEvent(@NotNull final Event event, @Nullable final DatabaseCallback<Void> callback) {
-        databaseReference.child(EVENTS_PATH).child(event.getId()).setValue(event)
+        // ניצור מפה של השדות שאנחנו באמת רוצים לעדכן, כדי לא לדרוס את רשימת המשתתפים
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("title", event.getTitle());
+        updates.put("description", event.getDescription());
+        updates.put("startTimestamp", event.getStartTimestamp());
+        updates.put("durationMillis", event.getDurationMillis());
+        updates.put("location", event.getLocation());
+        updates.put("maxParticipants", event.getMaxParticipants());
+        updates.put("sportType", event.getSportType());
+        updates.put("level", event.getLevel());
+
+        databaseReference.child(EVENTS_PATH).child(event.getId()).updateChildren(updates)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         if (callback != null) callback.onCompleted(null);
@@ -1174,63 +1214,119 @@ public class DatabaseService {
      * Uses a single-fetch (get) to prevent infinite loops from continuous listeners.
      */
     public void cleanupOldEvents(long cutoffTimestamp, @Nullable final DatabaseCallback<Integer> callback) {
-        // קריאה חד-פעמית למסד הנתונים (ולא מאזין רציף)
-        databaseReference.child(EVENTS_PATH).get().addOnCompleteListener(task -> {
-            if (!task.isSuccessful()) {
-                if (callback != null) callback.onFailed(task.getException());
-                return;
-            }
-
-            List<Event> events = new ArrayList<>();
-            for (DataSnapshot snapshot : task.getResult().getChildren()) {
-                Event event = snapshot.getValue(Event.class);
-                if (event != null) {
-                    events.add(event);
-                }
-            }
-
-            if (events.isEmpty()) {
-                if (callback != null) callback.onCompleted(0);
-                return;
-            }
-
-            // סינון אירועים ישנים
-            List<Event> eventsToDelete = new ArrayList<>();
-            for (Event event : events) {
-                if (event.getEndTimestamp() > 0 && event.getEndTimestamp() < cutoffTimestamp) {
-                    eventsToDelete.add(event);
-                }
-            }
-
-            if (eventsToDelete.isEmpty()) {
-                if (callback != null) callback.onCompleted(0); // אין מה לנקות
-                return;
-            }
-
-            // מחיקת האירועים הישנים בזה אחר זה (כל אחד שומר על הסטטיסטיקות של משתתפיו)
-            int[] completedOperations = {0};
-            for (Event event : eventsToDelete) {
-                deleteEvent(event.getId(), new DatabaseCallback<Void>() {
-                    @Override
-                    public void onCompleted(Void object) {
-                        checkIfDone();
+        // שימוש בשאילתה: מביא מראש רק אירועים שזמן ההתחלה שלהם הוא לפני נקודת ה-cutoff!
+        // זה חוסך הורדה של כל האירועים העתידיים לזיכרון
+        databaseReference.child(EVENTS_PATH).orderByChild("startTimestamp").endAt((double) cutoffTimestamp)
+                .get().addOnCompleteListener(task -> {
+                    if (!task.isSuccessful()) {
+                        if (callback != null) callback.onFailed(task.getException());
+                        return;
                     }
 
-                    @Override
-                    public void onFailed(Exception e) {
-                        checkIfDone(); // ממשיכים הלאה גם אם אירוע אחד נכשל
-                    }
-
-                    private void checkIfDone() {
-                        completedOperations[0]++;
-                        // אם סיימנו לעבור על כל האירועים
-                        if (completedOperations[0] == eventsToDelete.size()) {
-                            if (callback != null) callback.onCompleted(eventsToDelete.size());
+                    List<Event> events = new ArrayList<>();
+                    for (DataSnapshot snapshot : task.getResult().getChildren()) {
+                        Event event = snapshot.getValue(Event.class);
+                        if (event != null) {
+                            events.add(event);
                         }
                     }
+
+                    if (events.isEmpty()) {
+                        if (callback != null) callback.onCompleted(0);
+                        return;
+                    }
+
+                    // סינון סופי של האירועים שגם זמן ה*סיום* שלהם עבר את ה-cutoff
+                    List<Event> eventsToDelete = new ArrayList<>();
+                    for (Event event : events) {
+                        if (event.getEndTimestamp() > 0 && event.getEndTimestamp() < cutoffTimestamp) {
+                            eventsToDelete.add(event);
+                        }
+                    }
+
+                    if (eventsToDelete.isEmpty()) {
+                        if (callback != null) callback.onCompleted(0); // אין מה לנקות
+                        return;
+                    }
+
+                    // מחיקת האירועים הישנים (תוך שמירה על היסטוריית גיימיפיקציה)
+                    int[] completedOperations = {0};
+                    for (Event event : eventsToDelete) {
+                        deleteEvent(event.getId(), new DatabaseCallback<Void>() {
+                            @Override
+                            public void onCompleted(Void object) {
+                                checkIfDone();
+                            }
+
+                            @Override
+                            public void onFailed(Exception e) {
+                                checkIfDone(); // ממשיכים הלאה למחיקה הבאה גם אם אירוע אחד נכשל
+                            }
+
+                            private void checkIfDone() {
+                                completedOperations[0]++;
+                                if (completedOperations[0] == eventsToDelete.size()) {
+                                    if (callback != null) callback.onCompleted(eventsToDelete.size());
+                                }
+                            }
+                        });
+                    }
                 });
+    }
+    /**
+     * Listens for real-time changes to a specific group.
+     * Useful for detecting if a user was removed from a group or if the group was deleted.
+     */
+    public ValueEventListener listenToGroup(@NotNull final String groupId, @NotNull final DatabaseCallback<Group> callback) {
+        ValueEventListener listener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Group group = snapshot.getValue(Group.class);
+                callback.onCompleted(group);
             }
-        });
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                callback.onFailed(error.toException());
+            }
+        };
+        databaseReference.child(GROUPS_PATH).child(groupId).addValueEventListener(listener);
+        return listener;
+    }
+
+    /**
+     * Removes a previously attached real-time listener for a group.
+     */
+    public void removeGroupListener(@NotNull final String groupId, @NotNull final ValueEventListener listener) {
+        databaseReference.child(GROUPS_PATH).child(groupId).removeEventListener(listener);
+    }
+
+    /**
+     * Listens for real-time changes to a specific user.
+     * Useful for forcing a logout if the user is deleted by an admin.
+     */
+    public ValueEventListener listenToUser(@NotNull final String userId, @NotNull final DatabaseCallback<User> callback) {
+        ValueEventListener listener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                User user = snapshot.getValue(User.class);
+                callback.onCompleted(user);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                callback.onFailed(error.toException());
+            }
+        };
+        databaseReference.child(USERS_PATH).child(userId).addValueEventListener(listener);
+        return listener;
+    }
+
+    /**
+     * Removes a previously attached real-time listener for a user.
+     */
+    public void removeUserListener(@NotNull final String userId, @NotNull final ValueEventListener listener) {
+        databaseReference.child(USERS_PATH).child(userId).removeEventListener(listener);
     }
 
     /// callback interface for database operations

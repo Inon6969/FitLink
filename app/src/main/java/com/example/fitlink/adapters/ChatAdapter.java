@@ -34,7 +34,9 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private final List<ChatMessage> messages;
     private final String currentUserId;
     private final String creatorId;
-    private final Map<String, Boolean> managers;
+
+    // הוסר ה-final כדי שנוכל לעדכן את מנהלי הקבוצה בזמן אמת
+    private Map<String, Boolean> managers;
 
     // התיקון: הרחבנו את הממשק כדי שיתמוך בלחיצה על הודעה, שם ותמונה
     private final OnMessageClickListener clickListener;
@@ -52,6 +54,13 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         this.managers = managers;
         this.clickListener = clickListener;
     }
+
+    // --- הפונקציה החדשה שנוספה ---
+    public void updateGroupManagers(Map<String, Boolean> newManagers) {
+        this.managers = newManagers;
+        notifyDataSetChanged();
+    }
+    // ------------------------------
 
     @Override
     public int getItemViewType(int position) {
