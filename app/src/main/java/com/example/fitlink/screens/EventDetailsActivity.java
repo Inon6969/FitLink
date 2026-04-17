@@ -1,8 +1,8 @@
 package com.example.fitlink.screens;
 
-import android.app.Dialog; // הוסף
+import android.app.Dialog;
 import android.content.Intent;
-import android.graphics.Bitmap; // הוסף
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
@@ -25,13 +25,14 @@ import com.example.fitlink.R;
 import com.example.fitlink.adapters.CommentAdapter;
 import com.example.fitlink.models.Comment;
 import com.example.fitlink.models.Event;
+import com.example.fitlink.models.Group; // הוספנו את המודל של קבוצה
 import com.example.fitlink.models.SportType;
 import com.example.fitlink.models.User;
 import com.example.fitlink.screens.dialogs.DeleteEventDialog;
 import com.example.fitlink.screens.dialogs.EditEventDialog;
 import com.example.fitlink.screens.dialogs.EditIndependentEventDialog;
 import com.example.fitlink.services.DatabaseService;
-import com.example.fitlink.utils.ImageUtil; // הוסף
+import com.example.fitlink.utils.ImageUtil;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.google.android.material.button.MaterialButton;
 
@@ -46,6 +47,7 @@ public class EventDetailsActivity extends BaseActivity {
     private Event currentEvent;
     private String currentUserId;
     private boolean isAdminMode = false;
+    private boolean isGroupCreator = false; // משתנה חדש לבדיקה האם המשתמש יצר את הקבוצה
 
     private ImageView imgIcon;
     private TextView tvTitle, tvCreator, tvDateTime, tvLocation, tvParticipants, tvDescription;
@@ -122,10 +124,29 @@ public class EventDetailsActivity extends BaseActivity {
         initViews();
         setupToolbar();
         populateEventData();
-        setupActionButtons();
-
         setupComments();
         loadComments();
+
+        // בדיקה: אם האירוע שייך לקבוצה, נמשוך את פרטי הקבוצה כדי לבדוק מי היוצר שלה
+        if (currentEvent.getGroupId() != null && !currentEvent.getGroupId().isEmpty()) {
+            databaseService.getGroup(currentEvent.getGroupId(), new DatabaseService.DatabaseCallback<Group>() {
+                @Override
+                public void onCompleted(Group group) {
+                    if (group != null && group.getCreatorId() != null) {
+                        isGroupCreator = group.getCreatorId().equals(currentUserId);
+                    }
+                    setupActionButtons(); // מעדכן את הכפתורים אחרי שיודעים את ההרשאות
+                }
+
+                @Override
+                public void onFailed(Exception e) {
+                    setupActionButtons(); // אם נכשל, נציג רגיל
+                }
+            });
+        } else {
+            // אירוע עצמאי, אין צורך לבדוק הרשאות קבוצה
+            setupActionButtons();
+        }
     }
 
     private void initViews() {
@@ -278,10 +299,14 @@ public class EventDetailsActivity extends BaseActivity {
     }
 
     private void setupActionButtons() {
-        boolean isCreator = currentEvent.getCreatorId() != null && currentEvent.getCreatorId().equals(currentUserId);
+        // בדיקת הרשאות מורחבת שכוללת עכשיו גם את isGroupCreator
+        boolean isEventCreator = currentEvent.getCreatorId() != null && currentEvent.getCreatorId().equals(currentUserId);
         boolean isJoined = currentEvent.getParticipants() != null && currentEvent.getParticipants().containsKey(currentUserId);
         boolean isIndependent = currentEvent.isIndependent();
-        boolean canManage = isCreator || isAdminMode;
+
+        // היכולת לנהל את האירוע פתוחה ליוצר האירוע, ליוצר הקבוצה, או לאדמין המערכת
+        boolean canManage = isEventCreator || isGroupCreator || isAdminMode;
+
         boolean isPastEvent = currentEvent.getEndTimestamp() < System.currentTimeMillis();
 
         btnMainAction.setVisibility(View.VISIBLE);
@@ -303,7 +328,7 @@ public class EventDetailsActivity extends BaseActivity {
 
         btnMainAction.setEnabled(true);
 
-        if (isIndependent && isCreator) {
+        if (isIndependent && isEventCreator) {
             btnMainAction.setVisibility(View.GONE);
         } else {
             btnMainAction.setVisibility(View.VISIBLE);
@@ -424,7 +449,6 @@ public class EventDetailsActivity extends BaseActivity {
     private void setupComments() {
         rvComments.setLayoutManager(new LinearLayoutManager(this));
 
-        // התיקון: מעבירים את ה-Listener שמאזין ללחיצות מהתגובות
         commentAdapter = new CommentAdapter(new ArrayList<>(), new CommentAdapter.OnCommentClickListener() {
             @Override
             public void onNameClick(String userId) {
@@ -510,7 +534,6 @@ public class EventDetailsActivity extends BaseActivity {
         });
     }
 
-    // התיקון: הפונקציה להצגת תמונת פרופיל בגודל מלא של המגיב
     private void showFullImageDialog(String userId) {
         if (userId == null) return;
 

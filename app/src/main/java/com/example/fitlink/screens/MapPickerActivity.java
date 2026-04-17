@@ -102,7 +102,7 @@ public class MapPickerActivity extends AppCompatActivity {
             return false;
         });
 
-        // --- הבדיקה הקריטית החדשה שכופה על המשתמש לחכות במצבי טעינה ---
+        // --- הבדיקה הקריטית החדשה שכופה על המשתמש לחכות במצבי טעינה ומונעת כתובות ריקות ---
         btnConfirm.setOnClickListener(v -> {
             String currentStatus = tvSelectedAddress.getText().toString();
 
@@ -110,8 +110,19 @@ public class MapPickerActivity extends AppCompatActivity {
                     currentStatus.equals("Loading address...") ||
                     currentStatus.equals("Searching...")) {
                 Toast.makeText(this, "Please wait for location to load", Toast.LENGTH_SHORT).show();
-            } else if (finalSelectedPoint != null && !finalAddressString.isEmpty()) {
+
+            } else if (finalAddressString.isEmpty() ||
+                    finalAddressString.equals("Unknown Location") ||
+                    finalAddressString.startsWith("Location Selected") ||
+                    currentStatus.equals("Address not found. Try again.") ||
+                    currentStatus.equals("Network error. Try again.")) {
+                // מונע מהמשתמש לבחור כתובת לא חוקית
+                Toast.makeText(this, "Please select a valid address", Toast.LENGTH_SHORT).show();
+
+            } else if (finalSelectedPoint != null) {
+                // הכל תקין, אפשר להחזיר את התוצאה
                 returnResult();
+
             } else {
                 Toast.makeText(this, "Please wait for location to load", Toast.LENGTH_SHORT).show();
             }

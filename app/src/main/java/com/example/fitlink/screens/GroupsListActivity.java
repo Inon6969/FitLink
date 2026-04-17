@@ -271,23 +271,45 @@ public class GroupsListActivity extends BaseActivity {
             return;
         }
 
-        // אם הוא עדיין לא שלח בקשה - נשלח בקשה חדשה
-        progressBar.setVisibility(View.VISIBLE);
-        databaseService.requestToJoinGroup(group.getId(), Objects.requireNonNull(currentUserId), new DatabaseService.DatabaseCallback<Void>() {
-            @Override
-            public void onCompleted(Void object) {
-                progressBar.setVisibility(View.GONE);
-                Toast.makeText(GroupsListActivity.this, "Join request sent!", Toast.LENGTH_SHORT).show();
-                loadGroups();
-            }
-            @Override
-            public void onFailed(Exception e) {
-                progressBar.setVisibility(View.GONE);
-                Toast.makeText(GroupsListActivity.this, "Failed to send request", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
+        // --- הלוגיקה החדשה: הצטרפות מיידית ליוצר הקבוצה ---
+        boolean isCreator = group.getCreatorId() != null && group.getCreatorId().equals(currentUserId);
 
+        if (isCreator) {
+            progressBar.setVisibility(View.VISIBLE);
+            // אם הוא היוצר, אנחנו מדלגים על בקשת ההצטרפות ומאשרים אותו מיידית
+            databaseService.approveJoinRequest(group.getId(), Objects.requireNonNull(currentUserId), new DatabaseService.DatabaseCallback<Void>() {
+                @Override
+                public void onCompleted(Void object) {
+                    progressBar.setVisibility(View.GONE);
+                    Toast.makeText(GroupsListActivity.this, "Welcome back, Creator!", Toast.LENGTH_SHORT).show();
+                    loadGroups();
+                }
+
+                @Override
+                public void onFailed(Exception e) {
+                    progressBar.setVisibility(View.GONE);
+                    Toast.makeText(GroupsListActivity.this, "Failed to rejoin group", Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            // אם הוא לא היוצר - נשלח בקשה רגילה למנהלים
+            progressBar.setVisibility(View.VISIBLE);
+            databaseService.requestToJoinGroup(group.getId(), Objects.requireNonNull(currentUserId), new DatabaseService.DatabaseCallback<Void>() {
+                @Override
+                public void onCompleted(Void object) {
+                    progressBar.setVisibility(View.GONE);
+                    Toast.makeText(GroupsListActivity.this, "Join request sent!", Toast.LENGTH_SHORT).show();
+                    loadGroups();
+                }
+
+                @Override
+                public void onFailed(Exception e) {
+                    progressBar.setVisibility(View.GONE);
+                    Toast.makeText(GroupsListActivity.this, "Failed to send request", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+    }
     private void handleLeaveGroup(Group group) {
         String currentUserId = SharedPreferencesUtil.getUserId(this);
         boolean isCreator = group.getCreatorId() != null && group.getCreatorId().equals(currentUserId);

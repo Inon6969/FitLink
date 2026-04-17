@@ -1,7 +1,9 @@
 package com.example.fitlink.screens;
 
+import android.Manifest;
 import android.app.Dialog;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -19,6 +21,8 @@ import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.GravityCompat;
 import androidx.core.view.ViewCompat;
@@ -41,6 +45,7 @@ import java.util.Objects;
 public class UserProfileActivity extends BaseActivity implements NavigationView.OnNavigationItemSelectedListener {
     private static final int REQ_CAMERA = 100;
     private static final int REQ_GALLERY = 200;
+    private static final int REQ_CAMERA_PERMISSION = 101; // קבוע עבור בקשת הרשאת מצלמה
 
     private TextView txtTitle, txtRank, txtFirstName, txtLastName, txtEmail, txtPhone, txtPassword;
     private TextView txtStatGroups, txtStatUpcoming, txtStatCompleted;
@@ -72,7 +77,6 @@ public class UserProfileActivity extends BaseActivity implements NavigationView.
         initViews();
         loadUserData();
 
-        // קביעת התפריט על בסיס המשתמש שמחובר לאפליקציה (כדי שהפרטים בתפריט יהיו תמיד שלך)
         User loggedInUser = SharedPreferencesUtil.getUser(this);
         setupNavigationDrawer(loggedInUser);
     }
@@ -81,26 +85,19 @@ public class UserProfileActivity extends BaseActivity implements NavigationView.
     protected void onResume() {
         super.onResume();
         NavigationView navigationView = findViewById(R.id.nav_view);
-        // מסמן את "Account" רק אם זה הפרופיל של המשתמש המחובר
         if (navigationView != null && isCurrentUser) {
             navigationView.setCheckedItem(R.id.nav_account);
         }
     }
 
     private void initViews() {
-        // מאזין לכל ה-DrawerLayout כדי לשלוט בריווח ה-Status Bar
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.drawer_layout), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-
-            // מחיל על המסך המרכזי
             findViewById(R.id.detailsAboutUserPage).setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-
-            // מחיל על התפריט צד
             View navView = findViewById(R.id.nav_view);
             if (navView != null) {
                 navView.setPadding(0, systemBars.top, 0, systemBars.bottom);
             }
-
             return insets;
         });
 
@@ -129,7 +126,6 @@ public class UserProfileActivity extends BaseActivity implements NavigationView.
             btnChangePhoto.setVisibility(View.GONE);
             layoutPasswordContainer.setVisibility(View.GONE);
 
-            // --- טיפול במספר הטלפון ---
             txtPhone.setPaintFlags(txtPhone.getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
             txtPhone.setOnClickListener(v -> {
                 if (user != null && user.getPhone() != null && !user.getPhone().isEmpty()) {
@@ -143,7 +139,6 @@ public class UserProfileActivity extends BaseActivity implements NavigationView.
                 }
             });
 
-            // --- טיפול באימייל ---
             txtEmail.setPaintFlags(txtEmail.getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
             txtEmail.setOnClickListener(v -> {
                 if (user != null && user.getEmail() != null && !user.getEmail().isEmpty()) {
@@ -189,15 +184,13 @@ public class UserProfileActivity extends BaseActivity implements NavigationView.
         NavigationView navigationView = findViewById(R.id.nav_view);
 
         if (!isCurrentUser) {
-            // אם המשתמש צופה בפרופיל של מישהו אחר: אין תפריט, רק כפתור "חזור"
             if (getSupportActionBar() != null) {
                 getSupportActionBar().setDisplayHomeAsUpEnabled(true);
                 getSupportActionBar().setDisplayShowHomeEnabled(true);
             }
             toolbar.setNavigationOnClickListener(v -> onBackPressed());
-            drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED); // נועל את התפריט
+            drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
         } else {
-            // אם זה הפרופיל שלך: מציג את ההמבורגר והתפריט המלא
             ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                     this, drawerLayout, toolbar,
                     R.string.navigation_drawer_open,
@@ -210,7 +203,6 @@ public class UserProfileActivity extends BaseActivity implements NavigationView.
             navigationView.setCheckedItem(R.id.nav_account);
             updateNavHeader(loggedInUser, navigationView);
 
-            // צביעת כפתור ההתנתקות באדום
             android.view.Menu menu = navigationView.getMenu();
             android.view.MenuItem logoutItem = menu.findItem(R.id.nav_logout);
 
@@ -259,7 +251,7 @@ public class UserProfileActivity extends BaseActivity implements NavigationView.
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             startActivity(intent);
         } else if (id == R.id.nav_account) {
-            // כבר נמצאים כאן
+            // Already here
         } else if (id == R.id.nav_contact) {
             Intent intent = new Intent(this, ContactActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -327,7 +319,6 @@ public class UserProfileActivity extends BaseActivity implements NavigationView.
             if (isCurrentUser) {
                 getSupportActionBar().setTitle("My Profile");
             } else {
-                // מציג את השם הפרטי של המשתמש + Profile (לדוגמה: "Inon's Profile")
                 getSupportActionBar().setTitle(user.getFirstName() + "'s Profile");
             }
         }
@@ -417,14 +408,27 @@ public class UserProfileActivity extends BaseActivity implements NavigationView.
         editDialog.show();
     }
 
+    /**
+     * פותח את דיאלוג בחירת התמונה ובודק הרשאות מצלמה במידת הצורך.
+     */
     private void openImagePicker() {
         boolean hasImage = user.getProfileImage() != null && !user.getProfileImage().isEmpty();
 
         new ProfileImageDialog(this, hasImage, false, new ProfileImageDialog.ImagePickerListener() {
             @Override
             public void onCamera() {
-                Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-                startActivityForResult(cameraIntent, REQ_CAMERA);
+                // בדיקה האם יש הרשאת מצלמה
+                if (ContextCompat.checkSelfPermission(UserProfileActivity.this, Manifest.permission.CAMERA)
+                        != PackageManager.PERMISSION_GRANTED) {
+
+                    // בקשת הרשאה מהמשתמש בזמן ריצה
+                    ActivityCompat.requestPermissions(UserProfileActivity.this,
+                            new String[]{Manifest.permission.CAMERA},
+                            REQ_CAMERA_PERMISSION);
+                } else {
+                    // אם כבר יש הרשאה, נפתח את המצלמה
+                    openCameraIntent();
+                }
             }
 
             @Override
@@ -439,6 +443,32 @@ public class UserProfileActivity extends BaseActivity implements NavigationView.
                 deleteProfileImage();
             }
         }).show();
+    }
+
+    /**
+     * פונקציית עזר להפעלת ה-Intent של המצלמה.
+     */
+    private void openCameraIntent() {
+        Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+        startActivityForResult(cameraIntent, REQ_CAMERA);
+    }
+
+    /**
+     * מטפל בתשובת המשתמש לבקשת ההרשאה.
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == REQ_CAMERA_PERMISSION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // המשתמש אישר, פותחים מצלמה
+                openCameraIntent();
+            } else {
+                // המשתמש דחה
+                Toast.makeText(this, "נדרשת הרשאת מצלמה כדי לצלם תמונה", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     private void deleteProfileImage() {
@@ -481,10 +511,8 @@ public class UserProfileActivity extends BaseActivity implements NavigationView.
 
         if (bitmap != null) {
             imgUserProfile.setImageBitmap(bitmap);
-
             String base64 = ImageUtil.convertTo64Base(imgUserProfile);
             user.setProfileImage(base64);
-
             saveProfileImage();
         }
     }

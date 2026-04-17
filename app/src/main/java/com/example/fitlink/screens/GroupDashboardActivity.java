@@ -45,6 +45,7 @@ public class GroupDashboardActivity extends BaseActivity {
     private Group currentGroup;
     private ImageView imgGroupPhoto;
     private Chip chipGroupLevel;
+    private Chip chipGroupType;
     private CreateEventDialog currentCreateEventDialog;
     private EditGroupDialog currentEditGroupDialog;
 
@@ -88,7 +89,6 @@ public class GroupDashboardActivity extends BaseActivity {
 
         String currentUserId = SharedPreferencesUtil.getUserId(this);
 
-        // האזנה בזמן אמת לשינויים בקבוצה (כולל הדחה של המשתמש מהקבוצה)
         groupListener = DatabaseService.getInstance().listenToGroup(groupId, new DatabaseService.DatabaseCallback<Group>() {
             @Override
             public void onCompleted(Group group) {
@@ -98,7 +98,6 @@ public class GroupDashboardActivity extends BaseActivity {
                     return;
                 }
 
-                // העפה מיידית אם המשתמש כבר לא ברשימת המשתתפים
                 if (group.getMembers() == null || !group.getMembers().containsKey(currentUserId)) {
                     Toast.makeText(GroupDashboardActivity.this, "You are no longer a member of this group.", Toast.LENGTH_LONG).show();
                     finish();
@@ -107,33 +106,27 @@ public class GroupDashboardActivity extends BaseActivity {
 
                 currentGroup = group;
 
-                // --- תוספת אבטחה: סגירת דיאלוגים אם איבדנו הרשאות ניהול ---
                 boolean isCreator = currentGroup.getCreatorId() != null && currentGroup.getCreatorId().equals(currentUserId);
                 boolean isManager = currentGroup.getManagers() != null && currentGroup.getManagers().containsKey(currentUserId);
 
                 if (!isCreator && !isManager) {
-                    // אם הוא לא יוצר ולא מנהל, נסגור לו את דיאלוג יצירת האירוע אם פתוח
                     if (currentCreateEventDialog != null && currentCreateEventDialog.isShowing()) {
-                        // בהנחה שיש לדיאלוג פונקציית dismiss()
                         currentCreateEventDialog.dismiss();
                         Toast.makeText(GroupDashboardActivity.this, "Your manager permissions were removed.", Toast.LENGTH_SHORT).show();
                     }
                 }
 
                 if (!isCreator) {
-                    // רק היוצר יכול לערוך קבוצה, נסגור אם פתוח והוא כבר לא היוצר
                     if (currentEditGroupDialog != null && currentEditGroupDialog.isShowing()) {
                         currentEditGroupDialog.dismiss();
                         Toast.makeText(GroupDashboardActivity.this, "You no longer have permission to edit.", Toast.LENGTH_SHORT).show();
                     }
                 }
-                // ------------------------------------------------------------
 
                 if (!isInitialized) {
                     initViews();
                     isInitialized = true;
                 } else {
-                    // הנתונים השתנו - נעדכן את המסך
                     updateUI();
                 }
             }
@@ -150,7 +143,6 @@ public class GroupDashboardActivity extends BaseActivity {
     protected void onDestroy() {
         super.onDestroy();
 
-        // סגירת דיאלוגים פתוחים כדי למנוע דליפות זיכרון (WindowLeaked)
         if (currentCreateEventDialog != null && currentCreateEventDialog.isShowing()) {
             currentCreateEventDialog.dismiss();
         }
@@ -158,7 +150,6 @@ public class GroupDashboardActivity extends BaseActivity {
             currentEditGroupDialog.dismiss();
         }
 
-        // הסרת המאזין מהרשת
         if (currentGroup != null && groupListener != null && currentGroup.getId() != null) {
             DatabaseService.getInstance().removeGroupListener(currentGroup.getId(), groupListener);
         }
@@ -192,6 +183,7 @@ public class GroupDashboardActivity extends BaseActivity {
 
         imgGroupPhoto = findViewById(R.id.img_dashboard_group_photo);
         chipGroupLevel = findViewById(R.id.chip_dashboard_level);
+        chipGroupType = findViewById(R.id.chip_dashboard_type);
 
         LinearLayout layoutLocation = findViewById(R.id.layout_dashboard_location);
         TextView tvLocation = findViewById(R.id.tv_dashboard_location);
@@ -235,7 +227,6 @@ public class GroupDashboardActivity extends BaseActivity {
 
         findViewById(R.id.btn_dashboard_edit).setOnClickListener(v -> {
             currentEditGroupDialog = new EditGroupDialog(this, currentGroup, updatedGroup -> {
-                // המאזין מעדכן את המסך באופן אוטומטי, לכן הקולבק כאן יכול להישאר ריק
             });
             currentEditGroupDialog.show();
         });
@@ -307,6 +298,14 @@ public class GroupDashboardActivity extends BaseActivity {
         if (getSupportActionBar() != null) getSupportActionBar().setTitle(currentGroup.getName());
         TextView tvTitle = findViewById(R.id.tv_dashboard_title);
         tvTitle.setText(currentGroup.getName());
+
+        // תוקן ל-getSportType() כדי שיתאים למודל Group
+        if (currentGroup.getSportType() != null) {
+            chipGroupType.setText(currentGroup.getSportType().toString());
+            chipGroupType.setVisibility(View.VISIBLE);
+        } else {
+            chipGroupType.setVisibility(View.GONE);
+        }
 
         if (currentGroup.getLevel() != null) {
             chipGroupLevel.setText(currentGroup.getLevel().getDisplayName());
