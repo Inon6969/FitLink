@@ -25,13 +25,14 @@ import com.example.fitlink.R;
 import com.example.fitlink.adapters.CommentAdapter;
 import com.example.fitlink.models.Comment;
 import com.example.fitlink.models.Event;
-import com.example.fitlink.models.Group; // הוספנו את המודל של קבוצה
+import com.example.fitlink.models.Group;
 import com.example.fitlink.models.SportType;
 import com.example.fitlink.models.User;
 import com.example.fitlink.screens.dialogs.DeleteEventDialog;
 import com.example.fitlink.screens.dialogs.EditEventDialog;
 import com.example.fitlink.screens.dialogs.EditIndependentEventDialog;
 import com.example.fitlink.services.DatabaseService;
+import com.example.fitlink.utils.EventReminderScheduler; // הוספנו את מחלקת התזמון
 import com.example.fitlink.utils.ImageUtil;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.google.android.material.button.MaterialButton;
@@ -47,7 +48,7 @@ public class EventDetailsActivity extends BaseActivity {
     private Event currentEvent;
     private String currentUserId;
     private boolean isAdminMode = false;
-    private boolean isGroupCreator = false; // משתנה חדש לבדיקה האם המשתמש יצר את הקבוצה
+    private boolean isGroupCreator = false;
 
     private ImageView imgIcon;
     private TextView tvTitle, tvCreator, tvDateTime, tvLocation, tvParticipants, tvDescription;
@@ -127,7 +128,6 @@ public class EventDetailsActivity extends BaseActivity {
         setupComments();
         loadComments();
 
-        // בדיקה: אם האירוע שייך לקבוצה, נמשוך את פרטי הקבוצה כדי לבדוק מי היוצר שלה
         if (currentEvent.getGroupId() != null && !currentEvent.getGroupId().isEmpty()) {
             databaseService.getGroup(currentEvent.getGroupId(), new DatabaseService.DatabaseCallback<Group>() {
                 @Override
@@ -135,16 +135,15 @@ public class EventDetailsActivity extends BaseActivity {
                     if (group != null && group.getCreatorId() != null) {
                         isGroupCreator = group.getCreatorId().equals(currentUserId);
                     }
-                    setupActionButtons(); // מעדכן את הכפתורים אחרי שיודעים את ההרשאות
+                    setupActionButtons();
                 }
 
                 @Override
                 public void onFailed(Exception e) {
-                    setupActionButtons(); // אם נכשל, נציג רגיל
+                    setupActionButtons();
                 }
             });
         } else {
-            // אירוע עצמאי, אין צורך לבדוק הרשאות קבוצה
             setupActionButtons();
         }
     }
@@ -299,12 +298,10 @@ public class EventDetailsActivity extends BaseActivity {
     }
 
     private void setupActionButtons() {
-        // בדיקת הרשאות מורחבת שכוללת עכשיו גם את isGroupCreator
         boolean isEventCreator = currentEvent.getCreatorId() != null && currentEvent.getCreatorId().equals(currentUserId);
         boolean isJoined = currentEvent.getParticipants() != null && currentEvent.getParticipants().containsKey(currentUserId);
         boolean isIndependent = currentEvent.isIndependent();
 
-        // היכולת לנהל את האירוע פתוחה ליוצר האירוע, ליוצר הקבוצה, או לאדמין המערכת
         boolean canManage = isEventCreator || isGroupCreator || isAdminMode;
 
         boolean isPastEvent = currentEvent.getEndTimestamp() < System.currentTimeMillis();
@@ -370,6 +367,9 @@ public class EventDetailsActivity extends BaseActivity {
                 currentEvent.addParticipant(currentUserId);
                 populateEventData();
                 setupActionButtons();
+
+                // תזמון ההתראה בעת הצטרפות לאירוע
+                EventReminderScheduler.scheduleReminder(EventDetailsActivity.this, currentEvent);
             }
 
             @Override
@@ -391,6 +391,9 @@ public class EventDetailsActivity extends BaseActivity {
                 currentEvent.removeParticipant(currentUserId);
                 populateEventData();
                 setupActionButtons();
+
+                // ביטול ההתראה בעת עזיבת האירוע
+                EventReminderScheduler.cancelReminder(EventDetailsActivity.this, currentEvent.getId());
             }
 
             @Override
@@ -406,12 +409,20 @@ public class EventDetailsActivity extends BaseActivity {
             currentEditIndependentDialog = new EditIndependentEventDialog(this, currentEvent, updatedEvent -> {
                 this.currentEvent = updatedEvent;
                 populateEventData();
+                // עדכון התזכורת למקרה שזמן האירוע השתנה (רק אם המשתמש משתתף בו)
+                if (this.currentEvent.getParticipants() != null && this.currentEvent.getParticipants().containsKey(currentUserId)) {
+                    EventReminderScheduler.scheduleReminder(EventDetailsActivity.this, this.currentEvent);
+                }
             });
             currentEditIndependentDialog.show();
         } else {
             currentEditGroupEventDialog = new EditEventDialog(this, currentEvent, updatedEvent -> {
                 this.currentEvent = updatedEvent;
                 populateEventData();
+                // עדכון התזכורת למקרה שזמן האירוע השתנה (רק אם המשתמש משתתף בו)
+                if (this.currentEvent.getParticipants() != null && this.currentEvent.getParticipants().containsKey(currentUserId)) {
+                    EventReminderScheduler.scheduleReminder(EventDetailsActivity.this, this.currentEvent);
+                }
             });
             currentEditGroupEventDialog.show();
         }
@@ -426,6 +437,10 @@ public class EventDetailsActivity extends BaseActivity {
                 @Override
                 public void onCompleted(Void object) {
                     Toast.makeText(EventDetailsActivity.this, "Event deleted successfully", Toast.LENGTH_SHORT).show();
+
+                    // ביטול ההתראה בעת מחיקת האירוע
+                    EventReminderScheduler.cancelReminder(EventDetailsActivity.this, currentEvent.getId());
+
                     finish();
                 }
 

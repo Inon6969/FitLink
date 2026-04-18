@@ -16,6 +16,7 @@ import com.example.fitlink.models.Location;
 import com.example.fitlink.screens.GroupDashboardActivity;
 import com.example.fitlink.screens.MapPickerActivity;
 import com.example.fitlink.services.DatabaseService;
+import com.example.fitlink.utils.EventReminderScheduler; // הוספנו את מחלקת התזמון
 import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
@@ -144,7 +145,6 @@ public class CreateEventDialog extends Dialog {
             durationPicker.show();
         });
 
-        // בחירת כמות משתתפים מקסימלית (NumberPicker)
         // בחירת כמות משתתפים מקסימלית (NumberPicker) מעוצב ומוגבל לכמות חברי הקבוצה
         btnMaxParticipants.setOnClickListener(v -> {
 
@@ -234,6 +234,10 @@ public class CreateEventDialog extends Dialog {
             @Override
             public void onCompleted(Void object) {
                 Toast.makeText(context, "Event Scheduled Successfully!", Toast.LENGTH_SHORT).show();
+
+                // תזמון ההתראה עבור היוצר (שמצורף לאירוע אוטומטית)
+                EventReminderScheduler.scheduleReminder(context, newEvent);
+
                 dismiss();
             }
 

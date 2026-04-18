@@ -14,12 +14,30 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
 import com.example.fitlink.R;
-import com.example.fitlink.screens.MainActivity; // אם יש לך מסך ניהול בקשות, שנה אליו
+import com.example.fitlink.screens.GroupChatActivity;
+import com.example.fitlink.screens.MainActivity;
 
 public class FitLinkNotificationService {
 
+    // --- קבועים לערוצי ההתראות השונים ---
+
+    // 1. בקשות הצטרפות
     public static final String GROUP_REQUESTS_CHANNEL_ID = "group_requests_high_priority";
     private static final String GROUP_REQUESTS_GROUP = "com.example.fitlink.GROUP_REQUESTS";
+
+    // 2. הודעות בצ'אט
+    public static final String CHAT_CHANNEL_ID = "group_chat_messages";
+    private static final String CHAT_GROUP = "com.example.fitlink.CHAT_MESSAGES";
+
+    // 3. אירועים חדשים בקבוצה
+    public static final String EVENTS_CHANNEL_ID = "group_new_events";
+    private static final String EVENTS_GROUP = "com.example.fitlink.NEW_EVENTS";
+
+    // 4. תזכורות לאירועים (24 שעות לפני)
+    public static final String REMINDER_CHANNEL_ID = "event_reminders";
+    private static final String REMINDER_GROUP = "com.example.fitlink.REMINDERS";
+
+
     private static FitLinkNotificationService instance;
     private final Context context;
     private final NotificationManagerCompat manager;
@@ -39,24 +57,57 @@ public class FitLinkNotificationService {
 
     private void createChannels() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationManager systemManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            if (systemManager == null) return;
+
+            // 1. יצירת ערוץ לבקשות הצטרפות
             NotificationChannel requestChannel = new NotificationChannel(
                     GROUP_REQUESTS_CHANNEL_ID,
                     "Group Join Requests",
-                    NotificationManager.IMPORTANCE_HIGH // שונה מ-DEFAULT ל-HIGH כדי לאפשר פופ-אפ
+                    NotificationManager.IMPORTANCE_HIGH
             );
             requestChannel.setDescription("Notifications for users requesting to join your groups");
-
-            // הפעלת רטט בצורה מפורשת (אופציונלי: אפשר גם להגדיר תבנית רטט מותאמת אישית)
             requestChannel.enableVibration(true);
-            requestChannel.setVibrationPattern(new long[]{0, 500, 200, 500}); // השהייה, רטט, השהייה, רטט
+            requestChannel.setVibrationPattern(new long[]{0, 500, 200, 500});
+            systemManager.createNotificationChannel(requestChannel);
 
-            NotificationManager systemManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-            if (systemManager != null) {
-                systemManager.createNotificationChannel(requestChannel);
-            }
+            // 2. יצירת ערוץ להודעות צ'אט
+            NotificationChannel chatChannel = new NotificationChannel(
+                    CHAT_CHANNEL_ID,
+                    "Group Chat Messages",
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            chatChannel.setDescription("Notifications for new messages in your groups");
+            chatChannel.enableVibration(true);
+            systemManager.createNotificationChannel(chatChannel);
+
+            // 3. יצירת ערוץ לאירועים חדשים
+            NotificationChannel eventChannel = new NotificationChannel(
+                    EVENTS_CHANNEL_ID,
+                    "New Group Events",
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            eventChannel.setDescription("Notifications when a new event is created in your groups");
+            eventChannel.enableVibration(true);
+            systemManager.createNotificationChannel(eventChannel);
+
+            // 4. יצירת ערוץ לתזכורות אירועים
+            NotificationChannel reminderChannel = new NotificationChannel(
+                    REMINDER_CHANNEL_ID,
+                    "Event Reminders",
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            reminderChannel.setDescription("Reminders 24 hours before your events start");
+            reminderChannel.enableVibration(true);
+            systemManager.createNotificationChannel(reminderChannel);
         }
     }
 
+    // ==========================================
+    // הפעלת התראות בפועל
+    // ==========================================
+
+    // --- 1. התראה על בקשת הצטרפות לקבוצה ---
     public void showJoinRequestNotification(String groupName, String requesterId) {
         String title = "New Join Request!";
         String message = "Someone wants to join " + groupName;
@@ -71,14 +122,14 @@ public class FitLinkNotificationService {
         );
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, GROUP_REQUESTS_CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_notification) // ודא שיש לך אייקון כזה
+                .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(title)
                 .setContentText(message)
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent)
                 .setGroup(GROUP_REQUESTS_GROUP)
-                .setPriority(NotificationCompat.PRIORITY_HIGH) // שונה ל-HIGH עבור מכשירים ישנים
-                .setDefaults(NotificationCompat.DEFAULT_ALL); // מפעיל את צליל ברירת המחדל והרטט של המכשיר
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setDefaults(NotificationCompat.DEFAULT_ALL);
 
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
             manager.notify(notificationId, builder.build());
@@ -88,7 +139,7 @@ public class FitLinkNotificationService {
 
     private void showSummaryNotification() {
         NotificationCompat.Builder summaryBuilder = new NotificationCompat.Builder(context, GROUP_REQUESTS_CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_notification) // כנ"ל לגבי האייקון
+                .setSmallIcon(R.drawable.ic_notification)
                 .setStyle(new NotificationCompat.InboxStyle())
                 .setGroup(GROUP_REQUESTS_GROUP)
                 .setGroupSummary(true)
@@ -96,6 +147,94 @@ public class FitLinkNotificationService {
 
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
             manager.notify(GROUP_REQUESTS_GROUP.hashCode(), summaryBuilder.build());
+        }
+    }
+
+    // --- 2. התראה על הודעה חדשה בצ'אט ---
+    public void showChatMessageNotification(String groupId, String groupName, String senderName, String messageText) {
+        int notificationId = (groupId + senderName + messageText).hashCode();
+
+        Intent intent = new Intent(context, GroupChatActivity.class);
+        intent.putExtra("GROUP_ID", groupId);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                context,
+                notificationId,
+                intent,
+                PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT
+        );
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHAT_CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_notification)
+                .setContentTitle(groupName + " - " + senderName)
+                .setContentText(messageText)
+                .setAutoCancel(true)
+                .setContentIntent(pendingIntent)
+                .setGroup(CHAT_GROUP)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setDefaults(NotificationCompat.DEFAULT_ALL);
+
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+            manager.notify(notificationId, builder.build());
+        }
+    }
+
+    // --- 3. התראה על אירוע קבוצתי חדש ---
+    public void showNewEventNotification(String groupName, String eventTitle, String eventId) {
+        int notificationId = eventId.hashCode();
+
+        Intent intent = new Intent(context, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                context,
+                notificationId,
+                intent,
+                PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT
+        );
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, EVENTS_CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_notification)
+                .setContentTitle("New Event in " + groupName + "!")
+                .setContentText(eventTitle)
+                .setAutoCancel(true)
+                .setContentIntent(pendingIntent)
+                .setGroup(EVENTS_GROUP)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setDefaults(NotificationCompat.DEFAULT_ALL);
+
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+            manager.notify(notificationId, builder.build());
+        }
+    }
+
+    // --- 4. התראה לתזכורת (24 שעות לפני האירוע) ---
+    public void showEventReminderNotification(String eventId, String eventTitle) {
+        int notificationId = eventId.hashCode();
+
+        Intent intent = new Intent(context, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                context,
+                notificationId,
+                intent,
+                PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT
+        );
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, REMINDER_CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_notification)
+                .setContentTitle("Event Tomorrow!")
+                .setContentText("Don't forget: " + eventTitle + " is starting in 24 hours.")
+                .setAutoCancel(true)
+                .setContentIntent(pendingIntent)
+                .setGroup(REMINDER_GROUP)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setDefaults(NotificationCompat.DEFAULT_ALL);
+
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+            manager.notify(notificationId, builder.build());
         }
     }
 }

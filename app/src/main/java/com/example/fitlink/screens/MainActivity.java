@@ -23,8 +23,10 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.example.fitlink.R;
+import com.example.fitlink.models.Event;
 import com.example.fitlink.models.User;
 import com.example.fitlink.services.DatabaseService;
+import com.example.fitlink.utils.EventReminderScheduler;
 import com.example.fitlink.utils.ImageUtil;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.google.android.material.button.MaterialButton;
@@ -97,11 +99,56 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
             }
         }
 
-        // הפעלת ההאזנה לבקשות הצטרפות
+        // --- ניהול והפעלת התראות ---
         String currentUserId = SharedPreferencesUtil.getUserId(this);
         if (currentUserId != null) {
+            // 1. האזנה לבקשות הצטרפות לקבוצות (בזמן אמת)
             DatabaseService.getInstance().listenForNewJoinRequests(currentUserId, this);
+
+            // 2. האזנה להודעות חדשות בצ'אט הקבוצתי (בזמן אמת)
+            DatabaseService.getInstance().listenForNewChatMessages(currentUserId, this);
+
+            // 3. האזנה לאירועים חדשים בקבוצות (בזמן אמת)
+            DatabaseService.getInstance().listenForNewEvents(currentUserId, this);
+
+            // 4. תזמון מחדש של התראות תזכורת לכל האירועים העתידיים של המשתמש
+            scheduleFutureEventReminders(currentUserId);
         }
+    }
+
+    /**
+     * פונקציית עזר העוברת על כל האירועים של המשתמש ומתזמנת עבורם
+     * התראה ל-24 שעות לפני תחילת האירוע באמצעות WorkManager
+     */
+    private void scheduleFutureEventReminders(String userId) {
+        DatabaseService.getInstance().getUser(userId, new DatabaseService.DatabaseCallback<User>() {
+            @Override
+            public void onCompleted(User currentUser) {
+                if (currentUser != null && currentUser.getEventIds() != null) {
+                    for (String eventId : currentUser.getEventIds().keySet()) {
+                        DatabaseService.getInstance().getEvent(eventId, new DatabaseService.DatabaseCallback<Event>() {
+                            @Override
+                            public void onCompleted(Event event) {
+                                // מתזמן רק אירועים שעדיין לא התחילו
+                                if (event != null && event.getStartTimestamp() > System.currentTimeMillis()) {
+                                    EventReminderScheduler.scheduleReminder(MainActivity.this, event);
+                                }
+                            }
+
+                            @Override
+                            public void onFailed(Exception e) {
+                                Log.e(TAG, "Failed to load event for scheduling reminder", e);
+                            }
+                        });
+                    }
+                }
+            }
+
+            @Override
+            public void onFailed(Exception e) {
+                Log.e(TAG, "Failed to load user for scheduling event reminders", e);
+            }
+        });
     }
 
     @Override

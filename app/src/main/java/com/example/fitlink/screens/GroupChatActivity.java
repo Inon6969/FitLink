@@ -35,6 +35,9 @@ import java.util.List;
 
 public class GroupChatActivity extends BaseActivity {
 
+    // משתנה סטטי לשמירת מזהה הקבוצה הפעילה כרגע כדי למנוע התראות כפולות בזמן צ'אט
+    public static String activeGroupId = null;
+
     private Group currentGroup;
     private RecyclerView rvChat;
     private EditText etMessage;
@@ -98,6 +101,20 @@ public class GroupChatActivity extends BaseActivity {
                 finish();
             }
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // כשהמסך מוצג למשתמש, נשמור איזה צ'אט פתוח
+        activeGroupId = getIntent().getStringExtra("GROUP_ID");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // כשהמשתמש יוצא מהמסך, נאפס את המשתנה
+        activeGroupId = null;
     }
 
     @Override

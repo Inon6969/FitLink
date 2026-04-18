@@ -18,6 +18,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.database.ChildEventListener;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -540,6 +541,137 @@ public class DatabaseService {
             @Override
             public void onFailed(Exception e) {
                 Log.e(TAG, "Failed to fetch user for join requests", e);
+            }
+        });
+    }
+
+    public void listenForNewChatMessages(String currentUserId, Context context) {
+        // נשמור את זמן ההפעלה, כדי שלא נקבל התראות על היסטוריית ההודעות בעת פתיחת האפליקציה
+        final long listenerStartTime = System.currentTimeMillis();
+
+        getUser(currentUserId, new DatabaseCallback<User>() {
+            @Override
+            public void onCompleted(User user) {
+                if (user == null || user.getGroupIds() == null || user.getGroupIds().isEmpty()) {
+                    return;
+                }
+
+                // עוברים על כל קבוצה שהמשתמש חבר בה
+                for (String groupId : user.getGroupIds().keySet()) {
+
+                    // קודם נשלוף את שם הקבוצה כדי להציג בהתראה
+                    getGroup(groupId, new DatabaseCallback<Group>() {
+                        @Override
+                        public void onCompleted(Group group) {
+                            if (group == null) return;
+
+                            String groupName = group.getName();
+
+                            // מאזינים רק להודעות שנוצרו אחרי שהמאזין הופעל!
+                            databaseReference.child(GROUP_CHATS_PATH).child(groupId)
+                                    .orderByChild("timestamp").startAt((double) listenerStartTime)
+                                    .addChildEventListener(new ChildEventListener() {
+                                        @Override
+                                        public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                                            ChatMessage message = snapshot.getValue(ChatMessage.class);
+                                            if (message == null) return;
+
+                                            // 1. לא נתריע על הודעות שהמשתמש עצמו שלח
+                                            boolean isMyMessage = message.getSenderId().equals(currentUserId);
+
+                                            // 2. לא נתריע אם המשתמש כרגע נמצא בתוך מסך הצ'אט של הקבוצה הזו
+                                            boolean isChatCurrentlyOpen = groupId.equals(com.example.fitlink.screens.GroupChatActivity.activeGroupId);
+
+                                            if (!isMyMessage && !isChatCurrentlyOpen) {
+                                                FitLinkNotificationService.getInstance(context)
+                                                        .showChatMessageNotification(
+                                                                groupId,
+                                                                groupName,
+                                                                message.getSenderName(),
+                                                                message.getText()
+                                                        );
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {}
+                                        @Override
+                                        public void onChildRemoved(@NonNull DataSnapshot snapshot) {}
+                                        @Override
+                                        public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {}
+                                        @Override
+                                        public void onCancelled(@NonNull DatabaseError error) {}
+                                    });
+                        }
+
+                        @Override
+                        public void onFailed(Exception e) {}
+                    });
+                }
+            }
+
+            @Override
+            public void onFailed(Exception e) {
+                Log.e(TAG, "Failed to fetch user for chat notifications", e);
+            }
+        });
+    }
+
+    public void listenForNewEvents(String currentUserId, Context context) {
+        // נשתמש בזמן הנוכחי כדי למנוע התראות על אירועים ישנים בעת הפעלת האפליקציה
+        final long listenerStartTime = System.currentTimeMillis();
+
+        // שליפת פרטי המשתמש כדי לדעת לאילו קבוצות הוא שייך
+        getUser(currentUserId, new DatabaseCallback<User>() {
+            @Override
+            public void onCompleted(User user) {
+                if (user == null || user.getGroupIds() == null || user.getGroupIds().isEmpty()) {
+                    return;
+                }
+
+                // האזנה לשינויים בטבלת האירועים הכללית
+                databaseReference.child(EVENTS_PATH)
+                        .addChildEventListener(new com.google.firebase.database.ChildEventListener() {
+                            @Override
+                            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                                com.example.fitlink.models.Event event = snapshot.getValue(com.example.fitlink.models.Event.class);
+                                if (event == null) return;
+
+                                // בדיקה: האם האירוע חדש והאם הוא שייך לאחת הקבוצות של המשתמש
+                                boolean isNewEvent = event.getStartTimestamp() > 0; // ניתן להוסיף שדה createdAt במידה ויש
+                                boolean belongsToMyGroups = user.getGroupIds().containsKey(event.getGroupId());
+                                boolean isNotMyEvent = !event.getCreatorId().equals(currentUserId);
+
+                                if (belongsToMyGroups && isNotMyEvent) {
+                                    // שליפת שם הקבוצה לצורך התצוגה בהתראה
+                                    getGroup(event.getGroupId(), new DatabaseCallback<Group>() {
+                                        @Override
+                                        public void onCompleted(Group group) {
+                                            if (group != null) {
+                                                FitLinkNotificationService.getInstance(context)
+                                                        .showNewEventNotification(group.getName(), event.getTitle(), event.getId());
+                                            }
+                                        }
+                                        @Override
+                                        public void onFailed(Exception e) {}
+                                    });
+                                }
+                            }
+
+                            @Override
+                            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {}
+                            @Override
+                            public void onChildRemoved(@NonNull DataSnapshot snapshot) {}
+                            @Override
+                            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {}
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {}
+                        });
+            }
+
+            @Override
+            public void onFailed(Exception e) {
+                Log.e(TAG, "Failed to fetch user for event notifications", e);
             }
         });
     }

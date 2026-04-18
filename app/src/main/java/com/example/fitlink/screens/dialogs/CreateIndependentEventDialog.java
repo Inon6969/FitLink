@@ -33,6 +33,7 @@ import com.example.fitlink.models.SportType;
 import com.example.fitlink.screens.EventsListActivity;
 import com.example.fitlink.screens.MapPickerActivity;
 import com.example.fitlink.services.DatabaseService;
+import com.example.fitlink.utils.EventReminderScheduler; // הוספנו את מחלקת התזמון
 import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.google.android.material.chip.ChipGroup;
 
@@ -308,6 +309,10 @@ public class CreateIndependentEventDialog extends Dialog {
             public void onCompleted(Void object) {
                 progressBar.setVisibility(View.GONE);
                 Toast.makeText(getContext(), "Event Created!", Toast.LENGTH_SHORT).show();
+
+                // תזמון ההתראה עבור יוצר האירוע
+                EventReminderScheduler.scheduleReminder(context, newEvent);
+
                 dismiss();
             }
 
