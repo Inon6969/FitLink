@@ -284,6 +284,14 @@ public class EditEventDialog extends Dialog {
             return;
         }
 
+        // בדיקה שמונעת הקטנת כמות משתתפים מתחת לכמות המשתתפים שכבר נרשמו בפועל
+        if (selectedMaxParticipants > 0 && selectedMaxParticipants < currentEvent.getParticipantsCount()) {
+            Toast.makeText(context,
+                    "Cannot set max participants below current registered (" + currentEvent.getParticipantsCount() + ")",
+                    Toast.LENGTH_LONG).show();
+            return; // עוצר את השמירה
+        }
+
         Location location = new Location(selectedAddress, selectedLat, selectedLng);
 
         // עדכון האובייקט הקיים

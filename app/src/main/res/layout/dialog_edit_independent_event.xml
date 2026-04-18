@@ -4,6 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="?attr/colorSurface"
+    android:layoutDirection="ltr"
     android:padding="20dp">
 
     <LinearLayout
@@ -185,22 +186,19 @@
                 app:cornerRadius="12dp"
                 app:strokeColor="@color/fitlinkPrimary" />
 
-            <com.google.android.material.textfield.TextInputLayout
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_edit_event_max_participants"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="60dp"
                 android:layout_marginStart="5dp"
                 android:layout_weight="1"
-                app:boxBackgroundMode="outline">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/et_edit_event_max_participants"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="@font/poppins_regular"
-                    android:hint="Participants (0=Any)"
-                    android:inputType="number"
-                    android:text="0" />
-            </com.google.android.material.textfield.TextInputLayout>
+                android:fontFamily="@font/poppins_medium"
+                android:text="Participants: Any"
+                android:textAllCaps="false"
+                android:textColor="@color/fitlinkPrimary"
+                app:cornerRadius="12dp"
+                app:strokeColor="@color/fitlinkPrimary" />
         </LinearLayout>
 
         <TextView

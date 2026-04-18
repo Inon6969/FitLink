@@ -5,7 +5,8 @@
     android:id="@+id/main_admin_events_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/fitlinkBackground">
+    android:background="@color/fitlinkBackground"
+    android:layoutDirection="ltr">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"

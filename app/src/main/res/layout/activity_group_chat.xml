@@ -4,7 +4,8 @@
     android:id="@+id/main_group_chat"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#EFEFEF">
+    android:background="#EFEFEF"
+    android:layoutDirection="ltr">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"

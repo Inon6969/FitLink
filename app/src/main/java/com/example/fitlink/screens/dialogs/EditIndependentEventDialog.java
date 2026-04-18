@@ -1,5 +1,6 @@
 package com.example.fitlink.screens.dialogs;
 
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
@@ -9,11 +10,14 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.widget.NumberPicker;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -42,10 +46,10 @@ public class EditIndependentEventDialog extends Dialog {
     private final Event currentEvent;
     private final OnEventUpdatedListener listener;
 
-    private EditText etTitle, etDescription, etMaxParticipants;
+    private EditText etTitle, etDescription;
     private Spinner spinnerSport;
     private ChipGroup chipGroupLevel;
-    private Button btnDate, btnTime, btnDuration, btnLocation, btnSave, btnCancel;
+    private Button btnDate, btnTime, btnDuration, btnLocation, btnMaxParticipants, btnSave, btnCancel;
     private TextView tvSelectedLocation;
     private ProgressBar progressBar;
 
@@ -57,6 +61,7 @@ public class EditIndependentEventDialog extends Dialog {
     private double selectedLng = 0;
     private String selectedAddress = null;
     private long selectedDurationMillis = 0;
+    private int selectedMaxParticipants = 0; // משתנה לשמירת כמות המשתתפים
 
     public interface OnEventUpdatedListener {
         void onEventUpdated(Event updatedEvent);
@@ -88,13 +93,13 @@ public class EditIndependentEventDialog extends Dialog {
     private void initViews() {
         etTitle = findViewById(R.id.et_edit_event_title);
         etDescription = findViewById(R.id.et_edit_event_description);
-        etMaxParticipants = findViewById(R.id.et_edit_event_max_participants);
         spinnerSport = findViewById(R.id.spinner_edit_event_sport);
         chipGroupLevel = findViewById(R.id.chipGroupEditEventLevel);
 
         btnDate = findViewById(R.id.btn_edit_event_date);
         btnTime = findViewById(R.id.btn_edit_event_time);
         btnDuration = findViewById(R.id.btn_edit_event_duration);
+        btnMaxParticipants = findViewById(R.id.btn_edit_event_max_participants);
         btnLocation = findViewById(R.id.btn_edit_event_location);
 
         tvSelectedLocation = findViewById(R.id.tv_edit_event_selected_location);
@@ -114,7 +119,14 @@ public class EditIndependentEventDialog extends Dialog {
     private void prefillData() {
         etTitle.setText(currentEvent.getTitle());
         etDescription.setText(currentEvent.getDescription() != null ? currentEvent.getDescription() : "");
-        etMaxParticipants.setText(String.valueOf(currentEvent.getMaxParticipants()));
+
+        // טעינת כמות משתתפים קיימת למשתנה ולכפתור
+        selectedMaxParticipants = currentEvent.getMaxParticipants();
+        if (selectedMaxParticipants == 0) {
+            btnMaxParticipants.setText("Participants: Any");
+        } else {
+            btnMaxParticipants.setText("Participants: " + selectedMaxParticipants);
+        }
 
         // בחירת סוג ספורט קיים
         if (currentEvent.getSportType() != null) {
@@ -169,6 +181,7 @@ public class EditIndependentEventDialog extends Dialog {
         btnDate.setOnClickListener(v -> showDatePicker());
         btnTime.setOnClickListener(v -> showTimePicker());
         btnDuration.setOnClickListener(v -> showDurationPicker());
+        btnMaxParticipants.setOnClickListener(v -> showMaxParticipantsPicker());
 
         btnLocation.setOnClickListener(v -> {
             Intent mapIntent = new Intent(context, MapPickerActivity.class);
@@ -241,6 +254,47 @@ public class EditIndependentEventDialog extends Dialog {
         durationPicker.show();
     }
 
+    private void showMaxParticipantsPicker() {
+        int maxAllowed = 100; // רף עליון לאירוע עצמאי
+
+        NumberPicker numberPicker = new NumberPicker(context);
+        numberPicker.setMinValue(0);
+        numberPicker.setMaxValue(maxAllowed);
+        numberPicker.setValue(selectedMaxParticipants);
+        numberPicker.setWrapSelectorWheel(true);
+
+        String[] displayedValues = new String[maxAllowed + 1];
+        displayedValues[0] = "Any";
+        for (int i = 1; i <= maxAllowed; i++) {
+            displayedValues[i] = String.valueOf(i);
+        }
+        numberPicker.setDisplayedValues(displayedValues);
+
+        FrameLayout container = new FrameLayout(context);
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT
+        );
+        params.gravity = Gravity.CENTER;
+        params.setMargins(0, 50, 0, 50);
+        numberPicker.setLayoutParams(params);
+        container.addView(numberPicker);
+
+        new AlertDialog.Builder(context)
+                .setTitle("Max Participants")
+                .setView(container)
+                .setPositiveButton("OK", (dialog, which) -> {
+                    selectedMaxParticipants = numberPicker.getValue();
+                    if (selectedMaxParticipants == 0) {
+                        btnMaxParticipants.setText("Participants: Any");
+                    } else {
+                        btnMaxParticipants.setText("Participants: " + selectedMaxParticipants);
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
     public void updateLocationDetails(String address, double lat, double lng) {
         this.selectedAddress = address;
         this.selectedLat = lat;
@@ -251,7 +305,6 @@ public class EditIndependentEventDialog extends Dialog {
     private void validateAndSaveChanges() {
         String title = etTitle.getText().toString().trim();
         String description = etDescription.getText().toString().trim();
-        String maxPplStr = etMaxParticipants.getText().toString().trim();
 
         if (TextUtils.isEmpty(title)) {
             etTitle.setError("Title is required");
@@ -277,7 +330,14 @@ public class EditIndependentEventDialog extends Dialog {
             return;
         }
 
-        int maxParticipants = TextUtils.isEmpty(maxPplStr) ? 0 : Integer.parseInt(maxPplStr);
+        // בדיקה שמונעת הקטנת כמות משתתפים מתחת לכמות המשתתפים הרשומה כרגע
+        if (selectedMaxParticipants > 0 && selectedMaxParticipants < currentEvent.getParticipantsCount()) {
+            Toast.makeText(getContext(),
+                    "Cannot set max participants below current registered (" + currentEvent.getParticipantsCount() + ")",
+                    Toast.LENGTH_LONG).show();
+            return; // עוצר את השמירה
+        }
+
         SportType selectedSport = SportType.values()[spinnerSport.getSelectedItemPosition()];
 
         DifficultyLevel selectedLevel = DifficultyLevel.BEGINNER;
@@ -290,7 +350,7 @@ public class EditIndependentEventDialog extends Dialog {
 
         Location eventLocation = new Location(selectedAddress, selectedLat, selectedLng);
 
-        // עדכון האובייקט הקיים
+        // עדכון האובייקט הקיים (שימוש ב-selectedMaxParticipants במקום בטקסט)
         currentEvent.setTitle(title);
         currentEvent.setDescription(description);
         currentEvent.setSportType(selectedSport);
@@ -298,7 +358,7 @@ public class EditIndependentEventDialog extends Dialog {
         currentEvent.setStartTimestamp(startTimestamp);
         currentEvent.setDurationMillis(selectedDurationMillis);
         currentEvent.setLocation(eventLocation);
-        currentEvent.setMaxParticipants(maxParticipants);
+        currentEvent.setMaxParticipants(selectedMaxParticipants);
 
         progressBar.setVisibility(View.VISIBLE);
         btnSave.setEnabled(false);
