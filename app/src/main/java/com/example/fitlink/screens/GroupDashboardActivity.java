@@ -1,7 +1,9 @@
 package com.example.fitlink.screens;
 
+import android.Manifest;
 import android.app.Dialog;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -14,7 +16,10 @@ import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -41,6 +46,7 @@ public class GroupDashboardActivity extends BaseActivity {
 
     private static final int REQ_CAMERA = 100;
     private static final int REQ_GALLERY = 200;
+    private static final int REQ_CAMERA_PERMISSION = 101;
 
     private Group currentGroup;
     private ImageView imgGroupPhoto;
@@ -299,7 +305,6 @@ public class GroupDashboardActivity extends BaseActivity {
         TextView tvTitle = findViewById(R.id.tv_dashboard_title);
         tvTitle.setText(currentGroup.getName());
 
-        // תוקן ל-getSportType() כדי שיתאים למודל Group
         if (currentGroup.getSportType() != null) {
             chipGroupType.setText(currentGroup.getSportType().toString());
             chipGroupType.setVisibility(View.VISIBLE);
@@ -384,8 +389,18 @@ public class GroupDashboardActivity extends BaseActivity {
         new ProfileImageDialog(this, hasImage, true, new ProfileImageDialog.ImagePickerListener() {
             @Override
             public void onCamera() {
-                Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-                startActivityForResult(cameraIntent, REQ_CAMERA);
+                // בדיקה האם יש הרשאת מצלמה
+                if (ContextCompat.checkSelfPermission(GroupDashboardActivity.this, Manifest.permission.CAMERA)
+                        != PackageManager.PERMISSION_GRANTED) {
+
+                    // בקשת הרשאה מהמשתמש בזמן ריצה
+                    ActivityCompat.requestPermissions(GroupDashboardActivity.this,
+                            new String[]{Manifest.permission.CAMERA},
+                            REQ_CAMERA_PERMISSION);
+                } else {
+                    // אם כבר יש הרשאה, נפתח את המצלמה
+                    openCameraIntent();
+                }
             }
 
             @Override
@@ -400,6 +415,32 @@ public class GroupDashboardActivity extends BaseActivity {
                 deleteGroupImage();
             }
         }).show();
+    }
+
+    /**
+     * פונקציית עזר להפעלת ה-Intent של המצלמה.
+     */
+    private void openCameraIntent() {
+        Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+        startActivityForResult(cameraIntent, REQ_CAMERA);
+    }
+
+    /**
+     * מטפל בתשובת המשתמש לבקשת ההרשאה.
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == REQ_CAMERA_PERMISSION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // המשתמש אישר, פותחים מצלמה
+                openCameraIntent();
+            } else {
+                // המשתמש דחה
+                Toast.makeText(this, "נדרשת הרשאת מצלמה כדי לצלם תמונה", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     private void deleteGroupImage() {
