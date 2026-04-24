@@ -179,7 +179,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     static class SentMessageHolder extends RecyclerView.ViewHolder {
-        TextView tvMessage, tvTime;
+        final TextView tvMessage, tvTime;
 
         SentMessageHolder(View itemView) {
             super(itemView);
@@ -189,8 +189,8 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     static class ReceivedMessageHolder extends RecyclerView.ViewHolder {
-        TextView tvName, tvMessage, tvTime;
-        ImageView imgUserProfile;
+        final TextView tvName, tvMessage, tvTime;
+        final ImageView imgUserProfile;
 
         ReceivedMessageHolder(View itemView) {
             super(itemView);

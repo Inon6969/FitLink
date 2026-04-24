@@ -45,15 +45,13 @@ public class CreateIndependentEventDialog extends Dialog {
 
     private final Context context;
     private final String currentUserId;
-
+    private final Calendar eventCalendar;
     private EditText etTitle, etDescription;
     private Spinner spinnerSport;
     private ChipGroup chipGroupLevel;
     private Button btnDate, btnTime, btnDuration, btnLocation, btnMaxParticipants, btnSave, btnCancel;
     private TextView tvSelectedLocation;
     private ProgressBar progressBar;
-
-    private Calendar eventCalendar;
     private boolean isDateSelected = false;
     private boolean isTimeSelected = false;
 

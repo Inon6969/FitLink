@@ -12,14 +12,13 @@ import java.util.Objects;
 
 public class NoInternetDialog {
     private final Context context;
+    private final String title;
+    private final String message;
+    private final String positiveText;
+    private final Runnable onPositive;
+    private final String negativeText;
+    private final Runnable onNegative;
     private Dialog dialog;
-
-    private String title;
-    private String message;
-    private String positiveText;
-    private Runnable onPositive;
-    private String negativeText;
-    private Runnable onNegative;
 
     // קונסטרקטור מורחב שמאפשר לשלוט בכל הטקסטים והכפתורים (מעולה למצב אופליין)
     public NoInternetDialog(Context context, String title, String message,

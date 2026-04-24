@@ -21,14 +21,13 @@ import java.util.List;
 
 public class EventFilterDialog extends Dialog {
 
+    private final OnEventFilterAppliedListener listener;
+    private final SportType currentSport;
+    private final DifficultyLevel currentLevel;
+    private final String currentLocation;
     private Spinner spinnerSport, spinnerLevel;
     private EditText etLocation;
     private MaterialButton btnStartDate, btnEndDate, btnMinDur, btnMaxDur, btnApply, btnClear;
-    private OnEventFilterAppliedListener listener;
-
-    private SportType currentSport;
-    private DifficultyLevel currentLevel;
-    private String currentLocation;
     private Long currentStartDate, currentEndDate;
     private Integer currentMinDur, currentMaxDur;
 

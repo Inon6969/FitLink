@@ -239,8 +239,8 @@ public class DatabaseService {
     ///
     /// @param user     the user object to create
     /// @param callback the callback to call when the operation is completed
-    ///                                                                                                                                                                              the callback will receive void
-    ///                                                                                                                                                                            if the operation fails, the callback will receive an exception
+    ///                                                                                                                                                                                              the callback will receive void
+    ///                                                                                                                                                                                            if the operation fails, the callback will receive an exception
     /// @see DatabaseCallback
     /// @see User
     public void createNewUser(@NotNull final User user, @Nullable final DatabaseCallback<Void> callback) {
@@ -251,8 +251,8 @@ public class DatabaseService {
     ///
     /// @param uid      the id of the user to get
     /// @param callback the callback to call when the operation is completed
-    ///                                                                                                                                                                               the callback will receive the user object
-    ///                                                                                                                                                                             if the operation fails, the callback will receive an exception
+    ///                                                                                                                                                                                               the callback will receive the user object
+    ///                                                                                                                                                                                             if the operation fails, the callback will receive an exception
     /// @see DatabaseCallback
     /// @see User
     public void getUser(@NotNull final String uid, @NotNull final DatabaseCallback<User> callback) {
@@ -262,8 +262,8 @@ public class DatabaseService {
     /// get all the users from the database
     ///
     /// @param callback the callback to call when the operation is completed
-    ///                                                                                                                                                                              the callback will receive a list of user objects
-    ///                                                                                                                                                                            if the operation fails, the callback will receive an exception
+    ///                                                                                                                                                                                              the callback will receive a list of user objects
+    ///                                                                                                                                                                                            if the operation fails, the callback will receive an exception
     /// @see DatabaseCallback
     /// @see List
     /// @see User
@@ -279,11 +279,6 @@ public class DatabaseService {
         deleteData(USERS_PATH + "/" + uid, callback);
     }
 
-    /**
-     * פונקציה למחיקה הרמטית של משתמש מכל רחבי האפליקציה בבת אחת (Atomic Update)
-     * מוחקת: משתמש, קבוצות שיצר (אם נבחר), אירועים עצמאיים שיצר, אירועים של הקבוצות שימחקו.
-     * מסירה מהשתתפות: חברות בקבוצות אחרות, ניהול בקבוצות אחרות, השתתפות באירועים של אחרים.
-     */
     /**
      * פונקציה למחיקה הרמטית של משתמש מכל רחבי האפליקציה בבת אחת (Atomic Update)
      * מוחקת: משתמש, קבוצות שיצר, כל האירועים של הקבוצות שיצר, ואירועים עצמאיים שיצר.
@@ -400,8 +395,8 @@ public class DatabaseService {
     /// @param email    the email of the user
     /// @param password the password of the user
     /// @param callback the callback to call when the operation is completed
-    ///                                                                                                                                                                            the callback will receive the user object
-    ///                                                                                                                                                                          if the operation fails, the callback will receive an exception
+    ///                                                                                                                                                                                            the callback will receive the user object
+    ///                                                                                                                                                                                          if the operation fails, the callback will receive an exception
     /// @see DatabaseCallback
     /// @see User
     /// get a user by email and password
@@ -1366,14 +1361,7 @@ public class DatabaseService {
                     }
                 });
     }
-    /**
-     * Admin Function: Cleans up events that ended more than a specified number of months ago.
-     * It leverages the existing deleteEvent() function to ensure gamification stats are safely preserved!
-     */
-    /**
-     * Admin Function: Cleans up events that ended before a specified cutoff timestamp.
-     * It leverages the existing deleteEvent() function to ensure gamification stats are safely preserved!
-     */
+
     /**
      * Admin Function: Cleans up events that ended before a specified cutoff timestamp.
      * Uses a single-fetch (get) to prevent infinite loops from continuous listeners.

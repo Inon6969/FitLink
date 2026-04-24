@@ -29,6 +29,7 @@ public class GroupDescriptionDialog {
     private final Group group;
     private boolean isAdminPanel = false;
     private AdminActionsListener adminListener;
+
     public GroupDescriptionDialog(Context context, Group group) {
         this.context = context;
         this.group = group;

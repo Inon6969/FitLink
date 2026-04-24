@@ -105,9 +105,9 @@ public class ContactMessageAdapter extends RecyclerView.Adapter<ContactMessageAd
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvName, tvEmail, tvPhone, tvDate, tvContent;
-        ImageView imgProfile;
-        Button btnDelete, btnReply; // מעודכן לכפתורים הרחבים
+        final TextView tvName, tvEmail, tvPhone, tvDate, tvContent;
+        final ImageView imgProfile;
+        final Button btnDelete, btnReply; // מעודכן לכפתורים הרחבים
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);

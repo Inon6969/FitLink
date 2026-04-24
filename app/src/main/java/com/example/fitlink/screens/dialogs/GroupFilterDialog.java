@@ -18,15 +18,14 @@ import java.util.List;
 
 public class GroupFilterDialog extends Dialog {
 
+    private final OnFilterAppliedListener listener;
+    // משתנים לשמירת המצב הקודם של הסינון
+    private final SportType currentSport;
+    private final DifficultyLevel currentLevel;
+    private final String currentLocation;
     private Spinner spinnerSport, spinnerLevel;
     private EditText etLocation;
     private MaterialButton btnApply, btnClear;
-    private OnFilterAppliedListener listener;
-
-    // משתנים לשמירת המצב הקודם של הסינון
-    private SportType currentSport;
-    private DifficultyLevel currentLevel;
-    private String currentLocation;
 
     public GroupFilterDialog(Context context, SportType currentSport, DifficultyLevel currentLevel, String currentLocation, OnFilterAppliedListener listener) {
         super(context);
