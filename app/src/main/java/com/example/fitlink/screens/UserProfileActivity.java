@@ -278,7 +278,7 @@ public class UserProfileActivity extends BaseActivity implements NavigationView.
             user = SharedPreferencesUtil.getUser(this);
             updateUI();
 
-            DatabaseService.getInstance().getUser(viewedUserId, new DatabaseService.DatabaseCallback<User>() {
+            DatabaseService.getInstance().getUser(viewedUserId, new DatabaseService.DatabaseCallback<>() {
                 @Override
                 public void onCompleted(User freshUser) {
                     if (freshUser != null) {
@@ -293,7 +293,7 @@ public class UserProfileActivity extends BaseActivity implements NavigationView.
                 }
             });
         } else {
-            DatabaseService.getInstance().getUser(viewedUserId, new DatabaseService.DatabaseCallback<User>() {
+            DatabaseService.getInstance().getUser(viewedUserId, new DatabaseService.DatabaseCallback<>() {
                 @Override
                 public void onCompleted(User fetchedUser) {
                     if (fetchedUser != null) {
@@ -353,7 +353,7 @@ public class UserProfileActivity extends BaseActivity implements NavigationView.
         int groupsCount = user.getGroupIds() != null ? user.getGroupIds().size() : 0;
         txtStatGroups.setText(String.valueOf(groupsCount));
 
-        DatabaseService.getInstance().getAllEvents(new DatabaseService.DatabaseCallback<List<Event>>() {
+        DatabaseService.getInstance().getAllEvents(new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(List<Event> events) {
                 int upcomingCount = 0;
@@ -404,9 +404,7 @@ public class UserProfileActivity extends BaseActivity implements NavigationView.
     }
 
     private void openEditDialog() {
-        EditUserDialog editDialog = new EditUserDialog(this, user, () -> {
-            updateUI();
-        });
+        EditUserDialog editDialog = new EditUserDialog(this, user, this::updateUI);
         editDialog.show();
     }
 
@@ -477,7 +475,7 @@ public class UserProfileActivity extends BaseActivity implements NavigationView.
         user.setProfileImage(null);
         imgUserProfile.setImageResource(R.drawable.ic_user);
 
-        DatabaseService.getInstance().updateUser(user, new DatabaseService.DatabaseCallback<Void>() {
+        DatabaseService.getInstance().updateUser(user, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Void object) {
                 SharedPreferencesUtil.saveUser(UserProfileActivity.this, user);
@@ -520,7 +518,7 @@ public class UserProfileActivity extends BaseActivity implements NavigationView.
     }
 
     private void saveProfileImage() {
-        DatabaseService.getInstance().updateUser(user, new DatabaseService.DatabaseCallback<Void>() {
+        DatabaseService.getInstance().updateUser(user, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Void object) {
                 SharedPreferencesUtil.saveUser(UserProfileActivity.this, user);

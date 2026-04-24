@@ -63,7 +63,7 @@ public class GroupCalendarActivity extends BaseActivity {
         String currentUserId = SharedPreferencesUtil.getUserId(this);
 
         // מאזין זמן אמת לקבוצה - מעיף את המשתמש אם הוא מוסר
-        groupListener = DatabaseService.getInstance().listenToGroup(groupId, new DatabaseService.DatabaseCallback<Group>() {
+        groupListener = DatabaseService.getInstance().listenToGroup(groupId, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Group group) {
                 if (group == null) {
@@ -149,13 +149,10 @@ public class GroupCalendarActivity extends BaseActivity {
         rvEvents.setLayoutManager(new LinearLayoutManager(this));
         String currentUserId = SharedPreferencesUtil.getUserId(this);
 
-        eventAdapter = new EventAdapter(new ArrayList<>(), currentUserId, new EventAdapter.OnEventClickListener() {
-            @Override
-            public void onEventClick(Event event) {
-                Intent intent = new Intent(GroupCalendarActivity.this, EventDetailsActivity.class);
-                intent.putExtra("EVENT_ID", event.getId());
-                startActivity(intent);
-            }
+        eventAdapter = new EventAdapter(new ArrayList<>(), currentUserId, event -> {
+            Intent intent = new Intent(GroupCalendarActivity.this, EventDetailsActivity.class);
+            intent.putExtra("EVENT_ID", event.getId());
+            startActivity(intent);
         });
 
         rvEvents.setAdapter(eventAdapter);
@@ -180,7 +177,7 @@ public class GroupCalendarActivity extends BaseActivity {
 
     private void loadGroupEvents() {
         progressBar.setVisibility(View.VISIBLE);
-        databaseService.getEventsByGroupId(currentGroup.getId(), new DatabaseService.DatabaseCallback<List<Event>>() {
+        databaseService.getEventsByGroupId(currentGroup.getId(), new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(List<Event> events) {
                 progressBar.setVisibility(View.GONE);

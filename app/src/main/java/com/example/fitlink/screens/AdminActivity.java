@@ -97,7 +97,7 @@ public class AdminActivity extends BaseActivity {
     // פונקציה חדשה לאיסוף הנתונים
     private void loadStatistics() {
         // משיכת כמות המשתמשים
-        databaseService.getUserList(new DatabaseService.DatabaseCallback<List<User>>() {
+        databaseService.getUserList(new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(List<User> object) {
                 if (object != null) {
@@ -112,7 +112,7 @@ public class AdminActivity extends BaseActivity {
         });
 
         // משיכת כמות הקבוצות
-        databaseService.getAllGroups(new DatabaseService.DatabaseCallback<List<Group>>() {
+        databaseService.getAllGroups(new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(List<Group> object) {
                 if (object != null) {
@@ -127,7 +127,7 @@ public class AdminActivity extends BaseActivity {
         });
 
         // משיכת כמות האירועים
-        databaseService.getAllEvents(new DatabaseService.DatabaseCallback<List<Event>>() {
+        databaseService.getAllEvents(new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(List<Event> object) {
                 if (object != null) {

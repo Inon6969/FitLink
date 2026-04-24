@@ -57,7 +57,7 @@ public class JoinRequestsActivity extends BaseActivity {
         currentUserId = SharedPreferencesUtil.getUserId(this);
 
         // מאזין זמן אמת לקבוצה - מתעדכן אוטומטית ומעיף את המשתמש אם איבד הרשאות
-        groupListener = DatabaseService.getInstance().listenToGroup(groupId, new DatabaseService.DatabaseCallback<Group>() {
+        groupListener = DatabaseService.getInstance().listenToGroup(groupId, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Group group) {
                 if (group == null) {
@@ -184,7 +184,7 @@ public class JoinRequestsActivity extends BaseActivity {
             return;
         }
 
-        databaseService.getUserList(new DatabaseService.DatabaseCallback<List<User>>() {
+        databaseService.getUserList(new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(List<User> allUsers) {
                 progressBar.setVisibility(View.GONE);
@@ -223,7 +223,7 @@ public class JoinRequestsActivity extends BaseActivity {
 
     private void handleApprove(User user) {
         progressBar.setVisibility(View.VISIBLE);
-        databaseService.approveJoinRequest(currentGroup.getId(), user.getId(), new DatabaseService.DatabaseCallback<Void>() {
+        databaseService.approveJoinRequest(currentGroup.getId(), user.getId(), new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Void object) {
                 Toast.makeText(JoinRequestsActivity.this, "Request approved", Toast.LENGTH_SHORT).show();
@@ -240,7 +240,7 @@ public class JoinRequestsActivity extends BaseActivity {
 
     private void handleDecline(User user) {
         progressBar.setVisibility(View.VISIBLE);
-        databaseService.declineJoinRequest(currentGroup.getId(), user.getId(), new DatabaseService.DatabaseCallback<Void>() {
+        databaseService.declineJoinRequest(currentGroup.getId(), user.getId(), new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Void object) {
                 Toast.makeText(JoinRequestsActivity.this, "Request declined", Toast.LENGTH_SHORT).show();

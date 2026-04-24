@@ -102,7 +102,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
                     loadCreatorNameAndSetSubtitle(holder, event.getCreatorId(), cachedGroupName);
                 } else {
                     if (groupId != null && !groupId.isEmpty()) {
-                        DatabaseService.getInstance().getGroup(groupId, new DatabaseService.DatabaseCallback<Group>() {
+                        DatabaseService.getInstance().getGroup(groupId, new DatabaseService.DatabaseCallback<>() {
                             @Override
                             public void onCompleted(Group group) {
                                 String fetchedName = (group != null) ? group.getName() : "Group Event";
@@ -123,7 +123,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         } else {
             String creatorId = event.getCreatorId();
             if (creatorId != null && !creatorId.isEmpty()) {
-                DatabaseService.getInstance().getUser(creatorId, new DatabaseService.DatabaseCallback<User>() {
+                DatabaseService.getInstance().getUser(creatorId, new DatabaseService.DatabaseCallback<>() {
                     @Override
                     public void onCompleted(User user) {
                         String creatorName = (user != null) ? (user.getFirstName() + " " + user.getLastName()) : "Unknown";
@@ -188,7 +188,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
 
     private void loadCreatorNameAndSetSubtitle(EventViewHolder holder, String creatorId, String contextPrefix) {
         if (creatorId != null && !creatorId.isEmpty()) {
-            DatabaseService.getInstance().getUser(creatorId, new DatabaseService.DatabaseCallback<User>() {
+            DatabaseService.getInstance().getUser(creatorId, new DatabaseService.DatabaseCallback<>() {
                 @Override
                 public void onCompleted(User user) {
                     String creatorName = (user != null) ? (user.getFirstName() + " " + user.getLastName()) : "Unknown";

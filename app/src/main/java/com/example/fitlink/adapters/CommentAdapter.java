@@ -77,7 +77,7 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
                 if (listener != null) listener.onImageClick(comment.getUserId());
             });
 
-            DatabaseService.getInstance().getUser(comment.getUserId(), new DatabaseService.DatabaseCallback<User>() {
+            DatabaseService.getInstance().getUser(comment.getUserId(), new DatabaseService.DatabaseCallback<>() {
                 @Override
                 public void onCompleted(User user) {
                     if (user != null) {

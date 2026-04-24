@@ -124,14 +124,11 @@ public class AdminEventsListActivity extends BaseActivity {
         RecyclerView rvEvents = findViewById(R.id.rv_admin_events_list);
         rvEvents.setLayoutManager(new LinearLayoutManager(this));
 
-        eventAdapter = new EventAdapter(new ArrayList<>(), currentUserId, new EventAdapter.OnEventClickListener() {
-            @Override
-            public void onEventClick(Event event) {
-                Intent intent = new Intent(AdminEventsListActivity.this, EventDetailsActivity.class);
-                intent.putExtra("EVENT_ID", event.getId());
-                intent.putExtra("IS_ADMIN_MODE", true);
-                startActivity(intent);
-            }
+        eventAdapter = new EventAdapter(new ArrayList<>(), currentUserId, event -> {
+            Intent intent = new Intent(AdminEventsListActivity.this, EventDetailsActivity.class);
+            intent.putExtra("EVENT_ID", event.getId());
+            intent.putExtra("IS_ADMIN_MODE", true);
+            startActivity(intent);
         });
         eventAdapter.setShowGroupContext(true);
         rvEvents.setAdapter(eventAdapter);
@@ -275,7 +272,7 @@ public class AdminEventsListActivity extends BaseActivity {
             btnCleanupEvents.setEnabled(false);
             btnCleanupEvents.setText("Cleaning...");
 
-            databaseService.cleanupOldEvents(cutoffTimestamp, new DatabaseService.DatabaseCallback<Integer>() {
+            databaseService.cleanupOldEvents(cutoffTimestamp, new DatabaseService.DatabaseCallback<>() {
                 @Override
                 public void onCompleted(Integer deletedCount) {
                     progressBar.setVisibility(View.GONE);
@@ -310,7 +307,7 @@ public class AdminEventsListActivity extends BaseActivity {
 
     private void loadAllEvents() {
         progressBar.setVisibility(View.VISIBLE);
-        databaseService.getAllEvents(new DatabaseService.DatabaseCallback<List<Event>>() {
+        databaseService.getAllEvents(new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(List<Event> events) {
                 allEvents = (events != null) ? events : new ArrayList<>();

@@ -98,15 +98,13 @@ public class CreateEventDialog extends Dialog {
         });
 
         // בחירת שעת התחלה
-        btnTime.setOnClickListener(v -> {
-            new TimePickerDialog(context, (view, hourOfDay, minute) -> {
-                eventCalendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
-                eventCalendar.set(Calendar.MINUTE, minute);
-                eventCalendar.set(Calendar.SECOND, 0);
-                isTimeSet = true;
-                btnTime.setText(String.format(Locale.getDefault(), "%02d:%02d", hourOfDay, minute));
-            }, eventCalendar.get(Calendar.HOUR_OF_DAY), eventCalendar.get(Calendar.MINUTE), true).show();
-        });
+        btnTime.setOnClickListener(v -> new TimePickerDialog(context, (view, hourOfDay, minute) -> {
+            eventCalendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
+            eventCalendar.set(Calendar.MINUTE, minute);
+            eventCalendar.set(Calendar.SECOND, 0);
+            isTimeSet = true;
+            btnTime.setText(String.format(Locale.getDefault(), "%02d:%02d", hourOfDay, minute));
+        }, eventCalendar.get(Calendar.HOUR_OF_DAY), eventCalendar.get(Calendar.MINUTE), true).show());
 
         // בחירת משך זמן
         btnDuration.setOnClickListener(v -> {
@@ -228,7 +226,7 @@ public class CreateEventDialog extends Dialog {
                 group.getLevel(), startTimestamp, selectedDurationMillis, location,
                 currentUserId, selectedMaxParticipants);
 
-        databaseService.createNewEvent(newEvent, new DatabaseService.DatabaseCallback<Void>() {
+        databaseService.createNewEvent(newEvent, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Void object) {
                 Toast.makeText(context, "Event Scheduled Successfully!", Toast.LENGTH_SHORT).show();

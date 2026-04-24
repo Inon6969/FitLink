@@ -18,6 +18,7 @@ import com.google.android.material.button.MaterialButton;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Objects;
 
 public class EventFilterDialog extends Dialog {
 
@@ -114,11 +115,8 @@ public class EventFilterDialog extends Dialog {
                 datePickerDialog.getDatePicker().setMaxDate(currentEndDate); // אי אפשר לחצות את תאריך הסיום
             }
         } else {
-            if (currentStartDate != null) {
-                datePickerDialog.getDatePicker().setMinDate(currentStartDate); // אי אפשר לבחור לפני תאריך ההתחלה
-            } else {
-                datePickerDialog.getDatePicker().setMinDate(today); // אי אפשר לבחור עבר
-            }
+            // אי אפשר לבחור עבר
+            datePickerDialog.getDatePicker().setMinDate(Objects.requireNonNullElse(currentStartDate, today)); // אי אפשר לבחור לפני תאריך ההתחלה
         }
 
         datePickerDialog.show();

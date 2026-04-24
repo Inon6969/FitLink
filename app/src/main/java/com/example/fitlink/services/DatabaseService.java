@@ -239,8 +239,8 @@ public class DatabaseService {
     ///
     /// @param user     the user object to create
     /// @param callback the callback to call when the operation is completed
-    ///                                                                                                                                                                                              the callback will receive void
-    ///                                                                                                                                                                                            if the operation fails, the callback will receive an exception
+    ///                                                                                                                                                                                                              the callback will receive void
+    ///                                                                                                                                                                                                            if the operation fails, the callback will receive an exception
     /// @see DatabaseCallback
     /// @see User
     public void createNewUser(@NotNull final User user, @Nullable final DatabaseCallback<Void> callback) {
@@ -251,8 +251,8 @@ public class DatabaseService {
     ///
     /// @param uid      the id of the user to get
     /// @param callback the callback to call when the operation is completed
-    ///                                                                                                                                                                                               the callback will receive the user object
-    ///                                                                                                                                                                                             if the operation fails, the callback will receive an exception
+    ///                                                                                                                                                                                                               the callback will receive the user object
+    ///                                                                                                                                                                                                             if the operation fails, the callback will receive an exception
     /// @see DatabaseCallback
     /// @see User
     public void getUser(@NotNull final String uid, @NotNull final DatabaseCallback<User> callback) {
@@ -262,8 +262,8 @@ public class DatabaseService {
     /// get all the users from the database
     ///
     /// @param callback the callback to call when the operation is completed
-    ///                                                                                                                                                                                              the callback will receive a list of user objects
-    ///                                                                                                                                                                                            if the operation fails, the callback will receive an exception
+    ///                                                                                                                                                                                                              the callback will receive a list of user objects
+    ///                                                                                                                                                                                                            if the operation fails, the callback will receive an exception
     /// @see DatabaseCallback
     /// @see List
     /// @see User
@@ -287,11 +287,11 @@ public class DatabaseService {
     public void deleteUserCompletely(@NotNull final User userToDelete, @Nullable final DatabaseCallback<Void> callback) {
         String userId = userToDelete.getId();
 
-        getAllGroups(new DatabaseCallback<List<Group>>() {
+        getAllGroups(new DatabaseCallback<>() {
             @Override
             public void onCompleted(List<Group> allGroups) {
 
-                getAllEvents(new DatabaseCallback<List<Event>>() {
+                getAllEvents(new DatabaseCallback<>() {
                     @Override
                     public void onCompleted(List<Event> allEvents) {
                         Map<String, Object> updates = new HashMap<>();
@@ -395,8 +395,8 @@ public class DatabaseService {
     /// @param email    the email of the user
     /// @param password the password of the user
     /// @param callback the callback to call when the operation is completed
-    ///                                                                                                                                                                                            the callback will receive the user object
-    ///                                                                                                                                                                                          if the operation fails, the callback will receive an exception
+    ///                                                                                                                                                                                                            the callback will receive the user object
+    ///                                                                                                                                                                                                          if the operation fails, the callback will receive an exception
     /// @see DatabaseCallback
     /// @see User
     /// get a user by email and password
@@ -485,7 +485,7 @@ public class DatabaseService {
 
     public void listenForNewJoinRequests(String currentUserId, Context context) {
         // קודם נשלוף את פרטי המשתמש כדי לדעת באילו קבוצות הוא נמצא
-        getUser(currentUserId, new DatabaseCallback<User>() {
+        getUser(currentUserId, new DatabaseCallback<>() {
             @Override
             public void onCompleted(User user) {
                 if (user == null || user.getGroupIds() == null || user.getGroupIds().isEmpty()) {
@@ -546,7 +546,7 @@ public class DatabaseService {
         // נשמור את זמן ההפעלה, כדי שלא נקבל התראות על היסטוריית ההודעות בעת פתיחת האפליקציה
         final long listenerStartTime = System.currentTimeMillis();
 
-        getUser(currentUserId, new DatabaseCallback<User>() {
+        getUser(currentUserId, new DatabaseCallback<>() {
             @Override
             public void onCompleted(User user) {
                 if (user == null || user.getGroupIds() == null || user.getGroupIds().isEmpty()) {
@@ -557,7 +557,7 @@ public class DatabaseService {
                 for (String groupId : user.getGroupIds().keySet()) {
 
                     // קודם נשלוף את שם הקבוצה כדי להציג בהתראה
-                    getGroup(groupId, new DatabaseCallback<Group>() {
+                    getGroup(groupId, new DatabaseCallback<>() {
                         @Override
                         public void onCompleted(Group group) {
                             if (group == null) return;
@@ -627,7 +627,7 @@ public class DatabaseService {
         final long listenerStartTime = System.currentTimeMillis();
 
         // שליפת פרטי המשתמש כדי לדעת לאילו קבוצות הוא שייך
-        getUser(currentUserId, new DatabaseCallback<User>() {
+        getUser(currentUserId, new DatabaseCallback<>() {
             @Override
             public void onCompleted(User user) {
                 if (user == null || user.getGroupIds() == null || user.getGroupIds().isEmpty()) {
@@ -649,7 +649,7 @@ public class DatabaseService {
 
                                 if (belongsToMyGroups && isNotMyEvent) {
                                     // שליפת שם הקבוצה לצורך התצוגה בהתראה
-                                    getGroup(event.getGroupId(), new DatabaseCallback<Group>() {
+                                    getGroup(event.getGroupId(), new DatabaseCallback<>() {
                                         @Override
                                         public void onCompleted(Group group) {
                                             if (group != null) {
@@ -1030,7 +1030,7 @@ public class DatabaseService {
      * Preserves gamification stats for past events.
      */
     public void deleteGroup(@NotNull final String groupId, @Nullable final DatabaseCallback<Void> callback) {
-        getGroup(groupId, new DatabaseCallback<Group>() {
+        getGroup(groupId, new DatabaseCallback<>() {
             @Override
             public void onCompleted(Group group) {
                 if (group == null) {
@@ -1038,7 +1038,7 @@ public class DatabaseService {
                     return;
                 }
 
-                getEventsByGroupId(groupId, new DatabaseCallback<List<Event>>() {
+                getEventsByGroupId(groupId, new DatabaseCallback<>() {
                     @Override
                     public void onCompleted(List<Event> groupEvents) {
                         Map<String, Object> updates = new HashMap<>();
@@ -1150,7 +1150,7 @@ public class DatabaseService {
      * If it's a past event, it increments the pastEventsCount for all participants to preserve gamification stats.
      */
     public void deleteEvent(@NotNull final String eventId, @Nullable final DatabaseCallback<Void> callback) {
-        getEvent(eventId, new DatabaseCallback<Event>() {
+        getEvent(eventId, new DatabaseCallback<>() {
             @Override
             public void onCompleted(Event event) {
                 if (event == null) {
@@ -1405,7 +1405,7 @@ public class DatabaseService {
                     // מחיקת האירועים הישנים (תוך שמירה על היסטוריית גיימיפיקציה)
                     int[] completedOperations = {0};
                     for (Event event : eventsToDelete) {
-                        deleteEvent(event.getId(), new DatabaseCallback<Void>() {
+                        deleteEvent(event.getId(), new DatabaseCallback<>() {
                             @Override
                             public void onCompleted(Void object) {
                                 checkIfDone();
@@ -1419,7 +1419,8 @@ public class DatabaseService {
                             private void checkIfDone() {
                                 completedOperations[0]++;
                                 if (completedOperations[0] == eventsToDelete.size()) {
-                                    if (callback != null) callback.onCompleted(eventsToDelete.size());
+                                    if (callback != null)
+                                        callback.onCompleted(eventsToDelete.size());
                                 }
                             }
                         });

@@ -169,7 +169,7 @@ public class AdminGroupsListActivity extends BaseActivity {
         if (group.getPendingRequests() != null && group.getPendingRequests().containsKey(currentUserId)) {
             new CancelJoinRequestDialog(this, group, () -> {
                 progressBar.setVisibility(View.VISIBLE);
-                databaseService.cancelJoinRequest(group.getId(), Objects.requireNonNull(currentUserId), new DatabaseService.DatabaseCallback<Void>() {
+                databaseService.cancelJoinRequest(group.getId(), Objects.requireNonNull(currentUserId), new DatabaseService.DatabaseCallback<>() {
                     @Override
                     public void onCompleted(Void object) {
                         progressBar.setVisibility(View.GONE);
@@ -188,7 +188,7 @@ public class AdminGroupsListActivity extends BaseActivity {
         }
 
         progressBar.setVisibility(View.VISIBLE);
-        databaseService.requestToJoinGroup(group.getId(), Objects.requireNonNull(currentUserId), new DatabaseService.DatabaseCallback<Void>() {
+        databaseService.requestToJoinGroup(group.getId(), Objects.requireNonNull(currentUserId), new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Void object) {
                 progressBar.setVisibility(View.GONE);
@@ -214,7 +214,7 @@ public class AdminGroupsListActivity extends BaseActivity {
 
         new LeaveGroupDialog(this, group, currentUserId, () -> {
             progressBar.setVisibility(View.VISIBLE);
-            databaseService.leaveGroup(group.getId(), Objects.requireNonNull(currentUserId), new DatabaseService.DatabaseCallback<Void>() {
+            databaseService.leaveGroup(group.getId(), Objects.requireNonNull(currentUserId), new DatabaseService.DatabaseCallback<>() {
                 @Override
                 public void onCompleted(Void object) {
                     progressBar.setVisibility(View.GONE);
@@ -234,7 +234,7 @@ public class AdminGroupsListActivity extends BaseActivity {
     private void handleDeleteGroup(Group group) {
         new DeleteGroupDialog(this, () -> {
             progressBar.setVisibility(View.VISIBLE);
-            databaseService.deleteGroup(group.getId(), new DatabaseService.DatabaseCallback<Void>() {
+            databaseService.deleteGroup(group.getId(), new DatabaseService.DatabaseCallback<>() {
                 @Override
                 public void onCompleted(Void object) {
                     progressBar.setVisibility(View.GONE);
@@ -332,7 +332,7 @@ public class AdminGroupsListActivity extends BaseActivity {
 
     private void loadGroups() {
         progressBar.setVisibility(View.VISIBLE);
-        databaseService.getAllGroups(new DatabaseService.DatabaseCallback<List<Group>>() {
+        databaseService.getAllGroups(new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(List<Group> groups) {
                 allGroups = (groups != null) ? groups : new ArrayList<>();

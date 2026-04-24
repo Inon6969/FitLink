@@ -49,7 +49,7 @@ public class BaseActivity extends AppCompatActivity {
     }
 
     private void startListeningToUserStatus() {
-        currentUserListener = databaseService.listenToUser(currentUserId, new DatabaseService.DatabaseCallback<User>() {
+        currentUserListener = databaseService.listenToUser(currentUserId, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(User user) {
                 // המשתמש נמחק מ-Firebase! (על ידי מנהל או על ידי עצמו)

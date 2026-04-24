@@ -141,7 +141,7 @@ public class MyCalendarActivity extends BaseActivity {
     private void loadMyEvents() {
         progressBar.setVisibility(View.VISIBLE);
 
-        databaseService.getAllEvents(new DatabaseService.DatabaseCallback<List<Event>>() {
+        databaseService.getAllEvents(new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(List<Event> events) {
                 // התיקון: הסרנו את הסתרת ה-ProgressBar מכאן

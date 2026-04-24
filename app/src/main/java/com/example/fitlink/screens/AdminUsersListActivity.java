@@ -271,15 +271,13 @@ public class AdminUsersListActivity extends BaseActivity {
     private void handleDeleteUser(User user) {
         boolean isSelf = user.getId().equals(SharedPreferencesUtil.getUserId(this));
 
-        new DeleteUserDialog(this, user, deleteGroups -> {
-            executeUserDeletion(user, isSelf);
-        }).show();
+        new DeleteUserDialog(this, user, deleteGroups -> executeUserDeletion(user, isSelf)).show();
     }
 
     private void executeUserDeletion(User user, boolean isSelf) {
         progressBar.setVisibility(View.VISIBLE);
 
-        databaseService.deleteUserCompletely(user, new DatabaseService.DatabaseCallback<Void>() {
+        databaseService.deleteUserCompletely(user, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Void object) {
                 progressBar.setVisibility(View.GONE);

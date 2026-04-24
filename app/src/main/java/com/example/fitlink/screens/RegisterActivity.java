@@ -176,7 +176,7 @@ public class RegisterActivity extends BaseActivity implements View.OnClickListen
     private void registerUser(String email, String password, String fName, String lName, String fullPhone) {
         Log.d(TAG, "Starting registration availability checks...");
 
-        databaseService.checkIfPhoneExists(fullPhone, new DatabaseService.DatabaseCallback<Boolean>() {
+        databaseService.checkIfPhoneExists(fullPhone, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Boolean phoneExists) {
                 if (phoneExists) {
@@ -197,7 +197,7 @@ public class RegisterActivity extends BaseActivity implements View.OnClickListen
     }
 
     private void checkEmailAndRegister(String email, String password, String fName, String lName, String fullPhone) {
-        databaseService.checkIfEmailExists(email, new DatabaseService.DatabaseCallback<Boolean>() {
+        databaseService.checkIfEmailExists(email, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Boolean emailExists) {
                 if (emailExists) {
@@ -220,7 +220,7 @@ public class RegisterActivity extends BaseActivity implements View.OnClickListen
     }
 
     private void createUserInDatabase(User user) {
-        databaseService.createNewUser(user, new DatabaseService.DatabaseCallback<Void>() {
+        databaseService.createNewUser(user, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Void object) {
                 Log.d(TAG, "User created successfully in database");

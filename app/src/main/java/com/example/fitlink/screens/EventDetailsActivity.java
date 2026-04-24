@@ -93,7 +93,7 @@ public class EventDetailsActivity extends BaseActivity {
             return;
         }
 
-        databaseService.getEvent(eventId, new DatabaseService.DatabaseCallback<Event>() {
+        databaseService.getEvent(eventId, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Event event) {
                 if (event == null) {
@@ -124,7 +124,7 @@ public class EventDetailsActivity extends BaseActivity {
         loadComments();
 
         if (currentEvent.getGroupId() != null && !currentEvent.getGroupId().isEmpty()) {
-            databaseService.getGroup(currentEvent.getGroupId(), new DatabaseService.DatabaseCallback<Group>() {
+            databaseService.getGroup(currentEvent.getGroupId(), new DatabaseService.DatabaseCallback<>() {
                 @Override
                 public void onCompleted(Group group) {
                     if (group != null && group.getCreatorId() != null) {
@@ -275,7 +275,7 @@ public class EventDetailsActivity extends BaseActivity {
 
         tvCreator.setText("Loading creator...");
         if (currentEvent.getCreatorId() != null) {
-            databaseService.getUser(currentEvent.getCreatorId(), new DatabaseService.DatabaseCallback<User>() {
+            databaseService.getUser(currentEvent.getCreatorId(), new DatabaseService.DatabaseCallback<>() {
                 @Override
                 public void onCompleted(User user) {
                     if (user != null) {
@@ -354,7 +354,7 @@ public class EventDetailsActivity extends BaseActivity {
         }
 
         btnMainAction.setEnabled(false);
-        databaseService.joinEvent(currentEvent.getId(), currentUserId, new DatabaseService.DatabaseCallback<Void>() {
+        databaseService.joinEvent(currentEvent.getId(), currentUserId, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Void object) {
                 btnMainAction.setEnabled(true);
@@ -378,7 +378,7 @@ public class EventDetailsActivity extends BaseActivity {
 
     private void leaveEvent() {
         btnMainAction.setEnabled(false);
-        databaseService.leaveEvent(currentEvent.getId(), currentUserId, new DatabaseService.DatabaseCallback<Void>() {
+        databaseService.leaveEvent(currentEvent.getId(), currentUserId, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Void object) {
                 btnMainAction.setEnabled(true);
@@ -429,7 +429,7 @@ public class EventDetailsActivity extends BaseActivity {
             if (btnMainAction != null) btnMainAction.setEnabled(false);
             if (btnTertiaryAction != null) btnTertiaryAction.setEnabled(false);
 
-            databaseService.deleteEvent(currentEvent.getId(), new DatabaseService.DatabaseCallback<Void>() {
+            databaseService.deleteEvent(currentEvent.getId(), new DatabaseService.DatabaseCallback<>() {
                 @Override
                 public void onCompleted(Void object) {
                     Toast.makeText(EventDetailsActivity.this, "Event deleted successfully", Toast.LENGTH_SHORT).show();
@@ -507,7 +507,7 @@ public class EventDetailsActivity extends BaseActivity {
 
                 btnSendComment.setEnabled(false);
 
-                databaseService.addEventComment(newComment, new DatabaseService.DatabaseCallback<Void>() {
+                databaseService.addEventComment(newComment, new DatabaseService.DatabaseCallback<>() {
                     @Override
                     public void onCompleted(Void object) {
                         etNewComment.setText("");
@@ -526,7 +526,7 @@ public class EventDetailsActivity extends BaseActivity {
     }
 
     private void loadComments() {
-        databaseService.getEventComments(currentEvent.getId(), new DatabaseService.DatabaseCallback<List<Comment>>() {
+        databaseService.getEventComments(currentEvent.getId(), new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(List<Comment> comments) {
                 if (commentAdapter != null) {
@@ -548,7 +548,7 @@ public class EventDetailsActivity extends BaseActivity {
     private void showFullImageDialog(String userId) {
         if (userId == null) return;
 
-        DatabaseService.getInstance().getUser(userId, new DatabaseService.DatabaseCallback<User>() {
+        DatabaseService.getInstance().getUser(userId, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(User user) {
                 if (user != null && user.getProfileImage() != null && !user.getProfileImage().isEmpty()) {

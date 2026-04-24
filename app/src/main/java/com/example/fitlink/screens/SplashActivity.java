@@ -54,7 +54,7 @@ public class SplashActivity extends AppCompatActivity {
         if (SharedPreferencesUtil.isUserLoggedIn(this)) {
             User current = SharedPreferencesUtil.getUser(this);
             if (current != null) {
-                DatabaseService.getInstance().getUser(current.getId(), new DatabaseService.DatabaseCallback<User>() {
+                DatabaseService.getInstance().getUser(current.getId(), new DatabaseService.DatabaseCallback<>() {
                     @Override
                     public void onCompleted(User user) {
                         if (user != null) {
@@ -105,15 +105,13 @@ public class SplashActivity extends AppCompatActivity {
 
     // הצגת הדיאלוג המעוצב במקרה שאין אינטרנט
     private void showNoInternetDialog() {
+        // סוגר את האפליקציה לגמרי
+        // מנסים שוב את תהליך הבדיקה
         new NoInternetDialog(this,
                 // מה קורה כשלוחצים על Retry
-                () -> {
-                    checkLoginAndNetwork(); // מנסים שוב את תהליך הבדיקה
-                },
+                this::checkLoginAndNetwork,
                 // מה קורה כשלוחצים על Exit
-                () -> {
-                    finishAffinity(); // סוגר את האפליקציה לגמרי
-                }
+                this::finishAffinity
         ).show();
     }
 }

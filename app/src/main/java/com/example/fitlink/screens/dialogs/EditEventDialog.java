@@ -133,15 +133,13 @@ public class EditEventDialog extends Dialog {
             datePickerDialog.show();
         });
 
-        btnTime.setOnClickListener(v -> {
-            new TimePickerDialog(context, (view, hourOfDay, minute) -> {
-                eventCalendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
-                eventCalendar.set(Calendar.MINUTE, minute);
-                eventCalendar.set(Calendar.SECOND, 0);
-                isTimeSet = true;
-                btnTime.setText(String.format(Locale.getDefault(), "%02d:%02d", hourOfDay, minute));
-            }, eventCalendar.get(Calendar.HOUR_OF_DAY), eventCalendar.get(Calendar.MINUTE), true).show();
-        });
+        btnTime.setOnClickListener(v -> new TimePickerDialog(context, (view, hourOfDay, minute) -> {
+            eventCalendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
+            eventCalendar.set(Calendar.MINUTE, minute);
+            eventCalendar.set(Calendar.SECOND, 0);
+            isTimeSet = true;
+            btnTime.setText(String.format(Locale.getDefault(), "%02d:%02d", hourOfDay, minute));
+        }, eventCalendar.get(Calendar.HOUR_OF_DAY), eventCalendar.get(Calendar.MINUTE), true).show());
 
         btnDuration.setOnClickListener(v -> {
             int currentHours = (int) (selectedDurationMillis / (1000 * 60 * 60));
@@ -181,7 +179,7 @@ public class EditEventDialog extends Dialog {
 
             // אם לאירוע יש קבוצה משוייכת, נשלוף את מספר החברים מהדאטה-בייס
             if (groupId != null && !groupId.isEmpty()) {
-                databaseService.getGroup(groupId, new DatabaseService.DatabaseCallback<Group>() {
+                databaseService.getGroup(groupId, new DatabaseService.DatabaseCallback<>() {
                     @Override
                     public void onCompleted(Group group) {
                         int maxMembers = (group != null && group.getMembers() != null) ? group.getMembers().size() : 20;
@@ -292,7 +290,7 @@ public class EditEventDialog extends Dialog {
         currentEvent.setLocation(location);
         currentEvent.setMaxParticipants(selectedMaxParticipants); // עדכון כמות המשתתפים החדשה
 
-        databaseService.updateEvent(currentEvent, new DatabaseService.DatabaseCallback<Void>() {
+        databaseService.updateEvent(currentEvent, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Void object) {
                 Toast.makeText(context, "Event Updated Successfully!", Toast.LENGTH_SHORT).show();

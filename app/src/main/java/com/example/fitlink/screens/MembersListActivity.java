@@ -59,7 +59,7 @@ public class MembersListActivity extends BaseActivity {
         currentUserId = SharedPreferencesUtil.getUserId(this);
 
         // האזנה בזמן אמת לקבוצה
-        groupListener = DatabaseService.getInstance().listenToGroup(groupId, new DatabaseService.DatabaseCallback<Group>() {
+        groupListener = DatabaseService.getInstance().listenToGroup(groupId, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Group group) {
                 if (group == null) {
@@ -188,7 +188,7 @@ public class MembersListActivity extends BaseActivity {
         boolean newStatus = !isCurrentlyManager;
 
         progressBar.setVisibility(View.VISIBLE);
-        databaseService.updateGroupManager(currentGroup.getId(), user.getId(), newStatus, new DatabaseService.DatabaseCallback<Void>() {
+        databaseService.updateGroupManager(currentGroup.getId(), user.getId(), newStatus, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Void object) {
                 Toast.makeText(MembersListActivity.this, newStatus ? "Manager added" : "Manager removed", Toast.LENGTH_SHORT).show();
@@ -209,7 +209,7 @@ public class MembersListActivity extends BaseActivity {
         layoutNoMembers.setVisibility(View.GONE);
         tvMembersCount.setVisibility(View.GONE);
 
-        databaseService.getUserList(new DatabaseService.DatabaseCallback<List<User>>() {
+        databaseService.getUserList(new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(List<User> allUsers) {
                 progressBar.setVisibility(View.GONE);
@@ -256,7 +256,7 @@ public class MembersListActivity extends BaseActivity {
         }
 
         progressBar.setVisibility(View.VISIBLE);
-        databaseService.leaveGroup(currentGroup.getId(), user.getId(), new DatabaseService.DatabaseCallback<Void>() {
+        databaseService.leaveGroup(currentGroup.getId(), user.getId(), new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Void object) {
                 Toast.makeText(MembersListActivity.this, "Member removed", Toast.LENGTH_SHORT).show();

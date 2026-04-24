@@ -231,7 +231,7 @@ public class ContactActivity extends BaseActivity implements NavigationView.OnNa
         String email = currentUser.getEmail();
         String phone = (currentUser.getPhone() != null && !currentUser.getPhone().isEmpty()) ? currentUser.getPhone() : "No phone provided";
 
-        databaseService.sendContactMessage(userId, name, email, phone, message, new DatabaseService.DatabaseCallback<Void>() {
+        databaseService.sendContactMessage(userId, name, email, phone, message, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Void object) {
                 Toast.makeText(ContactActivity.this, "Message sent successfully!", Toast.LENGTH_LONG).show();

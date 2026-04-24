@@ -108,7 +108,7 @@ public class LoginActivity extends BaseActivity {
     private void loginUser(String email, String password) {
         setLoadingState(true); // Disable button to prevent multiple clicks
 
-        databaseService.getUserByEmailAndPassword(email, password, new DatabaseService.DatabaseCallback<User>() {
+        databaseService.getUserByEmailAndPassword(email, password, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(User user) {
                 setLoadingState(false);

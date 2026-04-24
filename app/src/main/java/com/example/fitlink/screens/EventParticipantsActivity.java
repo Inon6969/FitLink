@@ -51,7 +51,7 @@ public class EventParticipantsActivity extends BaseActivity {
             return;
         }
 
-        databaseService.getEvent(eventId, new DatabaseService.DatabaseCallback<Event>() {
+        databaseService.getEvent(eventId, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Event event) {
                 if (event == null) {
@@ -164,14 +164,14 @@ public class EventParticipantsActivity extends BaseActivity {
         layoutNoParticipants.setVisibility(View.GONE);
         tvParticipantsCount.setVisibility(View.GONE);
 
-        databaseService.getEvent(currentEvent.getId(), new DatabaseService.DatabaseCallback<Event>() {
+        databaseService.getEvent(currentEvent.getId(), new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Event updatedEvent) {
                 if (updatedEvent != null) {
                     currentEvent = updatedEvent;
                 }
 
-                databaseService.getUserList(new DatabaseService.DatabaseCallback<List<User>>() {
+                databaseService.getUserList(new DatabaseService.DatabaseCallback<>() {
                     @Override
                     public void onCompleted(List<User> allUsers) {
                         if (progressBar != null) progressBar.setVisibility(View.GONE);
@@ -227,7 +227,7 @@ public class EventParticipantsActivity extends BaseActivity {
     private void removeParticipantFromEvent(User user) {
         if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
 
-        databaseService.leaveEvent(currentEvent.getId(), user.getId(), new DatabaseService.DatabaseCallback<Void>() {
+        databaseService.leaveEvent(currentEvent.getId(), user.getId(), new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Void object) {
                 Toast.makeText(EventParticipantsActivity.this, user.getFullName() + " was removed", Toast.LENGTH_SHORT).show();

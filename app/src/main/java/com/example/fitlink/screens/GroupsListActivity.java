@@ -227,7 +227,7 @@ public class GroupsListActivity extends BaseActivity {
 
     private void loadGroups() {
         progressBar.setVisibility(View.VISIBLE);
-        databaseService.getAllGroups(new DatabaseService.DatabaseCallback<List<Group>>() {
+        databaseService.getAllGroups(new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(List<Group> groups) {
                 allGroups = (groups != null) ? groups : new ArrayList<>();
@@ -262,7 +262,7 @@ public class GroupsListActivity extends BaseActivity {
         if (group.getPendingRequests() != null && group.getPendingRequests().containsKey(currentUserId)) {
             new com.example.fitlink.screens.dialogs.CancelJoinRequestDialog(this, group, () -> {
                 progressBar.setVisibility(View.VISIBLE);
-                databaseService.cancelJoinRequest(group.getId(), Objects.requireNonNull(currentUserId), new DatabaseService.DatabaseCallback<Void>() {
+                databaseService.cancelJoinRequest(group.getId(), Objects.requireNonNull(currentUserId), new DatabaseService.DatabaseCallback<>() {
                     @Override
                     public void onCompleted(Void object) {
                         progressBar.setVisibility(View.GONE);
@@ -286,7 +286,7 @@ public class GroupsListActivity extends BaseActivity {
         if (isCreator) {
             progressBar.setVisibility(View.VISIBLE);
             // אם הוא היוצר, אנחנו מדלגים על בקשת ההצטרפות ומאשרים אותו מיידית
-            databaseService.approveJoinRequest(group.getId(), Objects.requireNonNull(currentUserId), new DatabaseService.DatabaseCallback<Void>() {
+            databaseService.approveJoinRequest(group.getId(), Objects.requireNonNull(currentUserId), new DatabaseService.DatabaseCallback<>() {
                 @Override
                 public void onCompleted(Void object) {
                     progressBar.setVisibility(View.GONE);
@@ -303,7 +303,7 @@ public class GroupsListActivity extends BaseActivity {
         } else {
             // אם הוא לא היוצר - נשלח בקשה רגילה למנהלים
             progressBar.setVisibility(View.VISIBLE);
-            databaseService.requestToJoinGroup(group.getId(), Objects.requireNonNull(currentUserId), new DatabaseService.DatabaseCallback<Void>() {
+            databaseService.requestToJoinGroup(group.getId(), Objects.requireNonNull(currentUserId), new DatabaseService.DatabaseCallback<>() {
                 @Override
                 public void onCompleted(Void object) {
                     progressBar.setVisibility(View.GONE);
@@ -333,7 +333,7 @@ public class GroupsListActivity extends BaseActivity {
         // קריאה לדיאלוג והעברת המזהה של המשתמש הנוכחי
         new LeaveGroupDialog(this, group, currentUserId, () -> {
             progressBar.setVisibility(View.VISIBLE);
-            databaseService.leaveGroup(group.getId(), Objects.requireNonNull(currentUserId), new DatabaseService.DatabaseCallback<Void>() {
+            databaseService.leaveGroup(group.getId(), Objects.requireNonNull(currentUserId), new DatabaseService.DatabaseCallback<>() {
                 @Override
                 public void onCompleted(Void object) {
                     progressBar.setVisibility(View.GONE);

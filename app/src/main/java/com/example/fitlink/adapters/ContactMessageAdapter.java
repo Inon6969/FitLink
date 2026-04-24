@@ -65,7 +65,7 @@ public class ContactMessageAdapter extends RecyclerView.Adapter<ContactMessageAd
         holder.imgProfile.setImageResource(R.drawable.ic_user);
 
         if (msg.getUserId() != null && !msg.getUserId().isEmpty()) {
-            DatabaseService.getInstance().getUser(msg.getUserId(), new DatabaseService.DatabaseCallback<User>() {
+            DatabaseService.getInstance().getUser(msg.getUserId(), new DatabaseService.DatabaseCallback<>() {
                 @Override
                 public void onCompleted(User user) {
                     if (user != null && user.getProfileImage() != null && !user.getProfileImage().isEmpty()) {

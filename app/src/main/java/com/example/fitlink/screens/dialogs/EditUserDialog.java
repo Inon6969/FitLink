@@ -141,7 +141,7 @@ public class EditUserDialog {
 
     private void checkPhoneAvailability(String fName, String lName, String email, String phone, String pass, Dialog dialog, EditText inputEmail, EditText inputPhone) {
         if (!phone.equals(user.getPhone())) {
-            DatabaseService.getInstance().checkIfPhoneExists(phone, new DatabaseService.DatabaseCallback<Boolean>() {
+            DatabaseService.getInstance().checkIfPhoneExists(phone, new DatabaseService.DatabaseCallback<>() {
                 @Override
                 public void onCompleted(Boolean exists) {
                     if (exists) {
@@ -164,7 +164,7 @@ public class EditUserDialog {
 
     private void checkEmailAvailability(String fName, String lName, String email, String phone, String pass, Dialog dialog, EditText inputEmail) {
         if (!email.equalsIgnoreCase(user.getEmail())) {
-            DatabaseService.getInstance().checkIfEmailExists(email, new DatabaseService.DatabaseCallback<Boolean>() {
+            DatabaseService.getInstance().checkIfEmailExists(email, new DatabaseService.DatabaseCallback<>() {
                 @Override
                 public void onCompleted(Boolean exists) {
                     if (exists) {
@@ -192,7 +192,7 @@ public class EditUserDialog {
         user.setPhone(phone);
         user.setPassword(pass);
 
-        DatabaseService.getInstance().updateUser(user, new DatabaseService.DatabaseCallback<Void>() {
+        DatabaseService.getInstance().updateUser(user, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Void object) {
                 Toast.makeText(context, "Profile updated successfully!", Toast.LENGTH_SHORT).show();

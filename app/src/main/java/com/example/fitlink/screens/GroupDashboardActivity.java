@@ -93,7 +93,7 @@ public class GroupDashboardActivity extends BaseActivity {
 
         String currentUserId = SharedPreferencesUtil.getUserId(this);
 
-        groupListener = DatabaseService.getInstance().listenToGroup(groupId, new DatabaseService.DatabaseCallback<Group>() {
+        groupListener = DatabaseService.getInstance().listenToGroup(groupId, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Group group) {
                 if (group == null) {
@@ -235,23 +235,21 @@ public class GroupDashboardActivity extends BaseActivity {
             currentEditGroupDialog.show();
         });
 
-        findViewById(R.id.btn_dashboard_delete).setOnClickListener(v -> {
-            new DeleteGroupDialog(this, () -> {
-                Toast.makeText(this, "Deleting group...", Toast.LENGTH_SHORT).show();
-                DatabaseService.getInstance().deleteGroup(currentGroup.getId(), new DatabaseService.DatabaseCallback<Void>() {
-                    @Override
-                    public void onCompleted(Void object) {
-                        Toast.makeText(GroupDashboardActivity.this, "Group deleted successfully", Toast.LENGTH_SHORT).show();
-                        finish();
-                    }
+        findViewById(R.id.btn_dashboard_delete).setOnClickListener(v -> new DeleteGroupDialog(this, () -> {
+            Toast.makeText(this, "Deleting group...", Toast.LENGTH_SHORT).show();
+            DatabaseService.getInstance().deleteGroup(currentGroup.getId(), new DatabaseService.DatabaseCallback<>() {
+                @Override
+                public void onCompleted(Void object) {
+                    Toast.makeText(GroupDashboardActivity.this, "Group deleted successfully", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
 
-                    @Override
-                    public void onFailed(Exception e) {
-                        Toast.makeText(GroupDashboardActivity.this, "Failed to delete group", Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }).show();
-        });
+                @Override
+                public void onFailed(Exception e) {
+                    Toast.makeText(GroupDashboardActivity.this, "Failed to delete group", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }).show());
 
         findViewById(R.id.btn_dashboard_leave).setOnClickListener(v -> {
             String currentUserId = SharedPreferencesUtil.getUserId(this);
@@ -261,20 +259,18 @@ public class GroupDashboardActivity extends BaseActivity {
                 return;
             }
 
-            new LeaveGroupDialog(this, currentGroup, currentUserId, () -> {
-                DatabaseService.getInstance().leaveGroup(currentGroup.getId(), currentUserId, new DatabaseService.DatabaseCallback<Void>() {
-                    @Override
-                    public void onCompleted(Void object) {
-                        Toast.makeText(GroupDashboardActivity.this, "Left group successfully", Toast.LENGTH_SHORT).show();
-                        finish();
-                    }
+            new LeaveGroupDialog(this, currentGroup, currentUserId, () -> DatabaseService.getInstance().leaveGroup(currentGroup.getId(), currentUserId, new DatabaseService.DatabaseCallback<>() {
+                @Override
+                public void onCompleted(Void object) {
+                    Toast.makeText(GroupDashboardActivity.this, "Left group successfully", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
 
-                    @Override
-                    public void onFailed(Exception e) {
-                        Toast.makeText(GroupDashboardActivity.this, "Failed to leave group", Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }).show();
+                @Override
+                public void onFailed(Exception e) {
+                    Toast.makeText(GroupDashboardActivity.this, "Failed to leave group", Toast.LENGTH_SHORT).show();
+                }
+            })).show();
         });
 
         findViewById(R.id.btn_dashboard_members).setOnClickListener(v -> {
@@ -478,7 +474,7 @@ public class GroupDashboardActivity extends BaseActivity {
     }
 
     private void saveGroupImage(String successMessage) {
-        DatabaseService.getInstance().updateGroup(currentGroup, new DatabaseService.DatabaseCallback<Void>() {
+        DatabaseService.getInstance().updateGroup(currentGroup, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Void object) {
                 Toast.makeText(GroupDashboardActivity.this, successMessage, Toast.LENGTH_SHORT).show();

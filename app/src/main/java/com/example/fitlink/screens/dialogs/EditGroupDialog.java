@@ -159,7 +159,7 @@ public class EditGroupDialog extends Dialog {
         currentGroup.setLocation(locationObj);
 
         // שמירה במסד הנתונים
-        databaseService.updateGroup(currentGroup, new DatabaseService.DatabaseCallback<Void>() {
+        databaseService.updateGroup(currentGroup, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Void object) {
                 Toast.makeText(context, "Group updated successfully!", Toast.LENGTH_SHORT).show();

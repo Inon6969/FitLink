@@ -129,7 +129,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             receivedHolder.imgUserProfile.setColorFilter(primaryColor);
 
             if (message.getSenderId() != null) {
-                DatabaseService.getInstance().getUser(message.getSenderId(), new DatabaseService.DatabaseCallback<User>() {
+                DatabaseService.getInstance().getUser(message.getSenderId(), new DatabaseService.DatabaseCallback<>() {
                     @Override
                     public void onCompleted(User user) {
                         if (user != null && user.getProfileImage() != null && !user.getProfileImage().isEmpty()) {

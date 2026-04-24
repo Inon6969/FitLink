@@ -110,7 +110,7 @@ public class AdminContactMessagesListActivity extends BaseActivity {
 
     private void loadMessages() {
         progressBar.setVisibility(View.VISIBLE);
-        databaseService.getAllContactMessages(new DatabaseService.DatabaseCallback<List<ContactMessage>>() {
+        databaseService.getAllContactMessages(new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(List<ContactMessage> messages) {
                 progressBar.setVisibility(View.GONE);
@@ -137,7 +137,7 @@ public class AdminContactMessagesListActivity extends BaseActivity {
 
     private void deleteMessage(String messageId) {
         progressBar.setVisibility(View.VISIBLE);
-        databaseService.deleteContactMessage(messageId, new DatabaseService.DatabaseCallback<Void>() {
+        databaseService.deleteContactMessage(messageId, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Void object) {
                 progressBar.setVisibility(View.GONE);

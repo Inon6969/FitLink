@@ -66,7 +66,7 @@ public class GroupChatActivity extends BaseActivity {
         currentUserId = SharedPreferencesUtil.getUserId(this);
 
         // מאזין זמן אמת לקבוצה - אם המשתמש מוסר, הוא נזרק מהצ'אט
-        groupListener = DatabaseService.getInstance().listenToGroup(groupId, new DatabaseService.DatabaseCallback<Group>() {
+        groupListener = DatabaseService.getInstance().listenToGroup(groupId, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Group group) {
                 if (group == null) {
@@ -199,7 +199,7 @@ public class GroupChatActivity extends BaseActivity {
     }
 
     private void fetchUserDetailsAndListenToChat() {
-        DatabaseService.getInstance().getUser(currentUserId, new DatabaseService.DatabaseCallback<User>() {
+        DatabaseService.getInstance().getUser(currentUserId, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(User user) {
                 if (user != null) {
@@ -216,7 +216,7 @@ public class GroupChatActivity extends BaseActivity {
     }
 
     private void listenToMessages() {
-        DatabaseService.getInstance().listenForGroupMessages(currentGroup.getId(), new DatabaseService.DatabaseCallback<List<ChatMessage>>() {
+        DatabaseService.getInstance().listenForGroupMessages(currentGroup.getId(), new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(List<ChatMessage> messages) {
                 messageList.clear();
@@ -241,7 +241,7 @@ public class GroupChatActivity extends BaseActivity {
         ChatMessage message = new ChatMessage(currentUserId, currentUserName, text, System.currentTimeMillis());
         etMessage.setText("");
 
-        DatabaseService.getInstance().sendGroupMessage(currentGroup.getId(), message, new DatabaseService.DatabaseCallback<Void>() {
+        DatabaseService.getInstance().sendGroupMessage(currentGroup.getId(), message, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Void object) {
             }
@@ -254,7 +254,7 @@ public class GroupChatActivity extends BaseActivity {
     }
 
     private void deleteMessage(ChatMessage message) {
-        DatabaseService.getInstance().deleteGroupMessage(currentGroup.getId(), message.getMessageId(), new DatabaseService.DatabaseCallback<Void>() {
+        DatabaseService.getInstance().deleteGroupMessage(currentGroup.getId(), message.getMessageId(), new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Void object) {
                 Toast.makeText(GroupChatActivity.this, "Message deleted", Toast.LENGTH_SHORT).show();
@@ -270,7 +270,7 @@ public class GroupChatActivity extends BaseActivity {
     private void showFullImageDialog(String userId) {
         if (userId == null) return;
 
-        DatabaseService.getInstance().getUser(userId, new DatabaseService.DatabaseCallback<User>() {
+        DatabaseService.getInstance().getUser(userId, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(User user) {
                 if (user != null && user.getProfileImage() != null && !user.getProfileImage().isEmpty()) {

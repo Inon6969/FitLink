@@ -357,7 +357,7 @@ public class EditIndependentEventDialog extends Dialog {
         progressBar.setVisibility(View.VISIBLE);
         btnSave.setEnabled(false);
 
-        DatabaseService.getInstance().updateEvent(currentEvent, new DatabaseService.DatabaseCallback<Void>() {
+        DatabaseService.getInstance().updateEvent(currentEvent, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(Void object) {
                 progressBar.setVisibility(View.GONE);

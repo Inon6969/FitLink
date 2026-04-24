@@ -118,13 +118,10 @@ public class EventsListActivity extends BaseActivity {
         RecyclerView rvEvents = findViewById(R.id.rv_events_list);
         rvEvents.setLayoutManager(new LinearLayoutManager(this));
 
-        eventAdapter = new EventAdapter(new ArrayList<>(), currentUserId, new EventAdapter.OnEventClickListener() {
-            @Override
-            public void onEventClick(Event event) {
-                Intent intent = new Intent(EventsListActivity.this, EventDetailsActivity.class);
-                intent.putExtra("EVENT_ID", event.getId());
-                startActivity(intent);
-            }
+        eventAdapter = new EventAdapter(new ArrayList<>(), currentUserId, event -> {
+            Intent intent = new Intent(EventsListActivity.this, EventDetailsActivity.class);
+            intent.putExtra("EVENT_ID", event.getId());
+            startActivity(intent);
         });
         rvEvents.setAdapter(eventAdapter);
     }
@@ -235,7 +232,7 @@ public class EventsListActivity extends BaseActivity {
 
     private void loadIndependentEvents() {
         progressBar.setVisibility(View.VISIBLE);
-        databaseService.getAllIndependentEvents(new DatabaseService.DatabaseCallback<List<Event>>() {
+        databaseService.getAllIndependentEvents(new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(List<Event> events) {
                 long currentTime = System.currentTimeMillis();

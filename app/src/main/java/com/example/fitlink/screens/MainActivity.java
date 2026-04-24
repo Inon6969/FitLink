@@ -121,12 +121,12 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
      * התראה ל-24 שעות לפני תחילת האירוע באמצעות WorkManager
      */
     private void scheduleFutureEventReminders(String userId) {
-        DatabaseService.getInstance().getUser(userId, new DatabaseService.DatabaseCallback<User>() {
+        DatabaseService.getInstance().getUser(userId, new DatabaseService.DatabaseCallback<>() {
             @Override
             public void onCompleted(User currentUser) {
                 if (currentUser != null && currentUser.getEventIds() != null) {
                     for (String eventId : currentUser.getEventIds().keySet()) {
-                        DatabaseService.getInstance().getEvent(eventId, new DatabaseService.DatabaseCallback<Event>() {
+                        DatabaseService.getInstance().getEvent(eventId, new DatabaseService.DatabaseCallback<>() {
                             @Override
                             public void onCompleted(Event event) {
                                 // מתזמן רק אירועים שעדיין לא התחילו
