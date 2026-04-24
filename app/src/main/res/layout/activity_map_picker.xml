@@ -4,8 +4,8 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layoutDirection="ltr"
-    android:background="?attr/colorSurface">
+    android:background="?attr/colorSurface"
+    android:layoutDirection="ltr">
 
     <org.osmdroid.views.MapView
         android:id="@+id/map"
@@ -16,9 +16,10 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_centerInParent="true"
-        android:translationY="-24dp"
         android:src="@drawable/ic_location"
+        android:translationY="-24dp"
         app:tint="@color/fitlinkPrimary" />
+
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

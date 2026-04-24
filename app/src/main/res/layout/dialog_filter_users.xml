@@ -3,8 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layoutDirection="ltr"
-    android:fillViewport="true">
+    android:fillViewport="true"
+    android:layoutDirection="ltr">
 
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
@@ -98,7 +98,7 @@
                         android:hint="e.g. user@email.com"
                         android:inputType="textEmailAddress"
                         android:paddingStart="12dp"
-                        android:textSize="14sp"/>
+                        android:textSize="14sp" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -118,7 +118,7 @@
                         android:hint="e.g. 0501234567"
                         android:inputType="phone"
                         android:paddingStart="12dp"
-                        android:textSize="14sp"/>
+                        android:textSize="14sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

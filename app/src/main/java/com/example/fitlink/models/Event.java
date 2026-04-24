@@ -59,6 +59,7 @@ public class Event implements Serializable {
 
     /**
      * Checks if the event is independent (not linked to any specific group).
+     *
      * @return true if independent, false if it belongs to a group.
      */
     @Exclude

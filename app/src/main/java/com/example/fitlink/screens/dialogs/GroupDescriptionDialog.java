@@ -25,16 +25,10 @@ import com.google.android.material.chip.Chip;
 
 public class GroupDescriptionDialog {
 
-    public interface AdminActionsListener {
-        void onEdit(Group group);
-        void onDelete(Group group);
-    }
-
     private final Context context;
     private final Group group;
     private boolean isAdminPanel = false;
     private AdminActionsListener adminListener;
-
     public GroupDescriptionDialog(Context context, Group group) {
         this.context = context;
         this.group = group;
@@ -219,5 +213,11 @@ public class GroupDescriptionDialog {
     private String formatEnumName(String name) {
         if (name == null || name.isEmpty()) return "";
         return name.substring(0, 1).toUpperCase() + name.substring(1).toLowerCase();
+    }
+
+    public interface AdminActionsListener {
+        void onEdit(Group group);
+
+        void onDelete(Group group);
     }
 }

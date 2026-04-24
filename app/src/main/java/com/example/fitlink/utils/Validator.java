@@ -1,6 +1,7 @@
 package com.example.fitlink.utils;
 
 import android.util.Patterns;
+
 import androidx.annotation.Nullable;
 
 /// Validator class to validate user input.

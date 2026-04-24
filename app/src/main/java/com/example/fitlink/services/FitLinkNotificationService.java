@@ -23,18 +23,15 @@ public class FitLinkNotificationService {
 
     // 1. בקשות הצטרפות
     public static final String GROUP_REQUESTS_CHANNEL_ID = "group_requests_high_priority";
-    private static final String GROUP_REQUESTS_GROUP = "com.example.fitlink.GROUP_REQUESTS";
-
     // 2. הודעות בצ'אט
     public static final String CHAT_CHANNEL_ID = "group_chat_messages";
-    private static final String CHAT_GROUP = "com.example.fitlink.CHAT_MESSAGES";
-
     // 3. אירועים חדשים בקבוצה
     public static final String EVENTS_CHANNEL_ID = "group_new_events";
-    private static final String EVENTS_GROUP = "com.example.fitlink.NEW_EVENTS";
-
     // 4. תזכורות לאירועים (24 שעות לפני)
     public static final String REMINDER_CHANNEL_ID = "event_reminders";
+    private static final String GROUP_REQUESTS_GROUP = "com.example.fitlink.GROUP_REQUESTS";
+    private static final String CHAT_GROUP = "com.example.fitlink.CHAT_MESSAGES";
+    private static final String EVENTS_GROUP = "com.example.fitlink.NEW_EVENTS";
     private static final String REMINDER_GROUP = "com.example.fitlink.REMINDERS";
 
 

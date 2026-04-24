@@ -1,16 +1,17 @@
 package com.example.fitlink.services;
 
+import android.content.Context;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import android.content.Context;
 
 import com.example.fitlink.models.ChatMessage;
 import com.example.fitlink.models.Comment;
+import com.example.fitlink.models.Event;
 import com.example.fitlink.models.Group;
 import com.example.fitlink.models.User;
-import com.example.fitlink.models.Event;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -18,18 +19,17 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.database.ChildEventListener;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.UnaryOperator;
-import java.util.HashSet;
 import java.util.Set;
+import java.util.function.UnaryOperator;
 
 
 /// a service to interact with the Firebase Realtime Database.
@@ -239,8 +239,8 @@ public class DatabaseService {
     ///
     /// @param user     the user object to create
     /// @param callback the callback to call when the operation is completed
-    ///                                                                                                                                                              the callback will receive void
-    ///                                                                                                                                                            if the operation fails, the callback will receive an exception
+    ///                                                                                                                                                                              the callback will receive void
+    ///                                                                                                                                                                            if the operation fails, the callback will receive an exception
     /// @see DatabaseCallback
     /// @see User
     public void createNewUser(@NotNull final User user, @Nullable final DatabaseCallback<Void> callback) {
@@ -251,8 +251,8 @@ public class DatabaseService {
     ///
     /// @param uid      the id of the user to get
     /// @param callback the callback to call when the operation is completed
-    ///                                                                                                                                                               the callback will receive the user object
-    ///                                                                                                                                                             if the operation fails, the callback will receive an exception
+    ///                                                                                                                                                                               the callback will receive the user object
+    ///                                                                                                                                                                             if the operation fails, the callback will receive an exception
     /// @see DatabaseCallback
     /// @see User
     public void getUser(@NotNull final String uid, @NotNull final DatabaseCallback<User> callback) {
@@ -262,8 +262,8 @@ public class DatabaseService {
     /// get all the users from the database
     ///
     /// @param callback the callback to call when the operation is completed
-    ///                                                                                                                                                              the callback will receive a list of user objects
-    ///                                                                                                                                                            if the operation fails, the callback will receive an exception
+    ///                                                                                                                                                                              the callback will receive a list of user objects
+    ///                                                                                                                                                                            if the operation fails, the callback will receive an exception
     /// @see DatabaseCallback
     /// @see List
     /// @see User
@@ -400,8 +400,8 @@ public class DatabaseService {
     /// @param email    the email of the user
     /// @param password the password of the user
     /// @param callback the callback to call when the operation is completed
-    ///                                                                                                                                                            the callback will receive the user object
-    ///                                                                                                                                                          if the operation fails, the callback will receive an exception
+    ///                                                                                                                                                                            the callback will receive the user object
+    ///                                                                                                                                                                          if the operation fails, the callback will receive an exception
     /// @see DatabaseCallback
     /// @see User
     /// get a user by email and password
@@ -432,6 +432,7 @@ public class DatabaseService {
                     }
                 });
     }
+
     /// check if an email already exists in the database
     /// check if an email already exists in the database
     public void checkIfEmailExists(@NotNull final String email, @NotNull final DatabaseCallback<Boolean> callback) {
@@ -470,6 +471,7 @@ public class DatabaseService {
                     }
                 });
     }
+
     /// update only the admin status of a user
     ///
     /// @param uid      user id
@@ -594,18 +596,26 @@ public class DatabaseService {
                                         }
 
                                         @Override
-                                        public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {}
+                                        public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                                        }
+
                                         @Override
-                                        public void onChildRemoved(@NonNull DataSnapshot snapshot) {}
+                                        public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+                                        }
+
                                         @Override
-                                        public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {}
+                                        public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                                        }
+
                                         @Override
-                                        public void onCancelled(@NonNull DatabaseError error) {}
+                                        public void onCancelled(@NonNull DatabaseError error) {
+                                        }
                                     });
                         }
 
                         @Override
-                        public void onFailed(Exception e) {}
+                        public void onFailed(Exception e) {
+                        }
                     });
                 }
             }
@@ -652,20 +662,29 @@ public class DatabaseService {
                                                         .showNewEventNotification(group.getName(), event.getTitle(), event.getId());
                                             }
                                         }
+
                                         @Override
-                                        public void onFailed(Exception e) {}
+                                        public void onFailed(Exception e) {
+                                        }
                                     });
                                 }
                             }
 
                             @Override
-                            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {}
+                            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                            }
+
                             @Override
-                            public void onChildRemoved(@NonNull DataSnapshot snapshot) {}
+                            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+                            }
+
                             @Override
-                            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {}
+                            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                            }
+
                             @Override
-                            public void onCancelled(@NonNull DatabaseError error) {}
+                            public void onCancelled(@NonNull DatabaseError error) {
+                            }
                         });
             }
 
@@ -675,6 +694,7 @@ public class DatabaseService {
             }
         });
     }
+
     /**
      * Creates a new sports group and updates the creator's user record.
      */
@@ -758,6 +778,7 @@ public class DatabaseService {
             }
         });
     }
+
     /**
      * Updates an existing group in the database without overwriting members/managers.
      */
@@ -780,6 +801,7 @@ public class DatabaseService {
                     }
                 });
     }
+
     /**
      * Updates a user's manager status in a group.
      */
@@ -806,6 +828,7 @@ public class DatabaseService {
                     });
         }
     }
+
     /**
      * User requests to join a group (adds to pendingRequests).
      */
@@ -899,6 +922,7 @@ public class DatabaseService {
             }
         });
     }
+
     /**
      * Updates an existing event in the database without overwriting participants.
      */
@@ -923,12 +947,14 @@ public class DatabaseService {
                     }
                 });
     }
+
     /**
      * Retrieves a specific event by its ID.
      */
     public void getEvent(@NotNull final String eventId, @NotNull final DatabaseCallback<Event> callback) {
         getData(EVENTS_PATH + "/" + eventId, Event.class, callback);
     }
+
     /**
      * Retrieves all events associated with a specific group ID.
      */
@@ -953,6 +979,7 @@ public class DatabaseService {
                     }
                 });
     }
+
     /**
      * Retrieves all events (both group and independent) from the database.
      */
@@ -976,6 +1003,7 @@ public class DatabaseService {
             }
         });
     }
+
     /**
      * Retrieves all independent events (events not linked to any group).
      */
@@ -1000,6 +1028,7 @@ public class DatabaseService {
             }
         });
     }
+
     /**
      * Deletes a group entirely from the database, including its chat, its events,
      * the events' comments, and removes its reference from all members.
@@ -1078,6 +1107,7 @@ public class DatabaseService {
             }
         });
     }
+
     /**
      * User joins an event. Updates both the event's participants and the user's event list.
      */
@@ -1119,6 +1149,7 @@ public class DatabaseService {
             }
         });
     }
+
     /**
      * Deletes an event entirely from the database.
      * If it's a past event, it increments the pastEventsCount for all participants to preserve gamification stats.
@@ -1226,6 +1257,7 @@ public class DatabaseService {
 
         writeData("contact_messages/" + messageId, messageData, callback);
     }
+
     public void checkIfPhoneExists(String phone, @NonNull final DatabaseCallback<Boolean> callback) {
         databaseReference.child("users").orderByChild("phone").equalTo(phone)
                 .addListenerForSingleValueEvent(new com.google.firebase.database.ValueEventListener() {
@@ -1240,6 +1272,7 @@ public class DatabaseService {
                     }
                 });
     }
+
     // --- אזור הפונקציות החדשות של הצ'אט ---
     public void sendGroupMessage(@NotNull String groupId, @NotNull ChatMessage message, @Nullable DatabaseCallback<Void> callback) {
         String msgId = databaseReference.child(GROUP_CHATS_PATH).child(groupId).push().getKey();
@@ -1405,6 +1438,7 @@ public class DatabaseService {
                     }
                 });
     }
+
     /**
      * Listens for real-time changes to a specific group.
      * Useful for detecting if a user was removed from a group or if the group was deleted.

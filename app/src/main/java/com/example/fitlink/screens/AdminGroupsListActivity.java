@@ -56,13 +56,6 @@ public class AdminGroupsListActivity extends BaseActivity {
     private List<Group> allGroups = null;
     private CreateGroupDialog currentCreateGroupDialog;
     private EditGroupDialog currentEditGroupDialog;
-    private String currentUserId;
-
-    // משתנים לשמירת המצב הנוכחי של הסינון
-    private SportType activeSportFilter = null;
-    private DifficultyLevel activeLevelFilter = null;
-    private String activeLocationFilter = "";
-
     private final ActivityResultLauncher<Intent> mapPickerLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
@@ -80,8 +73,15 @@ public class AdminGroupsListActivity extends BaseActivity {
                 }
             }
     );
+    private String currentUserId;
+    // משתנים לשמירת המצב הנוכחי של הסינון
+    private SportType activeSportFilter = null;
+    private DifficultyLevel activeLevelFilter = null;
+    private String activeLocationFilter = "";
 
-    public ActivityResultLauncher<Intent> getMapPickerLauncher() { return mapPickerLauncher; }
+    public ActivityResultLauncher<Intent> getMapPickerLauncher() {
+        return mapPickerLauncher;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -128,10 +128,14 @@ public class AdminGroupsListActivity extends BaseActivity {
 
         groupAdapter = new GroupAdapter(new ArrayList<>(), true, currentUserId, new GroupAdapter.OnGroupClickListener() {
             @Override
-            public void onJoinClick(Group group) { handleJoinGroup(group); }
+            public void onJoinClick(Group group) {
+                handleJoinGroup(group);
+            }
 
             @Override
-            public void onLeaveClick(Group group) { handleLeaveGroup(group); }
+            public void onLeaveClick(Group group) {
+                handleLeaveGroup(group);
+            }
 
             @Override
             public void onGroupClick(Group group) {
@@ -191,6 +195,7 @@ public class AdminGroupsListActivity extends BaseActivity {
                 Toast.makeText(AdminGroupsListActivity.this, "Join request sent!", Toast.LENGTH_SHORT).show();
                 loadGroups();
             }
+
             @Override
             public void onFailed(Exception e) {
                 progressBar.setVisibility(View.GONE);
@@ -250,7 +255,8 @@ public class AdminGroupsListActivity extends BaseActivity {
         // חיפוש טקסטואלי מהיר בשורת החיפוש הכללית (לפי שם קבוצה)
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -258,7 +264,8 @@ public class AdminGroupsListActivity extends BaseActivity {
             }
 
             @Override
-            public void afterTextChanged(Editable s) {}
+            public void afterTextChanged(Editable s) {
+            }
         });
 
         // פתיחת חלון הסינון המתקדם
@@ -331,6 +338,7 @@ public class AdminGroupsListActivity extends BaseActivity {
                 allGroups = (groups != null) ? groups : new ArrayList<>();
                 executeSearch();
             }
+
             @Override
             public void onFailed(Exception e) {
                 progressBar.setVisibility(View.GONE);

@@ -49,10 +49,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/poppins_medium"
+                android:gravity="top|start"
                 android:hint="Group Description (Optional)"
                 android:inputType="textMultiLine"
-                android:minLines="3"
-                android:gravity="top|start" />
+                android:minLines="3" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <TextView

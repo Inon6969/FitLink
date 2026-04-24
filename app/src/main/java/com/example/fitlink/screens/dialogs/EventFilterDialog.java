@@ -9,10 +9,12 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
+
 import com.example.fitlink.R;
 import com.example.fitlink.models.DifficultyLevel;
 import com.example.fitlink.models.SportType;
 import com.google.android.material.button.MaterialButton;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -29,10 +31,6 @@ public class EventFilterDialog extends Dialog {
     private String currentLocation;
     private Long currentStartDate, currentEndDate;
     private Integer currentMinDur, currentMaxDur;
-
-    public interface OnEventFilterAppliedListener {
-        void onFilterApplied(SportType sportType, DifficultyLevel level, String location, Long startDate, Long endDate, Integer minDuration, Integer maxDuration);
-    }
 
     public EventFilterDialog(Context context, SportType sport, DifficultyLevel level, String location, Long startDate, Long endDate, Integer minDur, Integer maxDur, OnEventFilterAppliedListener listener) {
         super(context);
@@ -96,7 +94,7 @@ public class EventFilterDialog extends Dialog {
 
         DatePickerDialog datePickerDialog = new DatePickerDialog(getContext(), (view, year, month, day) -> {
             Calendar selected = Calendar.getInstance();
-            if(isStart) selected.set(year, month, day, 0, 0, 0);
+            if (isStart) selected.set(year, month, day, 0, 0, 0);
             else selected.set(year, month, day, 23, 59, 59);
 
             if (isStart) {
@@ -182,11 +180,13 @@ public class EventFilterDialog extends Dialog {
         if (currentMaxDur != null) btnMaxDur.setText(formatDuration(currentMaxDur));
 
         if (currentStartDate != null) {
-            Calendar c = Calendar.getInstance(); c.setTimeInMillis(currentStartDate);
+            Calendar c = Calendar.getInstance();
+            c.setTimeInMillis(currentStartDate);
             btnStartDate.setText(String.format("%02d/%02d/%d", c.get(Calendar.DAY_OF_MONTH), c.get(Calendar.MONTH) + 1, c.get(Calendar.YEAR)));
         }
         if (currentEndDate != null) {
-            Calendar c = Calendar.getInstance(); c.setTimeInMillis(currentEndDate);
+            Calendar c = Calendar.getInstance();
+            c.setTimeInMillis(currentEndDate);
             btnEndDate.setText(String.format("%02d/%02d/%d", c.get(Calendar.DAY_OF_MONTH), c.get(Calendar.MONTH) + 1, c.get(Calendar.YEAR)));
         }
         if (currentSport != null) spinnerSport.setSelection(currentSport.ordinal() + 1);
@@ -220,5 +220,9 @@ public class EventFilterDialog extends Dialog {
         btnEndDate.setText("End Date");
         btnMinDur.setText("Min Duration");
         btnMaxDur.setText("Max Duration");
+    }
+
+    public interface OnEventFilterAppliedListener {
+        void onFilterApplied(SportType sportType, DifficultyLevel level, String location, Long startDate, Long endDate, Integer minDuration, Integer maxDuration);
     }
 }

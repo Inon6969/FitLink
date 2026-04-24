@@ -24,13 +24,11 @@ import com.google.firebase.database.ValueEventListener;
 
 public class BaseActivity extends AppCompatActivity {
 
+    // משתנה סטטי ששומר האם המשתמש כבר אישר את מצב האופליין (תקף לכל המסכים)
+    private static boolean hasAcknowledgedOffline = false;
     protected DatabaseService databaseService;
     private ConnectivityManager.NetworkCallback networkCallback;
     private NoInternetDialog customNoInternetDialog;
-
-    // משתנה סטטי ששומר האם המשתמש כבר אישר את מצב האופליין (תקף לכל המסכים)
-    private static boolean hasAcknowledgedOffline = false;
-
     // מאזינים לשינויים בזמן אמת במשתמש (למקרה של מחיקה)
     private ValueEventListener currentUserListener;
     private String currentUserId;

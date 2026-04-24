@@ -278,9 +278,13 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
     // הממשק (Interface)
     public interface OnUserClickListener {
         void onUserClick(User user);
+
         void onEditUser(User user);
+
         void onToggleAdmin(User user);
+
         void onDeleteUser(User user);
+
         boolean isCurrentUser(User user);
     }
 

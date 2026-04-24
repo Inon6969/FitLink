@@ -45,15 +45,13 @@ public class EditIndependentEventDialog extends Dialog {
     private final Context context;
     private final Event currentEvent;
     private final OnEventUpdatedListener listener;
-
+    private final Calendar eventCalendar = Calendar.getInstance();
     private EditText etTitle, etDescription;
     private Spinner spinnerSport;
     private ChipGroup chipGroupLevel;
     private Button btnDate, btnTime, btnDuration, btnLocation, btnMaxParticipants, btnSave, btnCancel;
     private TextView tvSelectedLocation;
     private ProgressBar progressBar;
-
-    private final Calendar eventCalendar = Calendar.getInstance();
     private boolean isDateSelected = true; // נחשב true כי אנחנו שואבים נתונים קיימים
     private boolean isTimeSelected = true;
 
@@ -62,10 +60,6 @@ public class EditIndependentEventDialog extends Dialog {
     private String selectedAddress = null;
     private long selectedDurationMillis = 0;
     private int selectedMaxParticipants = 0; // משתנה לשמירת כמות המשתתפים
-
-    public interface OnEventUpdatedListener {
-        void onEventUpdated(Event updatedEvent);
-    }
 
     public EditIndependentEventDialog(@NonNull Context context, Event currentEvent, OnEventUpdatedListener listener) {
         super(context);
@@ -381,5 +375,9 @@ public class EditIndependentEventDialog extends Dialog {
                 Toast.makeText(getContext(), "Failed to update event", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    public interface OnEventUpdatedListener {
+        void onEventUpdated(Event updatedEvent);
     }
 }

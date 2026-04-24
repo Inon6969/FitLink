@@ -34,18 +34,10 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private final List<ChatMessage> messages;
     private final String currentUserId;
     private final String creatorId;
-
-    // הוסר ה-final כדי שנוכל לעדכן את מנהלי הקבוצה בזמן אמת
-    private Map<String, Boolean> managers;
-
     // התיקון: הרחבנו את הממשק כדי שיתמוך בלחיצה על הודעה, שם ותמונה
     private final OnMessageClickListener clickListener;
-
-    public interface OnMessageClickListener {
-        void onMessageLongClick(ChatMessage message);
-        void onNameClick(ChatMessage message);
-        void onImageClick(ChatMessage message);
-    }
+    // הוסר ה-final כדי שנוכל לעדכן את מנהלי הקבוצה בזמן אמת
+    private Map<String, Boolean> managers;
 
     public ChatAdapter(List<ChatMessage> messages, String currentUserId, String creatorId, Map<String, Boolean> managers, OnMessageClickListener clickListener) {
         this.messages = messages;
@@ -60,7 +52,6 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         this.managers = newManagers;
         notifyDataSetChanged();
     }
-    // ------------------------------
 
     @Override
     public int getItemViewType(int position) {
@@ -70,6 +61,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             return VIEW_TYPE_RECEIVED;
         }
     }
+    // ------------------------------
 
     @NonNull
     @Override
@@ -95,7 +87,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             sentHolder.tvTime.setText(timeText);
 
             sentHolder.itemView.setOnLongClickListener(v -> {
-                if(clickListener != null) clickListener.onMessageLongClick(message);
+                if (clickListener != null) clickListener.onMessageLongClick(message);
                 return true;
             });
 
@@ -155,12 +147,13 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                     }
 
                     @Override
-                    public void onFailed(Exception e) { }
+                    public void onFailed(Exception e) {
+                    }
                 });
             }
 
             receivedHolder.itemView.setOnLongClickListener(v -> {
-                if(clickListener != null) clickListener.onMessageLongClick(message);
+                if (clickListener != null) clickListener.onMessageLongClick(message);
                 return true;
             });
         }
@@ -175,6 +168,14 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         Calendar cal = Calendar.getInstance(Locale.getDefault());
         cal.setTimeInMillis(timestamp);
         return DateFormat.format("HH:mm", cal).toString();
+    }
+
+    public interface OnMessageClickListener {
+        void onMessageLongClick(ChatMessage message);
+
+        void onNameClick(ChatMessage message);
+
+        void onImageClick(ChatMessage message);
     }
 
     static class SentMessageHolder extends RecyclerView.ViewHolder {

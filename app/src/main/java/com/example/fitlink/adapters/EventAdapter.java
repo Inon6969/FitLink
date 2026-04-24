@@ -1,6 +1,5 @@
 package com.example.fitlink.adapters;
 
-import android.content.Context;
 import android.text.Html;
 import android.text.Spanned;
 import android.view.LayoutInflater;
@@ -30,14 +29,12 @@ import java.util.Map;
 
 public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHolder> {
 
-    private List<Event> eventList;
     private final String currentUserId;
     private final OnEventClickListener listener;
-
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy - HH:mm", Locale.getDefault());
+    private List<Event> eventList;
     private Map<String, String> groupNamesMap = new HashMap<>();
     private boolean showGroupContext = false;
-
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy - HH:mm", Locale.getDefault());
 
     public EventAdapter(List<Event> eventList, String currentUserId, OnEventClickListener listener) {
         this.eventList = eventList;

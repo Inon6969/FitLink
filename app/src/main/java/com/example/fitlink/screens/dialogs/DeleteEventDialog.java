@@ -15,10 +15,6 @@ public class DeleteEventDialog {
     private String customTitle = null;
     private String customMessage = null;
 
-    public interface OnDeleteConfirmListener {
-        void onDeleteConfirm();
-    }
-
     // בנאי רגיל למחיקת אירוע בודד
     public DeleteEventDialog(Context context, OnDeleteConfirmListener listener) {
         this.context = context;
@@ -71,5 +67,9 @@ public class DeleteEventDialog {
         });
 
         dialog.show();
+    }
+
+    public interface OnDeleteConfirmListener {
+        void onDeleteConfirm();
     }
 }

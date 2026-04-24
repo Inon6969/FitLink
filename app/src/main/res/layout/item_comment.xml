@@ -4,9 +4,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layoutDirection="ltr"
     android:layout_marginHorizontal="16dp"
     android:layout_marginBottom="16dp"
+    android:layoutDirection="ltr"
     android:orientation="horizontal">
 
     <com.google.android.material.card.MaterialCardView
@@ -14,9 +14,9 @@
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_marginEnd="12dp"
+        app:cardBackgroundColor="@android:color/transparent"
         app:cardCornerRadius="20dp"
         app:cardElevation="0dp"
-        app:cardBackgroundColor="@android:color/transparent"
         app:strokeColor="#E0E0E0"
         app:strokeWidth="1dp">
 
@@ -34,8 +34,8 @@
         android:layout_height="wrap_content"
         app:cardBackgroundColor="#F5F6FA"
         app:cardElevation="0dp"
-        app:strokeWidth="0dp"
-        app:shapeAppearanceOverlay="@style/ShapeAppearance.FitLink.ChatBubble">
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.FitLink.ChatBubble"
+        app:strokeWidth="0dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -47,16 +47,16 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
                 android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:layout_marginBottom="4dp">
+                android:orientation="horizontal">
 
                 <TextView
                     android:id="@+id/tv_comment_user_name"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
                     android:fontFamily="@font/poppins_bold"
                     android:textColor="@color/fitlinkPrimary"
                     android:textSize="14sp"
@@ -77,9 +77,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/poppins_regular"
+                android:lineSpacingExtra="4dp"
                 android:textColor="#424242"
                 android:textSize="14sp"
-                android:lineSpacingExtra="4dp"
                 tools:text="Hey everyone, where exactly are we meeting? Looking forward to it!" />
 
         </LinearLayout>

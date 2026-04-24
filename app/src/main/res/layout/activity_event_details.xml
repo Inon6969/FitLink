@@ -30,9 +30,9 @@
         android:id="@+id/scroll_event_details"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:clipToPadding="false"
         android:fillViewport="true"
         android:paddingBottom="90dp"
-        android:clipToPadding="false"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
@@ -62,18 +62,18 @@
                         android:layout_width="80dp"
                         android:layout_height="80dp"
                         android:layout_marginEnd="16dp"
+                        app:cardBackgroundColor="@android:color/transparent"
                         app:cardCornerRadius="40dp"
                         app:cardElevation="0dp"
-                        app:cardBackgroundColor="@android:color/transparent"
-                        app:strokeWidth="1dp"
-                        app:strokeColor="#E0E0E0">
+                        app:strokeColor="#E0E0E0"
+                        app:strokeWidth="1dp">
 
                         <ImageView
                             android:id="@+id/img_item_event_icon"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:scaleType="centerCrop"
                             android:padding="16dp"
+                            android:scaleType="centerCrop"
                             app:tint="@color/fitlinkPrimary"
                             tools:src="@drawable/ic_running" />
                     </com.google.android.material.card.MaterialCardView>
@@ -89,9 +89,9 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/poppins_bold"
+                            android:lineSpacingExtra="-2dp"
                             android:textColor="@color/fitlinkPrimary"
                             android:textSize="22sp"
-                            android:lineSpacingExtra="-2dp"
                             tools:text="Morning 5K Run" />
 
                         <TextView
@@ -138,10 +138,11 @@
                             android:layout_width="36dp"
                             android:layout_height="36dp"
                             android:layout_marginEnd="12dp"
+                            app:cardBackgroundColor="#F0F2F5"
                             app:cardCornerRadius="18dp"
                             app:cardElevation="0dp"
-                            app:cardBackgroundColor="#F0F2F5"
                             app:strokeWidth="0dp">
+
                             <ImageView
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
@@ -177,10 +178,11 @@
                             android:layout_width="36dp"
                             android:layout_height="36dp"
                             android:layout_marginEnd="12dp"
+                            app:cardBackgroundColor="#F0F2F5"
                             app:cardCornerRadius="18dp"
                             app:cardElevation="0dp"
-                            app:cardBackgroundColor="#F0F2F5"
                             app:strokeWidth="0dp">
+
                             <ImageView
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
@@ -216,10 +218,11 @@
                             android:layout_width="36dp"
                             android:layout_height="36dp"
                             android:layout_marginEnd="12dp"
+                            app:cardBackgroundColor="#F0F2F5"
                             app:cardCornerRadius="18dp"
                             app:cardElevation="0dp"
-                            app:cardBackgroundColor="#F0F2F5"
                             app:strokeWidth="0dp">
+
                             <ImageView
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
@@ -250,20 +253,20 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="4dp"
                         android:fontFamily="@font/poppins_semibold"
+                        android:letterSpacing="0.05"
                         android:text="Description"
-                        android:textColor="@color/fitlinkTextSecondary"
-                        android:textSize="12sp"
                         android:textAllCaps="true"
-                        android:letterSpacing="0.05"/>
+                        android:textColor="@color/fitlinkTextSecondary"
+                        android:textSize="12sp" />
 
                     <TextView
                         android:id="@+id/tv_details_event_description"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/poppins_regular"
+                        android:lineSpacingExtra="4dp"
                         android:textColor="@color/fitlinkPrimary"
                         android:textSize="15sp"
-                        android:lineSpacingExtra="4dp"
                         tools:text="Come join us for a refreshing morning run! Suitable for all levels." />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -289,13 +292,13 @@
                 android:layout_marginBottom="12dp"
                 android:fontFamily="@font/poppins_bold"
                 android:text="Edit Event"
+                android:textAllCaps="false"
                 android:textColor="@color/fitlinkPrimary"
                 android:visibility="gone"
                 app:cornerRadius="30dp"
                 app:strokeColor="@color/fitlinkPrimary"
                 app:strokeWidth="1dp"
-                tools:visibility="visible"
-                android:textAllCaps="false"/>
+                tools:visibility="visible" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_event_action_tertiary"
@@ -305,13 +308,13 @@
                 android:layout_marginBottom="12dp"
                 android:fontFamily="@font/poppins_bold"
                 android:text="Delete Event"
+                android:textAllCaps="false"
                 android:textColor="#D32F2F"
                 android:visibility="gone"
                 app:cornerRadius="30dp"
                 app:strokeColor="#D32F2F"
                 app:strokeWidth="2dp"
-                tools:visibility="visible"
-                android:textAllCaps="false"/>
+                tools:visibility="visible" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -341,8 +344,8 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         app:cardBackgroundColor="@color/white"
-        app:cardElevation="16dp"
         app:cardCornerRadius="0dp"
+        app:cardElevation="16dp"
         app:strokeWidth="0dp">
 
         <LinearLayout
@@ -356,8 +359,8 @@
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:layout_marginEnd="12dp"
+                android:layout_weight="1"
                 app:cardBackgroundColor="#F0F2F5"
                 app:cardCornerRadius="24dp"
                 app:cardElevation="0dp"

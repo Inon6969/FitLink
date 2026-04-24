@@ -3,11 +3,9 @@ package com.example.fitlink.screens;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.core.graphics.Insets;
@@ -86,6 +84,7 @@ public class LoginActivity extends BaseActivity {
 
     /**
      * Checks if the email and password inputs are valid.
+     *
      * @return true if valid, false otherwise.
      */
     private boolean checkInput(String email, String password) {

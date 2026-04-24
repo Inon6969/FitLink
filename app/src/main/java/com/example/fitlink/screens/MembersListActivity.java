@@ -160,7 +160,8 @@ public class MembersListActivity extends BaseActivity {
             }
 
             @Override
-            public void onEditUser(User user) { }
+            public void onEditUser(User user) {
+            }
 
             @Override
             public void onToggleAdmin(User user) {

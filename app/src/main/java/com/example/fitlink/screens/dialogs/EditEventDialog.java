@@ -31,11 +31,9 @@ public class EditEventDialog extends Dialog {
     private final Event currentEvent;
     private final DatabaseService databaseService;
     private final OnEventUpdatedListener listener;
-
+    private final Calendar eventCalendar = Calendar.getInstance();
     private MaterialButton btnDate, btnTime, btnDuration, btnLocation, btnMaxParticipants;
     private TextInputEditText inputTitle, inputDescription;
-
-    private final Calendar eventCalendar = Calendar.getInstance();
     private boolean isDateSet = true;
     private boolean isTimeSet = true;
     private long selectedDurationMillis = 0;
@@ -44,10 +42,6 @@ public class EditEventDialog extends Dialog {
     private String selectedAddress = "";
     private double selectedLat = 0;
     private double selectedLng = 0;
-
-    public interface OnEventUpdatedListener {
-        void onEventUpdated(Event updatedEvent);
-    }
 
     public EditEventDialog(Context context, Event currentEvent, OnEventUpdatedListener listener) {
         super(context);
@@ -326,5 +320,9 @@ public class EditEventDialog extends Dialog {
         if (btnLocation != null) {
             btnLocation.setText(address);
         }
+    }
+
+    public interface OnEventUpdatedListener {
+        void onEventUpdated(Event updatedEvent);
     }
 }

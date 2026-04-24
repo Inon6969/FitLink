@@ -32,7 +32,7 @@ import com.example.fitlink.screens.dialogs.DeleteEventDialog;
 import com.example.fitlink.screens.dialogs.EditEventDialog;
 import com.example.fitlink.screens.dialogs.EditIndependentEventDialog;
 import com.example.fitlink.services.DatabaseService;
-import com.example.fitlink.utils.EventReminderScheduler; // הוספנו את מחלקת התזמון
+import com.example.fitlink.utils.EventReminderScheduler;
 import com.example.fitlink.utils.ImageUtil;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.google.android.material.button.MaterialButton;
@@ -45,25 +45,20 @@ import java.util.Locale;
 
 public class EventDetailsActivity extends BaseActivity {
 
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy - HH:mm", Locale.getDefault());
     private Event currentEvent;
     private String currentUserId;
     private boolean isAdminMode = false;
     private boolean isGroupCreator = false;
-
     private ImageView imgIcon;
     private TextView tvTitle, tvCreator, tvDateTime, tvLocation, tvParticipants, tvDescription;
     private MaterialButton btnMainAction, btnSecondaryAction, btnTertiaryAction;
-
     private RecyclerView rvComments;
     private CommentAdapter commentAdapter;
     private EditText etNewComment;
     private MaterialButton btnSendComment;
-
     private EditIndependentEventDialog currentEditIndependentDialog;
     private EditEventDialog currentEditGroupEventDialog;
-
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy - HH:mm", Locale.getDefault());
-
     private final ActivityResultLauncher<Intent> mapPickerLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
@@ -289,6 +284,7 @@ public class EventDetailsActivity extends BaseActivity {
                         tvCreator.setText("By Unknown");
                     }
                 }
+
                 @Override
                 public void onFailed(Exception e) {
                     tvCreator.setText("By Unknown");

@@ -9,7 +9,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -27,10 +26,10 @@ import java.util.List;
 
 public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHolder> {
 
-    private List<Group> groupList;
     private final boolean showJoinButton;
     private final String currentUserId;
     private final OnGroupClickListener listener;
+    private List<Group> groupList;
 
     public GroupAdapter(List<Group> groupList, boolean showJoinButton, String currentUserId, OnGroupClickListener listener) {
         this.groupList = groupList;
@@ -189,7 +188,9 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
 
     public interface OnGroupClickListener {
         void onJoinClick(Group group);
+
         void onLeaveClick(Group group);
+
         void onGroupClick(Group group);
     }
 

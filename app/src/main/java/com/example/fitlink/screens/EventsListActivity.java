@@ -49,16 +49,6 @@ public class EventsListActivity extends BaseActivity {
     private List<Event> allEvents = null;
     private String currentUserId;
     private CreateIndependentEventDialog currentCreateEventDialog;
-
-    // משתני מצב לשמירת הסינון הנוכחי (כמו בקבוצות)
-    private SportType activeSportFilter = null;
-    private DifficultyLevel activeLevelFilter = null;
-    private String activeLocationFilter = "";
-    private Long activeStartDate = null;
-    private Long activeEndDate = null;
-    private Integer activeMinDuration = null;
-    private Integer activeMaxDuration = null;
-
     private final ActivityResultLauncher<Intent> mapPickerLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
@@ -72,8 +62,18 @@ public class EventsListActivity extends BaseActivity {
                 }
             }
     );
+    // משתני מצב לשמירת הסינון הנוכחי (כמו בקבוצות)
+    private SportType activeSportFilter = null;
+    private DifficultyLevel activeLevelFilter = null;
+    private String activeLocationFilter = "";
+    private Long activeStartDate = null;
+    private Long activeEndDate = null;
+    private Integer activeMinDuration = null;
+    private Integer activeMaxDuration = null;
 
-    public ActivityResultLauncher<Intent> getMapPickerLauncher() { return mapPickerLauncher; }
+    public ActivityResultLauncher<Intent> getMapPickerLauncher() {
+        return mapPickerLauncher;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -133,11 +133,17 @@ public class EventsListActivity extends BaseActivity {
         // חיפוש טקסטואלי מהיר בשורת החיפוש הכללית (לפי שם אירוע)
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) { executeSearch(); }
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                executeSearch();
+            }
+
             @Override
-            public void afterTextChanged(Editable s) {}
+            public void afterTextChanged(Editable s) {
+            }
         });
 
         // פתיחת חלון הסינון המתקדם
@@ -187,15 +193,19 @@ public class EventsListActivity extends BaseActivity {
 
             // 5. סינון תאריכים
             boolean matchesDate = true;
-            if (activeStartDate != null && event.getStartTimestamp() < activeStartDate) matchesDate = false;
-            if (activeEndDate != null && event.getStartTimestamp() > activeEndDate) matchesDate = false;
+            if (activeStartDate != null && event.getStartTimestamp() < activeStartDate)
+                matchesDate = false;
+            if (activeEndDate != null && event.getStartTimestamp() > activeEndDate)
+                matchesDate = false;
 
             // 6. סינון משך זמן
             boolean matchesDuration = true;
             if (activeMinDuration != null || activeMaxDuration != null) {
                 long durationMins = event.getDurationMillis() / (60 * 1000L);
-                if (activeMinDuration != null && durationMins < activeMinDuration) matchesDuration = false;
-                if (activeMaxDuration != null && durationMins > activeMaxDuration) matchesDuration = false;
+                if (activeMinDuration != null && durationMins < activeMinDuration)
+                    matchesDuration = false;
+                if (activeMaxDuration != null && durationMins > activeMaxDuration)
+                    matchesDuration = false;
             }
 
             // אירוע יוצג רק אם עמד בכל הקריטריונים (AND)

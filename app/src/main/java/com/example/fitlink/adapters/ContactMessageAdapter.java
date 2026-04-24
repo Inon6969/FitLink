@@ -29,13 +29,6 @@ public class ContactMessageAdapter extends RecyclerView.Adapter<ContactMessageAd
     private final OnMessageClickListener listener;
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
 
-    // הוספנו את onMessageClick כדי להאזין ללחיצה על כל ההודעה
-    public interface OnMessageClickListener {
-        void onMessageClick(ContactMessage message);
-        void onReplyClick(ContactMessage message);
-        void onDeleteClick(ContactMessage message);
-    }
-
     public ContactMessageAdapter(OnMessageClickListener listener) {
         this.listener = listener;
     }
@@ -84,7 +77,8 @@ public class ContactMessageAdapter extends RecyclerView.Adapter<ContactMessageAd
                 }
 
                 @Override
-                public void onFailed(Exception e) {}
+                public void onFailed(Exception e) {
+                }
             });
         }
 
@@ -99,6 +93,15 @@ public class ContactMessageAdapter extends RecyclerView.Adapter<ContactMessageAd
     @Override
     public int getItemCount() {
         return messagesList.size();
+    }
+
+    // הוספנו את onMessageClick כדי להאזין ללחיצה על כל ההודעה
+    public interface OnMessageClickListener {
+        void onMessageClick(ContactMessage message);
+
+        void onReplyClick(ContactMessage message);
+
+        void onDeleteClick(ContactMessage message);
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

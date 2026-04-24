@@ -83,7 +83,9 @@ public class ProfileImageDialog {
 
     public interface ImagePickerListener {
         void onCamera();
+
         void onGallery();
+
         void onDelete();
     }
 }

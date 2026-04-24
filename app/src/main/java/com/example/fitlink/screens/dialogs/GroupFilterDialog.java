@@ -7,10 +7,12 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
+
 import com.example.fitlink.R;
 import com.example.fitlink.models.DifficultyLevel;
 import com.example.fitlink.models.SportType;
 import com.google.android.material.button.MaterialButton;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,10 +27,6 @@ public class GroupFilterDialog extends Dialog {
     private SportType currentSport;
     private DifficultyLevel currentLevel;
     private String currentLocation;
-
-    public interface OnFilterAppliedListener {
-        void onFilterApplied(SportType sportType, DifficultyLevel level, String location);
-    }
 
     public GroupFilterDialog(Context context, SportType currentSport, DifficultyLevel currentLevel, String currentLocation, OnFilterAppliedListener listener) {
         super(context);
@@ -103,5 +101,9 @@ public class GroupFilterDialog extends Dialog {
         spinnerSport.setSelection(0);
         spinnerLevel.setSelection(0);
         etLocation.setText("");
+    }
+
+    public interface OnFilterAppliedListener {
+        void onFilterApplied(SportType sportType, DifficultyLevel level, String location);
     }
 }

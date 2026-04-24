@@ -22,12 +22,6 @@ public class JoinRequestAdapter extends RecyclerView.Adapter<JoinRequestAdapter.
     private final List<User> requestList;
     private final OnRequestClickListener listener;
 
-    public interface OnRequestClickListener {
-        void onUserClick(User user); // <-- הוספנו את מתודת הלחיצה על המשתמש
-        void onApproveClick(User user);
-        void onDeclineClick(User user);
-    }
-
     public JoinRequestAdapter(List<User> requestList, OnRequestClickListener listener) {
         this.requestList = requestList;
         this.listener = listener;
@@ -84,6 +78,14 @@ public class JoinRequestAdapter extends RecyclerView.Adapter<JoinRequestAdapter.
         requestList.clear();
         requestList.addAll(newList);
         notifyDataSetChanged();
+    }
+
+    public interface OnRequestClickListener {
+        void onUserClick(User user); // <-- הוספנו את מתודת הלחיצה על המשתמש
+
+        void onApproveClick(User user);
+
+        void onDeclineClick(User user);
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

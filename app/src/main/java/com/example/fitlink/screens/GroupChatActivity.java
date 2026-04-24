@@ -243,7 +243,9 @@ public class GroupChatActivity extends BaseActivity {
 
         DatabaseService.getInstance().sendGroupMessage(currentGroup.getId(), message, new DatabaseService.DatabaseCallback<Void>() {
             @Override
-            public void onCompleted(Void object) { }
+            public void onCompleted(Void object) {
+            }
+
             @Override
             public void onFailed(Exception e) {
                 Toast.makeText(GroupChatActivity.this, "Failed to send", Toast.LENGTH_SHORT).show();

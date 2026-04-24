@@ -133,7 +133,8 @@ public class AdminUsersListActivity extends BaseActivity {
         // האזנה להקלדה בשורת החיפוש (מחפש רק לפי שם)
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -141,7 +142,8 @@ public class AdminUsersListActivity extends BaseActivity {
             }
 
             @Override
-            public void afterTextChanged(Editable s) {}
+            public void afterTextChanged(Editable s) {
+            }
         });
 
         // פתיחת דיאלוג הסינון המתקדם

@@ -287,8 +287,10 @@ public class UserProfileActivity extends BaseActivity implements NavigationView.
                         updateUI();
                     }
                 }
+
                 @Override
-                public void onFailed(Exception e) {}
+                public void onFailed(Exception e) {
+                }
             });
         } else {
             DatabaseService.getInstance().getUser(viewedUserId, new DatabaseService.DatabaseCallback<User>() {

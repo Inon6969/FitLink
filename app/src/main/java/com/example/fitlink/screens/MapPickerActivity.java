@@ -37,17 +37,14 @@ import java.util.concurrent.Executors;
 
 public class MapPickerActivity extends AppCompatActivity {
 
-    private MapView map = null;
-
-    private EditText etSearchAddress;
-    private TextView tvSelectedAddress;
-
-    private GeoPoint finalSelectedPoint;
-    private String finalAddressString = "";
-
     // מנהל תהליכי רקע + Handler כדי לזהות מתי המשתמש סיים לגלול את המפה
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private final Handler delayHandler = new Handler(Looper.getMainLooper());
+    private MapView map = null;
+    private EditText etSearchAddress;
+    private TextView tvSelectedAddress;
+    private GeoPoint finalSelectedPoint;
+    private String finalAddressString = "";
     private Runnable fetchAddressRunnable;
 
     @Override

@@ -4,7 +4,9 @@ import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
+
 import com.example.fitlink.R;
 import com.example.fitlink.models.User;
 
@@ -12,10 +14,6 @@ public class DeleteUserDialog extends Dialog {
 
     private final User user;
     private final OnDeleteOptionSelected listener;
-
-    public interface OnDeleteOptionSelected {
-        void onDeleteOption(boolean deleteGroups);
-    }
 
     public DeleteUserDialog(@NonNull Context context, User user, OnDeleteOptionSelected listener) {
         super(context);
@@ -41,5 +39,9 @@ public class DeleteUserDialog extends Dialog {
         });
 
         findViewById(R.id.btnDeleteCancel).setOnClickListener(v -> dismiss());
+    }
+
+    public interface OnDeleteOptionSelected {
+        void onDeleteOption(boolean deleteGroups);
     }
 }

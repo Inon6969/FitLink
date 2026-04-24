@@ -33,25 +33,21 @@ import java.util.Locale;
 
 public class MyCalendarActivity extends BaseActivity {
 
+    // Filter states
+    private static final int FILTER_ALL = 0;
+    private static final int FILTER_GROUPS = 1;
+    private static final int FILTER_INDEPENDENT = 2;
+    private final Calendar selectedCalendar = Calendar.getInstance();
     private CalendarView calendarView;
     private RecyclerView rvEvents;
     private MaterialCardView layoutEmpty;
     private ProgressBar progressBar;
     private TextView tvSelectedDateTitle;
     private ChipGroup chipGroupFilter;
-
     private EventAdapter eventAdapter;
-
     // התיקון: אתחול כ-null כדי למנוע סינון והעלמת ProgressBar לפני שהנתונים הגיעו
     private List<Event> allMyEvents = null;
-
-    private final Calendar selectedCalendar = Calendar.getInstance();
     private String currentUserId;
-
-    // Filter states
-    private static final int FILTER_ALL = 0;
-    private static final int FILTER_GROUPS = 1;
-    private static final int FILTER_INDEPENDENT = 2;
     private int currentFilter = FILTER_ALL;
 
     @Override

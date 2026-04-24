@@ -103,9 +103,9 @@
                             android:layout_marginTop="4dp"
                             android:fontFamily="@font/poppins_regular"
                             android:text="View all users &amp; admins"
+                            android:textAlignment="center"
                             android:textColor="@color/fitlinkTextSecondary"
-                            android:textSize="12sp"
-                            android:textAlignment="center"/>
+                            android:textSize="12sp" />
 
                     </LinearLayout>
 
@@ -154,9 +154,9 @@
                             android:layout_marginTop="4dp"
                             android:fontFamily="@font/poppins_regular"
                             android:text="View and edit all groups"
+                            android:textAlignment="center"
                             android:textColor="@color/fitlinkTextSecondary"
-                            android:textSize="12sp"
-                            android:textAlignment="center"/>
+                            android:textSize="12sp" />
 
                     </LinearLayout>
 
@@ -205,9 +205,9 @@
                             android:layout_marginTop="4dp"
                             android:fontFamily="@font/poppins_regular"
                             android:text="View all events &amp; sessions"
+                            android:textAlignment="center"
                             android:textColor="@color/fitlinkTextSecondary"
-                            android:textSize="12sp"
-                            android:textAlignment="center"/>
+                            android:textSize="12sp" />
 
                     </LinearLayout>
 
@@ -256,9 +256,9 @@
                             android:layout_marginTop="4dp"
                             android:fontFamily="@font/poppins_regular"
                             android:text="View support requests"
+                            android:textAlignment="center"
                             android:textColor="@color/fitlinkTextSecondary"
-                            android:textSize="12sp"
-                            android:textAlignment="center"/>
+                            android:textSize="12sp" />
 
                     </LinearLayout>
 

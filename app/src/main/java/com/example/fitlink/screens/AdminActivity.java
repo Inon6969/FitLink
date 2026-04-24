@@ -15,7 +15,7 @@ import com.example.fitlink.models.Event;
 import com.example.fitlink.models.Group;
 import com.example.fitlink.models.User;
 import com.example.fitlink.services.DatabaseService;
-import com.example.fitlink.ui.AdminStatsGraphView; // ודא ייבוא של הגרף שיצרנו
+import com.example.fitlink.ui.AdminStatsGraphView;
 
 import java.util.List;
 
@@ -105,8 +105,10 @@ public class AdminActivity extends BaseActivity {
                     updateGraph();
                 }
             }
+
             @Override
-            public void onFailed(Exception e) { }
+            public void onFailed(Exception e) {
+            }
         });
 
         // משיכת כמות הקבוצות
@@ -118,8 +120,10 @@ public class AdminActivity extends BaseActivity {
                     updateGraph();
                 }
             }
+
             @Override
-            public void onFailed(Exception e) { }
+            public void onFailed(Exception e) {
+            }
         });
 
         // משיכת כמות האירועים
@@ -131,8 +135,10 @@ public class AdminActivity extends BaseActivity {
                     updateGraph();
                 }
             }
+
             @Override
-            public void onFailed(Exception e) { }
+            public void onFailed(Exception e) {
+            }
         });
     }
 

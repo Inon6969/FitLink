@@ -25,16 +25,10 @@ import java.util.Locale;
 
 public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentViewHolder> {
 
-    private List<Comment> commentList;
     private final SimpleDateFormat timeFormat = new SimpleDateFormat("dd/MM HH:mm", Locale.getDefault());
-
     // התיקון: ממשק חדש להאזנה ללחיצות
     private final OnCommentClickListener listener;
-
-    public interface OnCommentClickListener {
-        void onNameClick(String userId);
-        void onImageClick(String userId);
-    }
+    private List<Comment> commentList;
 
     // התיקון: הוספנו את ה-listener לבנאי
     public CommentAdapter(List<Comment> commentList, OnCommentClickListener listener) {
@@ -118,6 +112,12 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
     @Override
     public int getItemCount() {
         return commentList.size();
+    }
+
+    public interface OnCommentClickListener {
+        void onNameClick(String userId);
+
+        void onImageClick(String userId);
     }
 
     public static class CommentViewHolder extends RecyclerView.ViewHolder {

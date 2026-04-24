@@ -12,8 +12,8 @@
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:elevation="0dp"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:elevation="0dp">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar_event_participants"
@@ -35,10 +35,10 @@
             android:id="@+id/tv_participants_count"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:fontFamily="@font/poppins_medium"
             android:paddingHorizontal="16dp"
             android:paddingTop="12dp"
             android:paddingBottom="4dp"
-            android:fontFamily="@font/poppins_medium"
             android:textColor="@color/fitlinkTextSecondary"
             android:textSize="14sp"
             android:visibility="gone"

@@ -17,8 +17,8 @@
             android:layout_height="?attr/actionBarSize"
             android:background="@color/fitlinkPrimary"
             app:navigationIcon="?attr/homeAsUpIndicator"
-            app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+            app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
             app:title="Chat Name"
             app:titleTextColor="@color/fitlinkBackground" />
     </com.google.android.material.appbar.AppBarLayout>
@@ -42,8 +42,8 @@
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             app:cardBackgroundColor="@color/white"
-            app:cardElevation="16dp"
             app:cardCornerRadius="0dp"
+            app:cardElevation="16dp"
             app:strokeWidth="0dp">
 
             <LinearLayout
@@ -57,8 +57,8 @@
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:layout_marginEnd="12dp"
+                    android:layout_weight="1"
                     app:cardBackgroundColor="#F0F2F5"
                     app:cardCornerRadius="24dp"
                     app:cardElevation="0dp"

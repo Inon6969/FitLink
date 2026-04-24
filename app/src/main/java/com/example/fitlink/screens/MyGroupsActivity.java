@@ -100,11 +100,17 @@ public class MyGroupsActivity extends BaseActivity {
         // חיפוש טקסטואלי רגיל (לפי שם)
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) { executeSearch(); }
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                executeSearch();
+            }
+
             @Override
-            public void afterTextChanged(Editable s) {}
+            public void afterTextChanged(Editable s) {
+            }
         });
 
         // פתיחת דיאלוג הסינון בדיוק כמו ב-GroupsListActivity
@@ -130,10 +136,12 @@ public class MyGroupsActivity extends BaseActivity {
 
         adapter = new GroupAdapter(new ArrayList<>(), false, currentUserId, new GroupAdapter.OnGroupClickListener() {
             @Override
-            public void onJoinClick(Group group) {} // לא רלוונטי במסך זה
+            public void onJoinClick(Group group) {
+            } // לא רלוונטי במסך זה
 
             @Override
-            public void onLeaveClick(Group group) {} // לא רלוונטי במסך זה
+            public void onLeaveClick(Group group) {
+            } // לא רלוונטי במסך זה
 
             @Override
             public void onGroupClick(Group group) {
@@ -182,11 +190,16 @@ public class MyGroupsActivity extends BaseActivity {
                     }
 
                     @Override
-                    public void onFailed(Exception e) { handleError(e); }
+                    public void onFailed(Exception e) {
+                        handleError(e);
+                    }
                 });
             }
+
             @Override
-            public void onFailed(Exception e) { handleError(e); }
+            public void onFailed(Exception e) {
+                handleError(e);
+            }
         });
     }
 

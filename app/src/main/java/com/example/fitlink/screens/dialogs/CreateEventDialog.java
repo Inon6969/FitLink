@@ -16,7 +16,7 @@ import com.example.fitlink.models.Location;
 import com.example.fitlink.screens.GroupDashboardActivity;
 import com.example.fitlink.screens.MapPickerActivity;
 import com.example.fitlink.services.DatabaseService;
-import com.example.fitlink.utils.EventReminderScheduler; // הוספנו את מחלקת התזמון
+import com.example.fitlink.utils.EventReminderScheduler;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
@@ -31,11 +31,9 @@ public class CreateEventDialog extends Dialog {
     private final Context context;
     private final Group group;
     private final DatabaseService databaseService;
-
+    private final Calendar eventCalendar = Calendar.getInstance();
     private MaterialButton btnDate, btnTime, btnDuration, btnLocation, btnMaxParticipants;
     private TextInputEditText inputTitle, inputDescription;
-
-    private final Calendar eventCalendar = Calendar.getInstance();
     private boolean isDateSet = false;
     private boolean isTimeSet = false;
     private long selectedDurationMillis = 0;

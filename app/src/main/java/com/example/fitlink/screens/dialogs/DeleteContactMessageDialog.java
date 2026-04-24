@@ -4,7 +4,9 @@ import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
+
 import com.example.fitlink.R;
 import com.example.fitlink.models.ContactMessage;
 
@@ -12,10 +14,6 @@ public class DeleteContactMessageDialog extends Dialog {
 
     private final ContactMessage message;
     private final OnDeleteMessageListener listener;
-
-    public interface OnDeleteMessageListener {
-        void onDelete();
-    }
 
     public DeleteContactMessageDialog(@NonNull Context context, ContactMessage message, OnDeleteMessageListener listener) {
         super(context);
@@ -44,5 +42,9 @@ public class DeleteContactMessageDialog extends Dialog {
         });
 
         findViewById(R.id.btnDeleteMessageCancel).setOnClickListener(v -> dismiss());
+    }
+
+    public interface OnDeleteMessageListener {
+        void onDelete();
     }
 }

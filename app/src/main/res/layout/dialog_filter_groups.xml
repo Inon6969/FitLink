@@ -3,8 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layoutDirection="ltr"
-    android:fillViewport="true">
+    android:fillViewport="true"
+    android:layoutDirection="ltr">
 
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
@@ -137,12 +137,12 @@
                             android:id="@+id/edit_filter_location"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:inputType="text"
                             android:fontFamily="@font/poppins_regular"
-                            android:textSize="14sp"
+                            android:hint="e.g. Tel Aviv"
+                            android:inputType="text"
                             android:paddingTop="12dp"
                             android:paddingBottom="12dp"
-                            android:hint="e.g. Tel Aviv" />
+                            android:textSize="14sp" />
                     </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

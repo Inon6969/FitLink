@@ -15,21 +15,15 @@ import com.google.android.material.button.MaterialButton;
 
 public class UserFilterDialog extends Dialog {
 
+    // אופציות ל-Spinner
+    private static final String[] ROLE_OPTIONS = {"All Roles", "Admin", "Regular"};
     private Spinner spinnerRole;
     private EditText etEmail, etPhone;
     private MaterialButton btnApply, btnClear;
-
-    // אופציות ל-Spinner
-    private static final String[] ROLE_OPTIONS = {"All Roles", "Admin", "Regular"};
-
     private OnUserFilterAppliedListener listener;
     private String selectedRole = "All Roles";
     private String selectedEmail = "";
     private String selectedPhone = "";
-
-    public interface OnUserFilterAppliedListener {
-        void onFilterApplied(String role, String email, String phone);
-    }
 
     public UserFilterDialog(@NonNull Context context) {
         super(context);
@@ -106,5 +100,9 @@ public class UserFilterDialog extends Dialog {
             listener.onFilterApplied(finalRole, finalEmail, finalPhone);
         }
         dismiss();
+    }
+
+    public interface OnUserFilterAppliedListener {
+        void onFilterApplied(String role, String email, String phone);
     }
 }

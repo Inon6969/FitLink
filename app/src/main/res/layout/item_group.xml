@@ -6,10 +6,10 @@
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="16dp"
     android:layout_marginVertical="8dp"
-    android:layoutDirection="ltr"
     android:clickable="true"
     android:focusable="true"
     android:foreground="?attr/selectableItemBackground"
+    android:layoutDirection="ltr"
     app:cardBackgroundColor="@color/fitlinkBackground"
     app:cardCornerRadius="20dp"
     app:cardElevation="2dp"
@@ -25,20 +25,20 @@
             android:id="@+id/card_item_group_icon"
             android:layout_width="64dp"
             android:layout_height="64dp"
+            app:cardBackgroundColor="@android:color/transparent"
             app:cardCornerRadius="32dp"
             app:cardElevation="0dp"
-            app:cardBackgroundColor="@android:color/transparent"
-            app:strokeWidth="1dp"
-            app:strokeColor="#E0E0E0"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
+            app:strokeColor="#E0E0E0"
+            app:strokeWidth="1dp">
 
             <ImageView
                 android:id="@+id/img_item_group_icon"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scaleType="centerCrop"
                 android:padding="12dp"
+                android:scaleType="centerCrop"
                 app:tint="@color/fitlinkPrimary"
                 tools:src="@drawable/ic_running" />
         </com.google.android.material.card.MaterialCardView>
@@ -48,13 +48,13 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="12dp"
-            android:gravity="left"
             android:fontFamily="@font/poppins_bold"
+            android:gravity="left"
             android:textColor="@color/fitlinkPrimary"
             android:textSize="18sp"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@id/card_item_group_icon"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
             tools:text="Morning Runners" />
 
         <TextView
@@ -66,9 +66,9 @@
             android:fontFamily="@font/poppins_regular"
             android:textColor="@color/fitlinkTextSecondary"
             android:textSize="12sp"
-            app:layout_constraintTop_toBottomOf="@id/tv_item_group_name"
-            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@id/card_item_group_icon"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_item_group_name"
             tools:text="By Inon" />
 
         <androidx.constraintlayout.widget.Barrier
@@ -84,9 +84,9 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:orientation="vertical"
-            app:layout_constraintTop_toBottomOf="@id/barrier_top"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
+            app:layout_constraintTop_toBottomOf="@id/barrier_top">
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -168,10 +168,10 @@
             android:layout_marginTop="12dp"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            app:layout_constraintTop_toBottomOf="@id/layout_group_details"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/btn_item_group_join"
-            app:layout_constraintBottom_toBottomOf="parent">
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/layout_group_details">
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chip_group_level"

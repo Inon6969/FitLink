@@ -54,10 +54,6 @@ public class GroupDashboardActivity extends BaseActivity {
     private Chip chipGroupType;
     private CreateEventDialog currentCreateEventDialog;
     private EditGroupDialog currentEditGroupDialog;
-
-    private ValueEventListener groupListener;
-    private boolean isInitialized = false;
-
     private final ActivityResultLauncher<Intent> mapPickerLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
@@ -74,6 +70,8 @@ public class GroupDashboardActivity extends BaseActivity {
                 }
             }
     );
+    private ValueEventListener groupListener;
+    private boolean isInitialized = false;
 
     public ActivityResultLauncher<Intent> getMapPickerLauncher() {
         return mapPickerLauncher;

@@ -33,7 +33,7 @@ import com.example.fitlink.models.SportType;
 import com.example.fitlink.screens.EventsListActivity;
 import com.example.fitlink.screens.MapPickerActivity;
 import com.example.fitlink.services.DatabaseService;
-import com.example.fitlink.utils.EventReminderScheduler; // הוספנו את מחלקת התזמון
+import com.example.fitlink.utils.EventReminderScheduler;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.google.android.material.chip.ChipGroup;
 

@@ -77,7 +77,9 @@ public class GroupsListActivity extends BaseActivity {
             }
     );
 
-    public ActivityResultLauncher<Intent> getMapPickerLauncher() { return mapPickerLauncher; }
+    public ActivityResultLauncher<Intent> getMapPickerLauncher() {
+        return mapPickerLauncher;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,10 +126,14 @@ public class GroupsListActivity extends BaseActivity {
 
         groupAdapter = new GroupAdapter(new ArrayList<>(), true, currentUserId, new GroupAdapter.OnGroupClickListener() {
             @Override
-            public void onJoinClick(Group group) { handleJoinGroup(group); }
+            public void onJoinClick(Group group) {
+                handleJoinGroup(group);
+            }
 
             @Override
-            public void onLeaveClick(Group group) { handleLeaveGroup(group); }
+            public void onLeaveClick(Group group) {
+                handleLeaveGroup(group);
+            }
 
             @Override
             public void onGroupClick(Group group) {
@@ -143,7 +149,8 @@ public class GroupsListActivity extends BaseActivity {
         // חיפוש טקסטואלי מהיר בשורת החיפוש הכללית (לפי שם קבוצה)
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -151,7 +158,8 @@ public class GroupsListActivity extends BaseActivity {
             }
 
             @Override
-            public void afterTextChanged(Editable s) {}
+            public void afterTextChanged(Editable s) {
+            }
         });
 
         // פתיחת חלון הסינון המתקדם
@@ -225,6 +233,7 @@ public class GroupsListActivity extends BaseActivity {
                 allGroups = (groups != null) ? groups : new ArrayList<>();
                 executeSearch();
             }
+
             @Override
             public void onFailed(Exception e) {
                 progressBar.setVisibility(View.GONE);
@@ -310,6 +319,7 @@ public class GroupsListActivity extends BaseActivity {
             });
         }
     }
+
     private void handleLeaveGroup(Group group) {
         String currentUserId = SharedPreferencesUtil.getUserId(this);
         boolean isCreator = group.getCreatorId() != null && group.getCreatorId().equals(currentUserId);

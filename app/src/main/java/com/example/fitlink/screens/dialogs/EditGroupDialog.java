@@ -16,7 +16,7 @@ import com.example.fitlink.models.Group;
 import com.example.fitlink.models.Location;
 import com.example.fitlink.models.SportType;
 import com.example.fitlink.screens.GroupDashboardActivity;
-import com.example.fitlink.screens.GroupsListActivity; // הייבוא שהוספנו
+import com.example.fitlink.screens.GroupsListActivity;
 import com.example.fitlink.screens.MapPickerActivity;
 import com.example.fitlink.services.DatabaseService;
 import com.google.android.material.button.MaterialButton;
@@ -42,10 +42,6 @@ public class EditGroupDialog extends Dialog {
     private String selectedAddress = "";
     private double selectedLat = 0;
     private double selectedLng = 0;
-
-    public interface OnGroupUpdatedListener {
-        void onGroupUpdated(Group updatedGroup);
-    }
 
     public EditGroupDialog(@NonNull Context context, Group currentGroup, OnGroupUpdatedListener listener) {
         super(context);
@@ -187,5 +183,9 @@ public class EditGroupDialog extends Dialog {
         if (btnOpenMap != null) {
             btnOpenMap.setText(address);
         }
+    }
+
+    public interface OnGroupUpdatedListener {
+        void onGroupUpdated(Group updatedGroup);
     }
 }

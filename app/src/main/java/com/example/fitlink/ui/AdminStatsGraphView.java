@@ -19,6 +19,12 @@ import androidx.annotation.Nullable;
 
 public class AdminStatsGraphView extends View {
 
+    // פלטת הצבעים המעודכנת מבוססת על #1E88E5
+    private final int primaryColor = Color.parseColor("#1E88E5");
+    private final int darkPrimaryColor = Color.parseColor("#0D47A1");
+    private final int lightPrimaryColor = Color.parseColor("#64B5F6");
+    private final int trackColor = Color.parseColor("#F0F4F8"); // אפור-כחלחל סופר עדין לרקע
+    private final int glowColor = Color.parseColor("#661E88E5"); // צל כחול רך
     private Paint barPaint;
     private Paint barHighlightPaint; // ליצירת אפקט ברק תלת-ממדי
     private Paint trackPaint;
@@ -27,19 +33,10 @@ public class AdminStatsGraphView extends View {
     private Paint axisPaint;
     private Paint gridPaint;
     private Paint valueBadgePaint;
-
     private int userCount = 0;
     private int groupCount = 0;
     private int eventCount = 0;
-
     private float animationProgress = 0f;
-
-    // פלטת הצבעים המעודכנת מבוססת על #1E88E5
-    private final int primaryColor = Color.parseColor("#1E88E5");
-    private final int darkPrimaryColor = Color.parseColor("#0D47A1");
-    private final int lightPrimaryColor = Color.parseColor("#64B5F6");
-    private final int trackColor = Color.parseColor("#F0F4F8"); // אפור-כחלחל סופר עדין לרקע
-    private final int glowColor = Color.parseColor("#661E88E5"); // צל כחול רך
 
     public AdminStatsGraphView(Context context) {
         super(context);

@@ -35,17 +35,15 @@ import java.util.Locale;
 
 public class GroupCalendarActivity extends BaseActivity {
 
+    private final Calendar selectedCalendar = Calendar.getInstance();
     private Group currentGroup;
     private CalendarView calendarView;
     private RecyclerView rvEvents;
     private MaterialCardView layoutEmpty;
     private ProgressBar progressBar;
     private TextView tvSelectedDateTitle;
-
     private EventAdapter eventAdapter;
     private List<Event> allGroupEvents = new ArrayList<>();
-    private final Calendar selectedCalendar = Calendar.getInstance();
-
     private ValueEventListener groupListener;
     private boolean isInitialized = false;
 
