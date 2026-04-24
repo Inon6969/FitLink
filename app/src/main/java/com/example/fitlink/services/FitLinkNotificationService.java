@@ -7,7 +7,6 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.os.Build;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
@@ -53,51 +52,49 @@ public class FitLinkNotificationService {
     }
 
     private void createChannels() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationManager systemManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-            if (systemManager == null) return;
+        NotificationManager systemManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (systemManager == null) return;
 
-            // 1. יצירת ערוץ לבקשות הצטרפות
-            NotificationChannel requestChannel = new NotificationChannel(
-                    GROUP_REQUESTS_CHANNEL_ID,
-                    "Group Join Requests",
-                    NotificationManager.IMPORTANCE_HIGH
-            );
-            requestChannel.setDescription("Notifications for users requesting to join your groups");
-            requestChannel.enableVibration(true);
-            requestChannel.setVibrationPattern(new long[]{0, 500, 200, 500});
-            systemManager.createNotificationChannel(requestChannel);
+        // 1. יצירת ערוץ לבקשות הצטרפות
+        NotificationChannel requestChannel = new NotificationChannel(
+                GROUP_REQUESTS_CHANNEL_ID,
+                "Group Join Requests",
+                NotificationManager.IMPORTANCE_HIGH
+        );
+        requestChannel.setDescription("Notifications for users requesting to join your groups");
+        requestChannel.enableVibration(true);
+        requestChannel.setVibrationPattern(new long[]{0, 500, 200, 500});
+        systemManager.createNotificationChannel(requestChannel);
 
-            // 2. יצירת ערוץ להודעות צ'אט
-            NotificationChannel chatChannel = new NotificationChannel(
-                    CHAT_CHANNEL_ID,
-                    "Group Chat Messages",
-                    NotificationManager.IMPORTANCE_HIGH
-            );
-            chatChannel.setDescription("Notifications for new messages in your groups");
-            chatChannel.enableVibration(true);
-            systemManager.createNotificationChannel(chatChannel);
+        // 2. יצירת ערוץ להודעות צ'אט
+        NotificationChannel chatChannel = new NotificationChannel(
+                CHAT_CHANNEL_ID,
+                "Group Chat Messages",
+                NotificationManager.IMPORTANCE_HIGH
+        );
+        chatChannel.setDescription("Notifications for new messages in your groups");
+        chatChannel.enableVibration(true);
+        systemManager.createNotificationChannel(chatChannel);
 
-            // 3. יצירת ערוץ לאירועים חדשים
-            NotificationChannel eventChannel = new NotificationChannel(
-                    EVENTS_CHANNEL_ID,
-                    "New Group Events",
-                    NotificationManager.IMPORTANCE_HIGH
-            );
-            eventChannel.setDescription("Notifications when a new event is created in your groups");
-            eventChannel.enableVibration(true);
-            systemManager.createNotificationChannel(eventChannel);
+        // 3. יצירת ערוץ לאירועים חדשים
+        NotificationChannel eventChannel = new NotificationChannel(
+                EVENTS_CHANNEL_ID,
+                "New Group Events",
+                NotificationManager.IMPORTANCE_HIGH
+        );
+        eventChannel.setDescription("Notifications when a new event is created in your groups");
+        eventChannel.enableVibration(true);
+        systemManager.createNotificationChannel(eventChannel);
 
-            // 4. יצירת ערוץ לתזכורות אירועים
-            NotificationChannel reminderChannel = new NotificationChannel(
-                    REMINDER_CHANNEL_ID,
-                    "Event Reminders",
-                    NotificationManager.IMPORTANCE_HIGH
-            );
-            reminderChannel.setDescription("Reminders 24 hours before your events start");
-            reminderChannel.enableVibration(true);
-            systemManager.createNotificationChannel(reminderChannel);
-        }
+        // 4. יצירת ערוץ לתזכורות אירועים
+        NotificationChannel reminderChannel = new NotificationChannel(
+                REMINDER_CHANNEL_ID,
+                "Event Reminders",
+                NotificationManager.IMPORTANCE_HIGH
+        );
+        reminderChannel.setDescription("Reminders 24 hours before your events start");
+        reminderChannel.enableVibration(true);
+        systemManager.createNotificationChannel(reminderChannel);
     }
 
     // ==========================================

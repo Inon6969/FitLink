@@ -214,11 +214,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
             formatted = "<b>" + groupName + "</b> &nbsp;&nbsp;&#8226;&nbsp;&nbsp; By " + creatorName;
         }
 
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-            return Html.fromHtml(formatted, Html.FROM_HTML_MODE_COMPACT);
-        } else {
-            return Html.fromHtml(formatted);
-        }
+        return Html.fromHtml(formatted, Html.FROM_HTML_MODE_COMPACT);
     }
 
     private int getSportIconResource(SportType type) {

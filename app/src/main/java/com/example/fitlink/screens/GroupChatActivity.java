@@ -41,7 +41,6 @@ public class GroupChatActivity extends BaseActivity {
     private Group currentGroup;
     private RecyclerView rvChat;
     private EditText etMessage;
-    private MaterialButton btnSend;
     private ChatAdapter adapter;
     private List<ChatMessage> messageList;
     private String currentUserId;
@@ -153,7 +152,7 @@ public class GroupChatActivity extends BaseActivity {
 
         rvChat = findViewById(R.id.rv_chat_messages);
         etMessage = findViewById(R.id.et_chat_input);
-        btnSend = findViewById(R.id.btn_send_message);
+        MaterialButton btnSend = findViewById(R.id.btn_send_message);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setStackFromEnd(true);

@@ -24,7 +24,6 @@
             app:tint="#FF5252" />
 
         <TextView
-            android:id="@+id/txtDeleteGroupTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
@@ -35,7 +34,6 @@
             android:textSize="22sp" />
 
         <TextView
-            android:id="@+id/txtDeleteGroupMessage"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="32dp"

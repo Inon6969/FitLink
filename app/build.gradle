@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace 'com.example.fitlink'
-    compileSdk 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId "com.example.fitlink"
@@ -42,6 +42,6 @@ dependencies {
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
     implementation libs.osmdroid.android
-    implementation("com.applandeo:material-calendar-view:1.9.2")
+    implementation(libs.material.calendar.view)
     implementation libs.work.runtime
 }

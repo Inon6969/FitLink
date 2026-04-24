@@ -17,7 +17,6 @@
         android:padding="24dp">
 
         <ImageView
-            android:id="@+id/imageView_profile_image_dialog_icon"
             android:layout_width="250dp"
             android:layout_height="50dp"
             android:layout_gravity="center_horizontal"
@@ -48,7 +47,6 @@
             android:textSize="16sp" />
 
         <LinearLayout
-            android:id="@+id/layout_profile_image_buttons_top"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
@@ -83,7 +81,6 @@
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/layout_profile_image_buttons_bottom"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"

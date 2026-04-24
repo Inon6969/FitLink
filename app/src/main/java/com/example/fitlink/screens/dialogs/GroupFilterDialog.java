@@ -25,7 +25,6 @@ public class GroupFilterDialog extends Dialog {
     private final String currentLocation;
     private Spinner spinnerSport, spinnerLevel;
     private EditText etLocation;
-    private MaterialButton btnApply, btnClear;
 
     public GroupFilterDialog(Context context, SportType currentSport, DifficultyLevel currentLevel, String currentLocation, OnFilterAppliedListener listener) {
         super(context);
@@ -45,8 +44,8 @@ public class GroupFilterDialog extends Dialog {
         spinnerSport = findViewById(R.id.spinner_filter_sport);
         spinnerLevel = findViewById(R.id.spinner_filter_level);
         etLocation = findViewById(R.id.edit_filter_location);
-        btnApply = findViewById(R.id.btn_filter_apply);
-        btnClear = findViewById(R.id.btn_filter_clear);
+        MaterialButton btnApply = findViewById(R.id.btn_filter_apply);
+        MaterialButton btnClear = findViewById(R.id.btn_filter_clear);
 
         setupSpinners();
         restorePreviousState();

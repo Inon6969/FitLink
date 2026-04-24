@@ -288,7 +288,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         }
         if (id == btnAdminPanel.getId()) {
             startActivity(new Intent(this, AdminActivity.class));
-            return;
         }
     }
 }

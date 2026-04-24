@@ -28,7 +28,10 @@ public class EventFilterDialog extends Dialog {
     private final String currentLocation;
     private Spinner spinnerSport, spinnerLevel;
     private EditText etLocation;
-    private MaterialButton btnStartDate, btnEndDate, btnMinDur, btnMaxDur, btnApply, btnClear;
+    private MaterialButton btnStartDate;
+    private MaterialButton btnEndDate;
+    private MaterialButton btnMinDur;
+    private MaterialButton btnMaxDur;
     private Long currentStartDate, currentEndDate;
     private Integer currentMinDur, currentMaxDur;
 
@@ -60,8 +63,8 @@ public class EventFilterDialog extends Dialog {
         btnMinDur = findViewById(R.id.btn_filter_min_dur);
         btnMaxDur = findViewById(R.id.btn_filter_max_dur);
 
-        btnApply = findViewById(R.id.btn_filter_apply);
-        btnClear = findViewById(R.id.btn_filter_clear);
+        MaterialButton btnApply = findViewById(R.id.btn_filter_apply);
+        MaterialButton btnClear = findViewById(R.id.btn_filter_clear);
 
         setupSpinners();
         restorePreviousState();

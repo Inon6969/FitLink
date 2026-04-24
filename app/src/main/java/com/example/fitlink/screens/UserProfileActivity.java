@@ -50,7 +50,6 @@ public class UserProfileActivity extends BaseActivity implements NavigationView.
     private TextView txtTitle, txtRank, txtFirstName, txtLastName, txtEmail, txtPhone, txtPassword;
     private TextView txtStatGroups, txtStatUpcoming, txtStatCompleted;
     private ImageView imgUserProfile, imgTogglePassword;
-    private Button btnEditUser, btnChangePhoto;
 
     private DrawerLayout drawerLayout;
 
@@ -101,8 +100,8 @@ public class UserProfileActivity extends BaseActivity implements NavigationView.
             return insets;
         });
 
-        btnEditUser = findViewById(R.id.btn_DetailsAboutUser_edit_user);
-        btnChangePhoto = findViewById(R.id.btn_DetailsAboutUser_change_photo);
+        Button btnEditUser = findViewById(R.id.btn_DetailsAboutUser_edit_user);
+        Button btnChangePhoto = findViewById(R.id.btn_DetailsAboutUser_change_photo);
 
         txtTitle = findViewById(R.id.txt_DetailsAboutUser_title);
         txtRank = findViewById(R.id.txt_DetailsAboutUser_rank);
