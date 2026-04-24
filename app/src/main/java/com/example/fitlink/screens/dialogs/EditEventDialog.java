@@ -209,11 +209,7 @@ public class EditEventDialog extends Dialog {
         numberPicker.setMaxValue(maxMembers);
 
         // מוודא שאם הערך הנוכחי גדול ממה שמותר (למשל חברים עזבו), זה לא יקרוס
-        if (selectedMaxParticipants > maxMembers) {
-            numberPicker.setValue(maxMembers);
-        } else {
-            numberPicker.setValue(selectedMaxParticipants);
-        }
+        numberPicker.setValue(Math.min(selectedMaxParticipants, maxMembers));
         numberPicker.setWrapSelectorWheel(true);
 
         // תצוגה מותאמת אישית לערך 0 - מוצג כ-"Any"
