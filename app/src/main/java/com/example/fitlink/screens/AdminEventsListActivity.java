@@ -25,11 +25,12 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.fitlink.R;
 import com.example.fitlink.adapters.EventAdapter;
+import com.example.fitlink.dialogs.DeleteEventDialog;
 import com.example.fitlink.models.DifficultyLevel;
 import com.example.fitlink.models.Event;
 import com.example.fitlink.models.SportType;
-import com.example.fitlink.screens.dialogs.CreateIndependentEventDialog;
-import com.example.fitlink.screens.dialogs.EventFilterDialog;
+import com.example.fitlink.dialogs.CreateIndependentEventDialog;
+import com.example.fitlink.dialogs.EventFilterDialog;
 import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.google.android.material.button.MaterialButton;
@@ -267,7 +268,7 @@ public class AdminEventsListActivity extends BaseActivity {
         String title = "Confirm Cleanup";
         String message = "Are you sure you want to permanently delete all events that ended before " + formattedDate + "?\n\n(Gamification stats for users will be safely preserved).";
 
-        new com.example.fitlink.screens.dialogs.DeleteEventDialog(this, title, message, () -> {
+        new DeleteEventDialog(this, title, message, () -> {
             progressBar.setVisibility(View.VISIBLE);
             btnCleanupEvents.setEnabled(false);
             btnCleanupEvents.setText("Cleaning...");

@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.fitlink.R;
 import com.example.fitlink.adapters.ContactMessageAdapter;
+import com.example.fitlink.dialogs.DeleteContactMessageDialog;
 import com.example.fitlink.models.ContactMessage;
 import com.example.fitlink.services.DatabaseService;
 
@@ -97,7 +98,7 @@ public class AdminContactMessagesListActivity extends BaseActivity {
             @Override
             public void onDeleteClick(ContactMessage message) {
                 // קריאה לדיאלוג המעוצב החדש שלנו במקום ה-AlertDialog הרגיל
-                new com.example.fitlink.screens.dialogs.DeleteContactMessageDialog(
+                new DeleteContactMessageDialog(
                         AdminContactMessagesListActivity.this,
                         message,
                         () -> deleteMessage(message.getId())

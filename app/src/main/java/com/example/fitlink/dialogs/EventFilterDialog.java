@@ -1,4 +1,4 @@
-package com.example.fitlink.screens.dialogs;
+package com.example.fitlink.dialogs;
 
 import android.app.DatePickerDialog;
 import android.app.Dialog;

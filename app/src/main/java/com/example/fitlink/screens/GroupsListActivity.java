@@ -23,13 +23,14 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.fitlink.R;
 import com.example.fitlink.adapters.GroupAdapter;
+import com.example.fitlink.dialogs.CancelJoinRequestDialog;
 import com.example.fitlink.models.DifficultyLevel;
 import com.example.fitlink.models.Group;
 import com.example.fitlink.models.SportType;
-import com.example.fitlink.screens.dialogs.CreateGroupDialog;
-import com.example.fitlink.screens.dialogs.GroupDescriptionDialog;
-import com.example.fitlink.screens.dialogs.GroupFilterDialog;
-import com.example.fitlink.screens.dialogs.LeaveGroupDialog;
+import com.example.fitlink.dialogs.CreateGroupDialog;
+import com.example.fitlink.dialogs.GroupDescriptionDialog;
+import com.example.fitlink.dialogs.GroupFilterDialog;
+import com.example.fitlink.dialogs.LeaveGroupDialog;
 import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.google.android.material.button.MaterialButton;
@@ -260,7 +261,7 @@ public class GroupsListActivity extends BaseActivity {
 
         // במקרה שהמשתמש כבר שלח בקשה (Pending) - נפתח את דיאלוג האישור לביטול
         if (group.getPendingRequests() != null && group.getPendingRequests().containsKey(currentUserId)) {
-            new com.example.fitlink.screens.dialogs.CancelJoinRequestDialog(this, group, () -> {
+            new CancelJoinRequestDialog(this, group, () -> {
                 progressBar.setVisibility(View.VISIBLE);
                 databaseService.cancelJoinRequest(group.getId(), Objects.requireNonNull(currentUserId), new DatabaseService.DatabaseCallback<>() {
                     @Override
