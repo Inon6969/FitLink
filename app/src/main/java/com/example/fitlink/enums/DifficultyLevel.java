@@ -1,4 +1,4 @@
-package com.example.fitlink.models;
+package com.example.fitlink.enums;
 
 public enum DifficultyLevel {
     BEGINNER("Beginner"),

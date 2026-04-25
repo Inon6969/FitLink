@@ -1,5 +1,8 @@
 package com.example.fitlink.models;
 
+import com.example.fitlink.enums.DifficultyLevel;
+import com.example.fitlink.enums.SportType;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;

@@ -30,10 +30,10 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.example.fitlink.R;
-import com.example.fitlink.models.Event;
-import com.example.fitlink.models.User;
 import com.example.fitlink.dialogs.EditUserDialog;
 import com.example.fitlink.dialogs.ProfileImageDialog;
+import com.example.fitlink.models.Event;
+import com.example.fitlink.models.User;
 import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.ImageUtil;
 import com.example.fitlink.utils.SharedPreferencesUtil;

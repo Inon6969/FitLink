@@ -15,8 +15,8 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.fitlink.R;
+import com.example.fitlink.enums.SportType;
 import com.example.fitlink.models.Group;
-import com.example.fitlink.models.SportType;
 import com.example.fitlink.models.User;
 import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.ImageUtil;

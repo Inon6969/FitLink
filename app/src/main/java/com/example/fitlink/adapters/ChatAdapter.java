@@ -96,7 +96,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             receivedHolder.tvMessage.setText(message.getText());
             receivedHolder.tvTime.setText(timeText);
 
-            if (creatorId != null && message.getSenderId().equals(creatorId)) {
+            if (message.getSenderId().equals(creatorId)) {
                 receivedHolder.tvName.setText(message.getSenderName() + " (Creator)");
                 receivedHolder.tvName.setTextColor(Color.parseColor("#D32F2F"));
                 receivedHolder.tvName.setTypeface(null, Typeface.BOLD);

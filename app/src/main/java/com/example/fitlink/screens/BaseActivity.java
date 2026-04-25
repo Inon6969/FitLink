@@ -13,9 +13,9 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 
-import com.example.fitlink.models.User;
 import com.example.fitlink.dialogs.LogoutDialog;
 import com.example.fitlink.dialogs.NoInternetDialog;
+import com.example.fitlink.models.User;
 import com.example.fitlink.services.AuthService;
 import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.SharedPreferencesUtil;

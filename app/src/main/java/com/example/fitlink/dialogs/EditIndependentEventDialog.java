@@ -26,10 +26,10 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 
 import com.example.fitlink.R;
-import com.example.fitlink.models.DifficultyLevel;
+import com.example.fitlink.enums.DifficultyLevel;
+import com.example.fitlink.enums.SportType;
 import com.example.fitlink.models.Event;
 import com.example.fitlink.models.Location;
-import com.example.fitlink.models.SportType;
 import com.example.fitlink.screens.EventDetailsActivity;
 import com.example.fitlink.screens.EventsListActivity;
 import com.example.fitlink.screens.MapPickerActivity;

@@ -17,8 +17,8 @@ import android.widget.Toast;
 import androidx.core.content.ContextCompat;
 
 import com.example.fitlink.R;
+import com.example.fitlink.enums.SportType;
 import com.example.fitlink.models.Group;
-import com.example.fitlink.models.SportType;
 import com.example.fitlink.screens.MembersListActivity;
 import com.example.fitlink.utils.ImageUtil;
 import com.google.android.material.chip.Chip;

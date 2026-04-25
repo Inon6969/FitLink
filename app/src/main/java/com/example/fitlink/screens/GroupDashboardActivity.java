@@ -25,12 +25,12 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.fitlink.R;
-import com.example.fitlink.models.Group;
 import com.example.fitlink.dialogs.CreateEventDialog;
 import com.example.fitlink.dialogs.DeleteGroupDialog;
 import com.example.fitlink.dialogs.EditGroupDialog;
 import com.example.fitlink.dialogs.LeaveGroupDialog;
 import com.example.fitlink.dialogs.ProfileImageDialog;
+import com.example.fitlink.models.Group;
 import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.ImageUtil;
 import com.example.fitlink.utils.SharedPreferencesUtil;

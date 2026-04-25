@@ -9,8 +9,8 @@ import android.widget.EditText;
 import android.widget.Spinner;
 
 import com.example.fitlink.R;
-import com.example.fitlink.models.DifficultyLevel;
-import com.example.fitlink.models.SportType;
+import com.example.fitlink.enums.DifficultyLevel;
+import com.example.fitlink.enums.SportType;
 import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;

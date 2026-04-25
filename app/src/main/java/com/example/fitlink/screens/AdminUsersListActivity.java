@@ -22,11 +22,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.fitlink.R;
 import com.example.fitlink.adapters.UserAdapter;
-import com.example.fitlink.models.User;
 import com.example.fitlink.dialogs.AddUserDialog;
 import com.example.fitlink.dialogs.DeleteUserDialog;
 import com.example.fitlink.dialogs.EditUserDialog;
 import com.example.fitlink.dialogs.UserFilterDialog;
+import com.example.fitlink.models.User;
 import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.google.android.material.button.MaterialButton;
@@ -199,9 +199,7 @@ public class AdminUsersListActivity extends BaseActivity {
             // 4. סינון לפי טקסט חופשי (חיפוש גלובלי - כעת רק לפי שם המשתמש)
             if (!query.trim().isEmpty()) {
                 String q = query.toLowerCase().trim();
-                if (user.getFullName() == null || !user.getFullName().toLowerCase().contains(q)) {
-                    return false;
-                }
+                return user.getFullName() != null && user.getFullName().toLowerCase().contains(q);
             }
 
             // אם המשתמש עבר את כל הסינונים בהצלחה

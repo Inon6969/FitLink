@@ -1,5 +1,7 @@
 package com.example.fitlink.models;
 
+import com.example.fitlink.enums.DifficultyLevel;
+import com.example.fitlink.enums.SportType;
 import com.google.firebase.database.Exclude;
 
 import java.io.Serializable;

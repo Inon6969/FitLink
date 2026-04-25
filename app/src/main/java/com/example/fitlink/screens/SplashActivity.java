@@ -13,8 +13,8 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.fitlink.R;
-import com.example.fitlink.models.User;
 import com.example.fitlink.dialogs.NoInternetDialog;
+import com.example.fitlink.models.User;
 import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 

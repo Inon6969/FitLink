@@ -25,12 +25,12 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.fitlink.R;
 import com.example.fitlink.adapters.EventAdapter;
-import com.example.fitlink.dialogs.DeleteEventDialog;
-import com.example.fitlink.models.DifficultyLevel;
-import com.example.fitlink.models.Event;
-import com.example.fitlink.models.SportType;
 import com.example.fitlink.dialogs.CreateIndependentEventDialog;
+import com.example.fitlink.dialogs.DeleteEventDialog;
 import com.example.fitlink.dialogs.EventFilterDialog;
+import com.example.fitlink.enums.DifficultyLevel;
+import com.example.fitlink.enums.SportType;
+import com.example.fitlink.models.Event;
 import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.google.android.material.button.MaterialButton;
@@ -198,9 +198,7 @@ public class AdminEventsListActivity extends BaseActivity {
                             event.getLocation().getAddress().toLowerCase().contains(activeLocationFilter.toLowerCase()));
 
             // 5. סינון תאריכים
-            boolean matchesDate = true;
-            if (activeStartDate != null && event.getStartTimestamp() < activeStartDate)
-                matchesDate = false;
+            boolean matchesDate = activeStartDate == null || event.getStartTimestamp() >= activeStartDate;
             if (activeEndDate != null && event.getStartTimestamp() > activeEndDate)
                 matchesDate = false;
 

@@ -21,11 +21,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.fitlink.R;
 import com.example.fitlink.adapters.GroupAdapter;
-import com.example.fitlink.models.DifficultyLevel;
-import com.example.fitlink.models.Group;
-import com.example.fitlink.models.SportType;
-import com.example.fitlink.models.User;
 import com.example.fitlink.dialogs.GroupFilterDialog;
+import com.example.fitlink.enums.DifficultyLevel;
+import com.example.fitlink.enums.SportType;
+import com.example.fitlink.models.Group;
+import com.example.fitlink.models.User;
 import com.example.fitlink.services.DatabaseService;
 import com.example.fitlink.utils.SharedPreferencesUtil;
 import com.google.android.material.button.MaterialButton;
