@@ -122,7 +122,7 @@ public class AddUserDialog {
                 @Override
                 public void onCompleted(Boolean exists) {
                     if (exists) {
-                        Toast.makeText(context, "אימייל זה כבר קיים במערכת", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context, "This email already exists in the system.", Toast.LENGTH_SHORT).show();
                     } else {
                         databaseService.createNewUser(user, new DatabaseService.DatabaseCallback<>() {
                             @Override
@@ -131,14 +131,14 @@ public class AddUserDialog {
                                 if (listener != null) {
                                     listener.onUserAdded(user);
                                 }
-                                Toast.makeText(context, "משתמש נוסף בהצלחה", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(context, "User successfully added", Toast.LENGTH_SHORT).show();
                                 dialog.dismiss();
                             }
 
                             @Override
                             public void onFailed(Exception e) {
                                 Log.e(TAG, "Failed to create user", e);
-                                Toast.makeText(context, "שגיאה בשמירה", Toast.LENGTH_LONG).show();
+                                Toast.makeText(context, "Error saving", Toast.LENGTH_LONG).show();
                             }
                         });
                     }
@@ -147,7 +147,7 @@ public class AddUserDialog {
                 @Override
                 public void onFailed(Exception e) {
                     Log.e(TAG, "Failed to check email existence", e);
-                    Toast.makeText(context, "שגיאה בבדיקת אימייל", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, "Error checking email", Toast.LENGTH_SHORT).show();
                 }
             });
         });

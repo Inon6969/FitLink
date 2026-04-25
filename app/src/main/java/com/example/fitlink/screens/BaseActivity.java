@@ -117,7 +117,7 @@ public class BaseActivity extends AppCompatActivity {
 
         new LogoutDialog(this, () -> {
             String email = authService.logout();
-            Toast.makeText(this, "התנתקת בהצלחה", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "You have successfully logged out", Toast.LENGTH_SHORT).show();
 
             Intent intent = new Intent(this, LoginActivity.class);
             intent.putExtra("userEmail", email);

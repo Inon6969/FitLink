@@ -465,7 +465,7 @@ public class UserProfileActivity extends BaseActivity implements NavigationView.
                 openCameraIntent();
             } else {
                 // המשתמש דחה
-                Toast.makeText(this, "נדרשת הרשאת מצלמה כדי לצלם תמונה", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Camera permission is required to take a picture.", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -478,12 +478,12 @@ public class UserProfileActivity extends BaseActivity implements NavigationView.
             @Override
             public void onCompleted(Void object) {
                 SharedPreferencesUtil.saveUser(UserProfileActivity.this, user);
-                Toast.makeText(UserProfileActivity.this, "תמונת הפרופיל נמחקה", Toast.LENGTH_SHORT).show();
+                Toast.makeText(UserProfileActivity.this, "Profile picture deleted", Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onFailed(Exception e) {
-                Toast.makeText(UserProfileActivity.this, "שגיאה במחיקת התמונה", Toast.LENGTH_SHORT).show();
+                Toast.makeText(UserProfileActivity.this, "Error deleting image", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -521,12 +521,12 @@ public class UserProfileActivity extends BaseActivity implements NavigationView.
             @Override
             public void onCompleted(Void object) {
                 SharedPreferencesUtil.saveUser(UserProfileActivity.this, user);
-                Toast.makeText(UserProfileActivity.this, "תמונת הפרופיל עודכנה!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(UserProfileActivity.this, "Profile picture updated!", Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onFailed(Exception e) {
-                Toast.makeText(UserProfileActivity.this, "שגיאה בעדכון התמונה: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(UserProfileActivity.this, "Error updating image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
